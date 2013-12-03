@@ -1,0 +1,25 @@
+#!/bin/bash
+
+rainfile="/home/mike/music/Rainymood/RainyMood.m4a"
+
+duration="$(
+	ffprobe "$rainfile" -show_format -of json 2>/dev/null |
+	jq '.format.duration' |
+	tr -d '"'
+)"
+
+if [ -x "$duration" ] || [ "$duration" == "null" ]; then
+	echo "Failed to get duration"
+	echo "Full output from ffprobe:"
+	ffprobe "$rainfile" -show_format -of json
+	exit 1
+fi
+
+position="$(python2 -c "import random; print int(random.random() * $duration)")"
+
+mplayer </dev/null >/dev/null 2>&1 -loop 0 "$rainfile" -ss "$position" &
+pid="$!"
+trap "kill $pid" exit
+
+read -s -N1 -p "Press any key to exit"
+echo

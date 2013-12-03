@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ "$#" -lt 2 ]; then
+	echo "USAGE: $0 TIME COMMAND {ARGS}"
+	echo "Run COMMAND with ARGS at specified TIME."
+	echo "TIME may be given in any form understood by date(1)"
+	exit 2
+fi
+
+duestr="$1"
+shift
+
+due=`date -d "$duestr" +%s`
+if [ ! "$due" ]; then
+	echo "Error: Could not understand due time."
+	exit 1
+fi
+now=`date +%s`
+interval=$((due - now))
+
+if [ "$interval" -lt 0 ]; then
+	echo "Error: $durstr is $((-interval))s in the past."
+	exit 1
+fi
+
+( sleep "$interval" && "$@" ) &

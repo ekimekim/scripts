@@ -1,0 +1,8 @@
+#!/bin/bash
+
+interval="$1"
+shift
+
+while sleep "$interval"; do
+	"$@"
+done

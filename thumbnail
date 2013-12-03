@@ -1,0 +1,11 @@
+#!/usr/bin/python2
+
+import Image
+import sys
+
+file, size = sys.argv[1:]
+size = map(int, size.split("x"))
+
+im = Image.open(file)
+im.thumbnail(size)
+im.save("small-%s" % file)

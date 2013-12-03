@@ -1,0 +1,36 @@
+#!/bin/bash
+
+USAGE="$0 [TIMESPEC]
+A speaking clock that says the time once every TIMESPEC.
+For example, \"$0 1 hour\" would speak at the boundary of every hour,
+while \"$0 15 minutes\" would speak four times as often.
+In technical terms, the time is reported when time since epoch is divisible by TIMESPEC.
+TIMESPEC defaults to 1 hour.
+"
+
+# set this to empty string to disable special case "o'clock" behaviour
+OCLOCK=${OCLOCK:-true}
+
+# change this to your favourite text-to-speech application
+SPEAK="espeak"
+
+if [ "$#" -lt 1 ]; then
+	timespec=3600
+else
+	timespec=$((`date +%s -d "$*"` - `date +%s`))
+fi
+
+if [ ! "$timespec" ] || [ "$timespec" -lt 0 ]; then
+	echo "Error interpreting timespec"
+	exit 1
+fi
+
+while true; do
+	timeleft=$((timespec - (`date +%s` % timespec)))
+	sleep "$timeleft" || exit # in case of bad screwup causing an inf loop
+	if [ -n "$OCLOCK" ] && [ "`date +%M`" == "00" ]; then
+		date +"%-H o clock" | $SPEAK
+	else
+		date +"%-H %-M" | $SPEAK
+	fi
+done

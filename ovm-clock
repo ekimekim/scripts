@@ -1,0 +1,110 @@
+#!/bin/bash
+
+clockfile=~/.ovm-clock-time
+recordfile=~/.ovm-clock-records
+
+if echo "$2" | grep -v '^ *$'  > /dev/null
+then
+	if ! date -d "$2" >/dev/null 2>&1
+	then
+		echo "Invalid date"
+		exit 1
+	fi
+	date="$2"
+else
+	date="@`date +%s`"
+fi
+
+if [ "$3" ]
+then
+	recordfile="$3"
+fi
+
+if [ ! "$1" ]
+then
+	echo "USAGE: $0 [on|start|off|stop|status|clear|view] [DATE] [RECORDFILE]
+	on|start: Clock on, ie. start tracking time spent working.
+	off|stop: Clock off, ie. stop tracking time spent working.
+	status: Prints whether clocked on and returns true (0) if clocked on, else false (1)
+	clear: Cancel clock on without recording time.
+	view: Show the records file, in a nice format.
+	view-raw: Show the records file as it is stored on the system.
+	total: Show hh:mm:ss of total time in records file.
+	Optional arg DATE means to use DATE as current time, not the actual current time.
+	Optional arg RECORDFILE replaces normal record file. Note that if you don't supply date,
+	you must supply an all-whitespace arg in its place."
+elif [ "$1" == "on" ] || [ "$1" == "start" ]
+then
+	if "$0" status > /dev/null
+	then
+		echo "Already clocked on."
+		exit 1
+	fi
+	date +%s -d "$date" > "$clockfile"
+elif [ "$1" == "off" ] || [ "$1" == "stop" ]
+then
+	if ! "$0" status > /dev/null
+	then
+		echo "Not clocked on."
+		exit 1
+	fi
+	start=`cat "$clockfile"`
+	end=`date +%s -d "$date"`
+	duration="$[$end-$start]"
+	if [ ! -e "$recordfile" ]
+	then
+		echo -e "Start\tEnd\tDuration\tRunning Total" > "$recordfile"
+		subtotal=0
+	else
+		subtotal=`cut -f4 "$recordfile" | tail -n1`
+	fi
+	total="$[$subtotal+$duration]"
+	echo -e "$start\t$end\t$duration\t$total" >> "$recordfile"
+	rm "$clockfile"
+elif [ "$1" == "status" ]
+then
+	if [ -f "$clockfile" ]
+	then
+		echo -n "Clocked on since "
+		date -d @`cat "$clockfile"`
+		exit 0
+	else
+		echo "Not clocked on."
+		exit 1
+	fi
+elif [ "$1" == "clear" ]
+then
+	if ! "$0" status > /dev/null
+	then
+		echo "Not clocked on."
+		exit 1
+	fi
+	rm "$clockfile"
+elif [ "$1" == "view-raw" ]
+then
+	cat "$recordfile"
+elif [ "$1" == "view" ]
+then
+	datefmt='%T %d/%m/%y %Z'
+	tmpfile=$RANDOM
+	perhour=20
+	totalsec="`cut -f4 "$recordfile" | tail -n1`"
+	charge=`python -c "print '\$%02.2f' % ($perhour*$totalsec/3600.0)"`
+	awk '{print "@"$1}' "$recordfile" | date -f- +"$datefmt" > "/tmp/$tmpfile.begin"
+	awk '{print "@"$2}' "$recordfile" | date -f- +"$datefmt" > "/tmp/$tmpfile.end"
+	awk '{printf("%02d:%02d:%02d\n",$3/3600,($3/60)%60,$3%60)}' "$recordfile" > "/tmp/$tmpfile.duration"
+	awk '{printf("%02d:%02d:%02d\n",$4/3600,($4/60)%60,$4%60)}' "$recordfile" > "/tmp/$tmpfile.total"
+	total=`tail -n1 "/tmp/$tmpfile.total"`
+	(
+		echo -e "Start time\tFinish time\tDuration\tRunning Total"
+		paste /tmp/"$tmpfile".{begin,end,duration,total}
+		echo
+		echo -e "Total time:\t$total"
+		echo -e "Charge per hour:\t$perhour"
+		echo -e "Total charge:\t$charge"
+	) | tab2table
+elif [ "$1" == "total" ]
+then
+	secs=`tail -n1 "$recordfile" | cut -f4`
+	python -c "print '%02d:%02d:%02d' % ($secs/3600,($secs/60)%60, $secs%60)"
+fi

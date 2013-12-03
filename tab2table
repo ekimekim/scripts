@@ -1,0 +1,62 @@
+#!/usr/bin/python
+
+"""USAGE: tab2table.py {FILENAME}
+
+Takes tab-seperated input from all files given (if none, stdin is used),
+and outputs space-padded output such that each column lines up,
+with a minimum seperation of 4 spaces.
+Special filename '-' is interpreted as stdin.
+
+Flags:
+	-h --help Display this message
+"""
+
+import sys
+from sys import argv
+
+def printhelp():
+	print __doc__
+	sys.exit(1)
+
+flags = {'-h':printhelp, '--help':printhelp}
+
+argv = argv[1:]
+
+for arg in argv:
+	if arg in flags:
+		argv.pop(arg)
+		flags[arg]()
+
+files = []
+if len(argv) == 0:
+	files.append(sys.stdin)
+else:
+	for arg in argv:
+		if arg == '-':
+			files.append(sys.stdin)
+		else:
+			files.append(open(arg,'rU'))
+
+tabwidth = 4
+
+widths = [] # list of column widths
+
+text = ''.join([f.read() for f in files])
+if not text:
+	exit(0)
+if text[-1] == '\n':
+	text = text[:-1] # strip final newline to avoid [proper lines, ..., '']
+lines = text.split('\n')
+for line in lines:
+	parts = line.split('\t')
+	for x in range(len(parts)):
+		while x >= len(widths):
+			widths.append(tabwidth)
+		if len(parts[x])+tabwidth > widths[x]:
+			widths[x] = len(parts[x])+tabwidth
+
+for line in lines:
+	parts = line.split('\t')
+	for x in range(len(parts)):
+		sys.stdout.write(parts[x] + ' ' * (widths[x] - len(parts[x])))
+	sys.stdout.write('\n')

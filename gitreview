@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [ ! "$1" ]; then
+	echo "No args - default to review stable..HEAD"
+	firstarg="stable..HEAD"
+else
+	firstarg="$1"
+fi
+shift 1
+
+#MAIL_LIST="stable-review@orionvm.com.au"
+[ "${MAIL_LIST:?NO MAIL LIST SET: ABORTING}" ]
+tmpdir="/tmp/gitreview-$RANDOM"
+COVER_LETTER="$tmpdir/0000-cover-letter.patch"
+
+# resolve repo TLD
+REPO="`pwd`"
+while ! ls -a "$REPO" | grep '^\.git$' > /dev/null; do
+	REPO="`dirname "$REPO"`"
+	if [ "$REPO" == "/" ]; then
+		echo "Fatal: Not a git repository."
+		exit 1
+	fi
+done
+REPO="`basename "$REPO"`"
+
+git format-patch --text --numbered --cover-letter --subject-prefix="$REPO" -s --output-directory="$tmpdir" "$firstarg" "$@" &&
+cp "$COVER_LETTER" "$COVER_LETTER~" &&
+$EDITOR "$COVER_LETTER" &&
+{
+	if diff "$COVER_LETTER" "$COVER_LETTER~" > /dev/null; then
+		echo "Cover letter not filled in - aborting."
+	else
+		rm "$COVER_LETTER~"
+		git send-email "$tmpdir" --confirm=never --quiet --no-validate --to="$MAIL_LIST"
+	fi
+}
+
+rm -r "$tmpdir"

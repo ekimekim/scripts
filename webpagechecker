@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /home/mike/src/webpagechecker
+python2 main.py "$@"

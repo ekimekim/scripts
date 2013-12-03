@@ -1,0 +1,5 @@
+#!/bin/bash
+
+source "$HOME/.aws_rc"
+cd "$HOME/src/glacier-cli"
+exec python2 glacier.py "$@"

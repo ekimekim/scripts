@@ -1,0 +1,11 @@
+#!/bin/bash
+
+USAGE="$0 [FORMAT]"
+
+FORMAT="${1:-%T}"
+
+while sleep 1; do
+	clear
+	echo
+	banner "`date "+$FORMAT"`"
+done

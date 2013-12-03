@@ -1,0 +1,35 @@
+#!/bin/bash
+
+USAGE="$0 [PATH]
+Searches for git repositories in PATH, and does a 'git get' on them.
+That is: a git fetch --all --prune
+Designed to run as an automated update script.
+Does not touch bare repositories.
+
+If not specified, PATH defaults to ~/src
+"
+
+die() { echo "$@"; exit 1; }
+interrupt() { kill $current; }
+
+
+SRCDIR="$1"
+shift 1
+
+[ "$SRCDIR" ] || SRCDIR=~/src
+[ -e "$SRCDIR" ] || die "$SRCDIR not found"
+[ -d "$SRCDIR" ] || die "$SRCDIR not a directory"
+
+trap interrupt SIGINT
+
+echo "Scanning directory $SRCDIR"
+for d in "$SRCDIR"/*; do
+	[ -d "$d" ] || continue
+	[ -d "$d/.git" ] && (
+		cd "$d"
+		echo "Fetching for repository ${d}..."
+		git get
+	) &
+	current=$!
+	wait $current # if we get a ^C, interrupt() will kill the $current proc and we continue.
+done

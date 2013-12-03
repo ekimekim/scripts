@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd ~/src/tex-templates
+./gen_assignment "$@"

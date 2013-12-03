@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PYTHONPATH="$HOME/src/awp2" python "$HOME/src/awp2/simple.py" "$@"

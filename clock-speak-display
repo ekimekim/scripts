@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# combines clock-speak and clock-big
+
+die() {
+	echo "clock-speak failed"
+	exit
+}
+
+clock-speak "$@" 2>/dev/null &
+pid=$!
+trap die SIGCHLD
+trap "kill $pid" EXIT
+clock-big

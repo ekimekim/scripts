@@ -1,0 +1,55 @@
+#!/bin/bash
+
+USAGE="$0 PID FD
+A progress bar for a running process's position through a file.
+The file must have a known size.
+
+Env vars:
+INTERVAL: Modify the refresh interval.
+BANNER: Alternate program for percentage display (default 'banner')
+"
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $USAGE"
+	exit 1
+fi
+
+INTERVAL=${INTERVAL:-0.5}
+BANNER=${BANNER:-banner}
+
+PID="$1"
+FD="$2"
+
+while sleep "$INTERVAL"; do
+	if ! [ -d "/proc/$PID" ]; then
+		clear
+		echo "Process complete."
+		exit 1
+	fi
+
+	file="`readlink "/proc/$PID/fd/$FD"`"
+	if [ ! "$file" ]; then
+		clear
+		echo "File closed."
+		exit 1
+	fi
+	if [ "$file" != "$oldfile" ]; then
+		if [ -b "$file" ]; then
+			totalsize="`blockdev --getsize64 "$file"`"
+		elif [ -f "$file" ]; then
+			totalsize="`stat -c %s "$file"`"
+		else
+			clear
+			echo "Could not determine size of file: $file"
+			exit 1
+		fi
+	fi
+	oldfile="$file"
+	position="`grep pos "/proc/$PID/fdinfo/$FD"| cut -f2`"
+	complete=$((position * 100 / totalsize))
+	clear
+	echo
+	echo "$file"
+	echo
+	$BANNER "$complete%"
+done

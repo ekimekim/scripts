@@ -1,0 +1,62 @@
+#!/bin/bash
+
+USAGE="$0 {PID:FD}
+A progress bar for a running process's position through a file.
+
+Env vars:
+INTERVAL: Modify the refresh interval.
+BANNER: Alternate program for percentage display (default 'banner')
+"
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $USAGE"
+	exit 1
+fi
+
+INTERVAL=${INTERVAL:-0.5}
+BANNER=${BANNER:-banner}
+first=true
+
+while [ "$first" ] || sleep "$INTERVAL"; do
+	clear
+	flag=
+	first=
+
+	for arg in "$@"; do
+		pid=${arg%:*}
+		fd=${arg#*:}
+
+		if [ ! -d "/proc/$pid" ]; then
+			echo "$pid has terminated"
+			continue
+		fi
+
+		file="`readlink -e "/proc/$pid/fd/$fd"`"
+		if [ ! "$file" ]; then
+			echo "$pid has no readable fd $fd"
+			continue
+		fi
+
+		if [ -b "$file" ]; then
+			totalsize="`blockdev --getsize64 "$file" 2>/dev/null`"
+		elif [ -f "$file" ]; then
+			totalsize="`stat -c %s "$file" 2>/dev/null`"
+		else
+			echo "Cannot read size of $file"
+			continue
+		fi
+
+		position="`grep pos "/proc/$pid/fdinfo/$fd"| cut -f2`"
+		complete=$((position * 100 / totalsize))
+		echo
+		echo
+		echo "$file"
+		echo
+		$BANNER "$complete%"
+		flag=true
+	done
+
+	[ ! "$flag" ] && break
+done
+
+echo "All readable processes complete, or no more files could have their size determined."

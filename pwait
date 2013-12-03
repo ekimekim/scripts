@@ -1,0 +1,14 @@
+#!/bin/bash
+
+USAGE="$0 {ARGS}
+Wait for given process(es) to complete.
+Process is specified as per pgrep/pkill."
+
+if [ "$#" -lt 1 ]; then
+	echo "$USAGE" >&2
+	exit 1
+fi
+
+for pid in `pgrep "$@"`; do
+	wait $pid
+done

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python ~/src/clock_overlay.py '\e[1;34m%X\e[m'

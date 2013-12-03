@@ -1,0 +1,33 @@
+#!/bin/bash
+
+USAGE="$0 COMMAND {ARGS}
+Run given command in a new X session.
+The session should appear on the next available tty and will terminate when the command does.
+"
+
+
+if [ "$#" -lt 1 ]; then
+	echo "$USAGE"
+	exit 255
+fi
+
+# keeps looping until an available display number is found
+for ((n=0;;n++)); do
+	if ! [ -e "/tmp/.X11-unix/X$n" ]; then
+		break
+	fi
+done
+
+if [ "$1" == "--single-monitor" ]; then
+	export XRUN_SINGLE_MONITOR=true
+	shift
+fi
+
+# Construct a bash command string to execute program, even if it contains spaces.
+command=""
+for arg in "$@"; do
+	command="$command `printf %q "$arg"`"
+done
+echo "$command" >> "/var/log/xrun/invocations"
+
+XRUN="$command" startx -- ":$n" 2>&1 | tee "/var/log/xrun/`basename "$1"`.log"

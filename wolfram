@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for search in "$@"
+	do chromium 'http://www.wolframalpha.com/input/?i='"$search" &
+done

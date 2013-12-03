@@ -1,0 +1,16 @@
+#!/bin/bash
+
+USAGE="$0 REFSPEC [COMMAND {ARGS}]
+Checkout given REFSPEC, run a new bash instance, checkout previous head on exit.
+If a command is given, run that then exit instead."
+subject="${1:?$USAGE}"
+shift
+current="$(git symbolic-ref HEAD | cut -d/ -f3)"
+
+git checkout $subject || exit
+if [ $# -lt 1 ]; then
+    bash
+else
+    "$@"
+fi
+git checkout $current

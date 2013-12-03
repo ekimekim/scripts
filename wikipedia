@@ -1,0 +1,5 @@
+#!/bin/bash
+
+for search in "$@"
+	do $BROWSER 'http://en.wikipedia.org/w/index.php?title=Special:Search&search='"$search" &
+done

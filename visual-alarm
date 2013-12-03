@@ -1,0 +1,44 @@
+#!/usr/bin/python
+
+import sys
+import random
+import time
+
+USAGE="""{argv[0]} [STYLE]
+Visual alarm, designed to draw attention to the terminal screen.
+STYLE may refer to a different, non-default style.
+""".format(argv=sys.argv)
+
+ALT_BUFFER_CODE = 47
+CSI = '\x1b['
+seq_base = lambda cmd, *codes: CSI + ';'.join(str(c) for c in codes) + cmd
+
+set_alt_buffer = seq_base('h', '?47')
+reset_alt_buffer = seq_base('l', '?47')
+clear = seq_base('H') + seq_base('J', 2)
+
+def symbols():
+	"""Style involving random characters in random colors"""
+	while True:
+		color = seq_base('m', random.choice([0,1]), random.choice(range(30,38)))
+		char = random.choice([chr(x) for x in range(ord(' '),ord('/')+1)])
+		sys.stdout.write(color + char)
+		sys.stdout.flush()
+
+def backcolor():
+	"""Style involving rapidly changing the background color"""
+	flag = False
+	while True:
+		sys.stdout.write(seq_base('m', '41' if flag else '46') + clear)
+		sys.stdout.flush()
+		flag = not flag
+		time.sleep(0.1)
+
+style_default = 'backcolor'
+style = sys.argv[1] if len(sys.argv) > 2 else style_default
+
+try:
+	sys.stdout.write(set_alt_buffer + clear)
+	globals()[style]()
+finally:
+	sys.stdout.write(reset_alt_buffer + seq_base('m'))

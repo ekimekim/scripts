@@ -1,0 +1,15 @@
+#!/bin/bash
+
+USAGE="$0 VIRTUALENV
+Runs bash in virtualenv."
+
+if [ ! "$1" ]; then
+	echo "$USAGE"
+	exit 1
+fi
+
+virtualenv="/var/env/$1"
+shift 1
+
+cd "$virtualenv" &&
+bash --rcfile bin/activate "$@"

@@ -1,0 +1,16 @@
+#!/usr/bin/awk -f
+
+{
+	if ( $0 ~ /^\+\+\+/ || $0 ~ /^---/ ) # File Control lines in bold purple
+		print "\x1b[1;35m" $0 "\x1b[m"
+	else if ( $0 ~ /^@@/ ) # Line Control lines in purple
+		print "\x1b[35m" $0 "\x1b[m"
+	else if ( $0 ~ /^\+/ ) # + in bold green
+		print "\x1b[1;32m" substr($0, 2) "\x1b[m"
+	else if ( $0 ~ /^-/ ) # - in red
+		print "\x1b[31m" substr($0, 2) "\x1b[m"
+	else if ( $0 ~ /^ / ) # Strip space from normal lines
+		print substr($0, 2)
+	else # Count any other lines as File Control lines
+		print "\x1b[1;35m" $0 "\x1b[m"
+}

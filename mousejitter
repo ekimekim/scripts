@@ -1,0 +1,16 @@
+#!/bin/bash
+
+export X=${1:-1930}
+export Y=${2:-10}
+
+exec 2>/dev/null
+
+(while sleep 10; do
+	swarp $((X+RANDOM/1000)) $((Y+RANDOM/1000))
+done) &
+pid="$!"
+
+echo -n "Press any key to exit"
+read -n1
+kill $pid && wait $pid
+echo

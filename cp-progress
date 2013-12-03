@@ -1,0 +1,55 @@
+#!/bin/bash
+
+USAGE="$0 (PID|{ARGS})
+A progress bar for a running cp process.
+The process may be given by PID or by any number of ARGS as understood by pgrep(1).
+'pgrep ARGS' should match the process name (including arguments) uniquely.
+
+When copying multiple files, each is treated as a seperate copy,
+ie. only progress through the current file is given.
+
+Env vars:
+INTERVAL: Modify the refresh interval.
+BANNER: Alternate program for percentage display (default 'banner')
+"
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 PID"
+	exit 1
+fi
+
+INTERVAL=${INTERVAL:-0.5}
+BANNER=${BANNER:-banner}
+
+if egrep -q "^ *[0-9]+ *$" <<<"$1"; then
+	# Is numeric
+	PID="$1"
+else
+	PID="$(pgrep "$@")"
+	if [ $(wc -l <<<"$PID") -ne 1 ]; then
+		echo "Bad process specification."
+		exit 1
+	fi
+fi
+
+while sleep "$INTERVAL"; do
+	if ! [ -d "/proc/$PID" ]; then
+		clear
+		echo "Process complete."
+		exit 1
+	fi
+
+	fromfile="`readlink "/proc/$1/fd/3"`"
+	if [ ! "$fromfile" ]; then continue; fi
+	if [ "$fromfile" != "$oldfile" ]; then
+		totalsize="`stat -c %s "$fromfile"`"
+	fi
+	oldfile="$fromfile"
+	position="`grep pos "/proc/$1/fdinfo/4"| cut -f2`"
+	complete=$((position * 100 / totalsize))
+	clear
+	echo
+	echo "Copying $fromfile"
+	echo
+	$BANNER "$complete%"
+done

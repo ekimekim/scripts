@@ -1,0 +1,63 @@
+#!/bin/bash
+
+BLACK=30
+GRAY="$BLACK;1"
+RED=31
+BOLDRED="$RED;1"
+GREEN=32
+BOLDGREEN="$GREEN;1"
+YELLOW=33
+BOLDYELLOW="$YELLOW;1"
+BLUE=34
+BOLDBLUE="$BLUE;1"
+PURPLE=35
+BOLDPURPLE="$PURPLE;1"
+CYAN=36
+BOLDCYAN="$CYAN;1"
+WHITE=37
+BOLDWHITE="$WHITE;1"
+
+USAGE="$0 {REGXP=COLOR}
+Passes a text stream from stdin to stdout, adding terminal codes to colorise the output.
+Any string matching REGXP will be output as COLOR.
+All instances of the '/' character in REGXP must be escaped.
+Note that in ambiguous cases like: \"x=.*\"=RED, the LAST = character is considered the seperator.
+The following COLORs are supported:
+	BLACK  GREY
+	RED    BOLDRED
+	GREEN  BOLDGREEN
+	YELLOW BOLDYELLOW
+	BLUE   BOLDBLUE
+	PURPLE BOLDPURPLE
+	CYAN   BOLDCYAN
+	WHITE  BOLDWHITE
+Any unrecognised color will be interpreted as a direct SGI escape (the section between CSI and 'm') to substitute in.
+
+Options:
+	-v --verbose : Print the generated sed expression before running.
+"
+
+SEDEXPR=""
+for arg in "$@"; do
+	case "$arg" in
+		"-v"|"--verbose")
+			VERBOSE=true
+		;;
+		"-h"|"--help")
+			echo "$USAGE"
+			exit 1
+		;;
+		*)
+			regex=${arg%=*}
+			color=${arg##*=}
+			color=${!color:-$color}
+			SEDEXPR="$SEDEXPR s/$regex/\x1b[${color}m\0\x1b[m/;"
+		;;
+	esac
+done
+
+if [ "$VERBOSE" ]; then
+	echo "sed $SEDEXPR"
+fi
+
+sed "$SEDEXPR"

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+SRCDIR="/home/mike/src/utwhisper"
+
+cd "$SRCDIR" && python utwhisper.py "$@"
