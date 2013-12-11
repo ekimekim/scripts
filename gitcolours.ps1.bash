@@ -14,7 +14,7 @@ git_colour() {
 	if git status > /dev/null 2>&1
 	then
 		# Check if clean
-		if git status | tail -n+2 | awk 'BEGIN {val=1}; $0 == "# Untracked files:" || $0 == "nothing to commit, working directory clean" {exit(val)}; $0 ~ /^#\t/ {val=0}'
+		if [ -n "$(git status --porcelain --untracked-files=no)" ]
 		then
 			echo -en "$GITCOLOUR_CHANGES"
 		else
