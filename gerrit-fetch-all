@@ -8,17 +8,11 @@ from subprocess import CalledProcessError
 out = cmd_out(['git', 'ls-remote', 'origin'])
 refs = [line.split("\t") for line in out.strip().split("\n")]
 
-branches = {}
+changes = {}
 for commit, ref in refs:
 	if '/changes/' not in ref: continue
 	change_id = ref.split("/")[3] # refs/changes/??/CHANGE_ID/PATCH_NO
-	branches[change_id] = ref
+	changes[change_id] = commit
 
-for branch, ref in branches.items():
-	cmd(['git', 'fetch', 'origin', ref])
-	branch = 'change-%s' % branch
-	try:
-		cmd(['git', 'branch', '-D', branch])
-	except CalledProcessError:
-		pass
-	cmd(['git', 'branch', branch, 'FETCH_HEAD'])
+fetch_args = [':'.join([commit, "refs/changes/%s" % change_id]) for change_id, commit in changes.items()]
+cmd(['git', 'fetch', '-f', 'origin'] + fetch_args)
