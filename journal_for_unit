@@ -1,0 +1,6 @@
+#!/bin/bash
+
+unit="$1"
+shift
+
+sudo journalctl _SYSTEMD_UNIT="$unit" "$@"
