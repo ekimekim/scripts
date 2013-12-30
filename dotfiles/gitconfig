@@ -1,0 +1,62 @@
+[user]
+	email = mikelang3000@gmail.com
+	name = Mike Lang
+
+[core]
+	excludesfile = ~/.gitignore
+
+[alias]
+    lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	log-diff = log --decorate=short --pretty=fuller -p
+	log-diff-upstream = !git log-diff ..@{u} --reverse --date=relative
+	br = branch -av --color --list
+	initial = commit --allow-empty -m 'Initial Commit'
+	all = !git lg --all
+	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
+	get = fetch --prune --all
+	set-author-cs = !git config user.name "Mike" && git config user.email "mike@cloudscaling.com"
+
+	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
+	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
+	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
+
+	# git lg $1 and upstream of $1 (default HEAD)
+	lgu = "!f(){ git lg $(git rev-parse \"${1:-HEAD}\" \"${1:-HEAD}@{upstream}\" 2>/dev/null) ;}; f"
+
+	# del-remote BRANCH [REMOTE]: Delete branch on remote repo (default origin)
+	del-remote = "!f(){ git push \"${2:-origin}\" \":${1:=No branch given}\" ;}; f"
+
+	# pushorigin [REMOTE]: Force push current branch to REMOTE current branch, ignoring upstream
+	pushorigin = "!f(){ git push \"${2:-origin}\" \"$(git rev-parse --abbrev-ref HEAD)\" -f ;}; f"
+
+	# set BRANCH REF: Sets BRANCH to REF. Note HEAD is interpreted as BRANCH, not current HEAD.
+	set = "!f(){ git with \"${1:?Requires 2 args}\" git reset --hard \"${2:?Requires 2 args}\" ;}; f"
+
+	# mis-spellings that cause sl to run
+	lal = !sl
+
+[merge]
+	ff = only
+	conflictstyle = diff3
+	defaultToUpstream = True
+
+[push]
+	default = current
+
+[diff]
+	color=auto
+
+[sendemail]
+	smtpencryption = tls
+	smtpserver = smtp.gmail.com
+	smtpuser = mikelang3000@gmail.com
+	smtpserverport = 587
+	validate = False
+	chainreplyto = True
+
+[advice]
+	statusHints = False
+
+[color]
+	ui = auto
+

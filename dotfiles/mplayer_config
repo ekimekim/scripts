@@ -1,0 +1,4 @@
+# Write your default config options here!
+
+msgcolor=1
+msglevel=all=3:statusline=5:cplayer=5

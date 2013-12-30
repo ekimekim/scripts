@@ -1,0 +1,85 @@
+
+# PS1 config
+PS1='[\t] \u@\h:\w\$ '
+source "$HOME/bin/alerts.ps1.bash"
+source "$HOME/bin/gitcolours.ps1.bash"
+
+# Put readline into vi mode
+set -o vi
+
+# This sets env vars and sets up keychain if needed, without locking the agent
+source "$HOME/bin/setup-keychain.bash" -Q
+
+# Add ruby gem executables to path
+PATH="/home/mike/.gem/ruby/2.0.0/bin:$PATH"
+# Add ~/bin to PATH, allowing user-specific scripts to be called anywhere
+PATH="$HOME/bin:$PATH"
+
+# Git autocomplete
+source "/usr/share/git/completion/git-completion.bash"
+
+# Custom functions
+spawn() {
+	local USAGE="spawn PROGRAM {ARGS}\nSpawn a program and disown it, redirecting everything to /dev/null."
+	if [ "$#" -lt 1 ]; then echo -e "$USAGE"; return 1; fi
+	local PROGRAM=$1
+	shift
+	"$PROGRAM" "$@" </dev/null >/dev/null 2>/dev/null &
+	disown
+}
+
+# exit success if bashrc has not changed since executing (matches saved hash of bashrc)
+# 
+# note: vulnerable to a race if edited while executing, causing a false success,
+# but not a real risk.
+# note: doesn't check other files, only ~/.bashrc
+check_bashrc() {
+    local new_digest=`sha512sum "$HOME/.bashrc" | cut -f1 -d' '`
+    [ "$new_digest" == "$BASHRC_DIGEST" ]
+}
+BASHRC_DIGEST=`sha512sum "$HOME/.bashrc" | cut -f1 -d' '`
+
+# Colour aliases
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias tree='tree -C'
+
+# Privilige aliases
+alias _pacman="`which pacman`" # _pacman is unpriviliged pacman, eg. _pacman -Ss
+alias pacman='sudo pacman'
+alias pip='sudo pip2'
+alias svim='sudo vim'
+alias scat='sudo cat'
+alias sumv='sudo mv'
+alias sucp='sudo cp'
+alias shutdown='sudo shutdown'
+alias reboot='sudo reboot'
+alias poweroff='sudo poweroff'
+alias systemctl='sudo systemctl'
+
+# Other aliases
+alias commit='git commit -a'
+alias status='git status -sb'
+alias clock='watch -n1 date'
+alias ':q'='sl'
+alias vun='sl'
+alias ks='sl'
+alias diff='diff -u'
+alias ''='clear'
+alias ''='cd && clear'
+alias zathura='spawn zathura'
+alias xclip='xclip -selection clipboard'
+# ^X: cd to `pwd` - this "refreshes" the fd if the dir has been destroyed/recreated (eg. in a git rebase)
+alias ''='cd ~+'
+
+# PS1 alerts (see alerts.ps1.bash)
+ALERTS+=('webpagechecker query' 'check_bashrc')
+
+# Env vars
+export EDITOR='vim'
+export BROWSER='chromium'
+export PAGER='less'
+export LESS='-SR'
+

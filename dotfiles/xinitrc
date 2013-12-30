@@ -1,0 +1,42 @@
+
+# Set cursor
+xsetroot -cursor_name left_ptr
+
+# Unclutter hides the cursor when idle
+unclutter &
+
+# Load custom keymap (my one sets CAPSLOCK->ESC)
+[ -f ~/.Xkeymap ] && xkbcomp ~/.Xkeymap $DISPLAY
+
+# Disable monitor powersaving and screensaver
+#setterm -blank 0 -powersave off -powerdown 0
+xset s noblank
+xset s off
+
+if [ -n "$X_ONE_SCREEN" ]; then
+	xrandr --output DVI-D-0 --off
+fi
+
+if [ -n "$XRUN" ]; then
+
+	# Special case: run a given command
+
+	[ -n "$XRUN_SINGLE_MONITOR" ] && single-monitor simple
+
+	eval $XRUN
+	exit
+
+else
+
+	# This branch is run for main X session only
+
+	# Start with a terminal open
+	terminator &
+
+	# Start up steam in background (still needs an X connection,
+	# or we could put this in systemd instead)
+	steam -silent -console &
+
+	exec xmonad
+
+fi
