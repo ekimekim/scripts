@@ -1,7 +1,20 @@
 #!/bin/bash
 
-clockfile=~/.ovm-clock-time
-recordfile=~/.ovm-clock-records
+if [ ! "$WORKNAME" ]; then
+	if ! basename "$0" | grep -e '-clock$' >/dev/null; then
+		echo "No WORKNAME set and invocation name \"`basename "$0"`\" not right form."
+		exit 1
+	fi
+	WORKNAME=`basename $0 | head -c-7`
+	if [ "$WORKNAME" == "work" ]; then
+		echo "No WORKNAME set and invocation name \"`basename "$0"`\" not changed from default."
+	fi
+fi
+
+clockfile="$HOME/.$WORKNAME-clock-time"
+recordfile="$HOME/.$WORKNAME-clock-records"
+
+#echo "Clock for $WORKNAME"
 
 if echo "$2" | grep -v '^ *$'  > /dev/null
 then
@@ -27,6 +40,8 @@ then
 	off|stop: Clock off, ie. stop tracking time spent working.
 	status: Prints whether clocked on and returns true (0) if clocked on, else false (1)
 	clear: Cancel clock on without recording time.
+	reconstruct: Print a raw records file based on a partial or incorrect one
+	             (ie. recompute the durations based on start/end times)
 	view: Show the records file, in a nice format.
 	view-raw: Show the records file as it is stored on the system.
 	total: Show hh:mm:ss of total time in records file.
@@ -53,7 +68,7 @@ then
 	duration="$[$end-$start]"
 	if [ ! -e "$recordfile" ]
 	then
-		echo -e "Start\tEnd\tDuration\tRunning Total" > "$recordfile"
+#		echo -e "Start\tEnd\tDuration\tRunning Total" > "$recordfile"
 		subtotal=0
 	else
 		subtotal=`cut -f4 "$recordfile" | tail -n1`
@@ -80,6 +95,9 @@ then
 		exit 1
 	fi
 	rm "$clockfile"
+elif [ "$1" == "reconstruct" ]
+then
+    awk -v'OFS=\t' '{print $1, $2, $2-$1, (t+=$2-$1)}' "$recordfile"
 elif [ "$1" == "view-raw" ]
 then
 	cat "$recordfile"
@@ -87,7 +105,7 @@ elif [ "$1" == "view" ]
 then
 	datefmt='%T %d/%m/%y %Z'
 	tmpfile=$RANDOM
-	perhour=20
+	perhour=30
 	totalsec="`cut -f4 "$recordfile" | tail -n1`"
 	charge=`python -c "print '\$%02.2f' % ($perhour*$totalsec/3600.0)"`
 	awk '{print "@"$1}' "$recordfile" | date -f- +"$datefmt" > "/tmp/$tmpfile.begin"
