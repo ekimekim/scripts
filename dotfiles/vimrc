@@ -11,7 +11,6 @@ hi MatchParen ctermfg=red ctermbg=NONE
 map  :let @/ = ""<CR>
 
 " Expand tabs only for these projects / under these directories:
-:autocmd BufRead,BufNewFile ~/cs/* set expandtab
-
-" set noeol for this one project that doesn't like trailing newlines
-:autocmd BufRead,BufNewFile ~/src/txircd/* set noeol expandtab
+:autocmd BufRead,BufNewFile ~/src/* set expandtab
+" but not under these subdirs of those dirs
+:autocmd BufRead,BufNewFile ~/src/tabs/* set noexpandtab
