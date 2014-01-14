@@ -4,7 +4,7 @@
 
 KEYS=(
 	id_rsa
-	id_rsa-cloudscaling
+	cloudscaling_rsa
 )
 
 eval $(keychain --eval --agents ssh --quiet "$@" "${KEYS[@]}")

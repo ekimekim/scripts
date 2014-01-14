@@ -1,14 +1,14 @@
 
 # PS1 config
 PS1='[\t] \u@\h:\w\$ '
-source "$HOME/bin/alerts.ps1.bash"
-source "$HOME/bin/gitcolours.ps1.bash"
+source "$HOME/src/tabs/scripts/alerts.ps1.bash"
+source "$HOME/src/tabs/scripts/gitcolours.ps1.bash"
 
 # Put readline into vi mode
 set -o vi
 
 # This sets env vars and sets up keychain if needed, without locking the agent
-source "$HOME/bin/setup-keychain.bash" -Q
+source "$HOME/src/tabs/scripts/setup-keychain.bash" -Q
 
 # Add ruby gem executables to path
 for rubypath in /home/mike/.gem/ruby/*/bin; do

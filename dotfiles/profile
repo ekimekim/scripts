@@ -1,6 +1,6 @@
 
 if [ `tty` == "/dev/tty1" ]; then
-	source "$HOME/bin/setup-keychain.bash"
+	source "$HOME/src/tabs/scripts/setup-keychain.bash"
 	exec startx
 fi
 
