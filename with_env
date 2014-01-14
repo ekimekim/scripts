@@ -8,8 +8,7 @@ if [ ! "$1" ]; then
 	exit 1
 fi
 
-virtualenv="$1"
-[ -d "$virtualenv" ] || virtualenv="/var/env/$1"
+virtualenv="/var/env/$1"
 shift 1
 
 cd "$virtualenv" || exit 1
