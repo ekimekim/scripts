@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USAGE="$0 VIRTUALENV
+USAGE="$0 VIRTUALENV [COMMAND {ARGS}]
 Runs bash in virtualenv."
 
 if [ ! "$1" ]; then
@@ -8,8 +8,14 @@ if [ ! "$1" ]; then
 	exit 1
 fi
 
-virtualenv="/var/env/$1"
+virtualenv="$1"
+[ -d "$virtualenv" ] || virtualenv="/var/env/$1"
 shift 1
 
-cd "$virtualenv" &&
-bash --rcfile bin/activate "$@"
+cd "$virtualenv" || exit 1
+
+if [ "$#" -gt 0 ]; then
+	bash --rcfile bin/activate -c "$*"
+else
+	bash --rcfile bin/activate
+fi
