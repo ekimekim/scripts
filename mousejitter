@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export X=${1:-1930}
+export X=${1:-10}
 export Y=${2:-10}
 export INTERVAL=${INTERVAL:-10}
 
