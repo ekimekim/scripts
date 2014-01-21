@@ -3,9 +3,10 @@
 USAGE="$0 [FORMAT]"
 
 FORMAT="${1:-%T}"
+BANNER="${BANNER:-banner}"
 
 while sleep 1; do
 	clear
 	echo
-	banner "`date "+$FORMAT"`"
+	$BANNER "`date "+$FORMAT"`"
 done

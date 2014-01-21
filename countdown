@@ -9,6 +9,7 @@ If given, COMMAND will be run with ARGS once the timer has completed.
 "
 
 timestr=$1
+BANNER="${BANNER:-banner}"
 shift
 if egrep -q '^[0-9]+[m:][0-9]*s?$' <<<"$timestr"; then
 	# of form XXm, XXmXXs? or XX:XXs?, eg. 10m, 10m30s, 10m30, 10:30
@@ -26,7 +27,7 @@ for ((; n>0; n--)); do
 	s=$((n-m*60))
 	clear
 	echo
-	banner "`printf "%02d:%02d" "$m" "$s"`"
+	$BANNER "`printf "%02d:%02d" "$m" "$s"`"
 	sleep 1
 done
 
