@@ -79,6 +79,8 @@ alias ''='cd ~+'
 ALERTS=('webpagechecker query' 'check_bashrc')
 
 # Env vars
+HISTFILESIZE=4096
+HISTSIZE=4096
 export EDITOR='vim'
 export BROWSER='chromium'
 export PAGER='less'
