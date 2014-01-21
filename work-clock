@@ -97,7 +97,7 @@ then
 	rm "$clockfile"
 elif [ "$1" == "reconstruct" ]
 then
-    awk -v'OFS=\t' '{print $1, $2, $2-$1, (t+=$2-$1)}' "$recordfile"
+	awk -v'OFS=\t' '{print $1, $2, $2-$1, (t+=$2-$1)}' "$recordfile"
 elif [ "$1" == "view-raw" ]
 then
 	cat "$recordfile"

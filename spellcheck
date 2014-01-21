@@ -3,7 +3,7 @@
 line=1
 
 (for word in "$@"; do
-    echo "$word"
+	echo "$word"
 done) |
 aspell pipe |
 python2 -c '
@@ -11,22 +11,22 @@ max_suggestions = 8
 import sys
 version = raw_input()
 try:
-    while True:
-        line = raw_input()
-        if line != "*":
-            amp, word, n, zero, line = line.split(" ", 4)
-            assert amp == "&", "amp = " + repr(amp)
-            assert zero == "0:", "zero = " + repr(zero)
-            suggestions = line.split(", ")
-            assert len(suggestions) == int(n), "n mismatch: {} vs {}".format(n, len(suggestions))
-            print repr(word), ":"
-            for suggestion in suggestions[:max_suggestions]:
-                print "\t" + suggestion
-        blank = raw_input()
-        assert blank == "", "blank = " + repr(blank)
+	while True:
+		line = raw_input()
+		if line != "*":
+			amp, word, n, zero, line = line.split(" ", 4)
+			assert amp == "&", "amp = " + repr(amp)
+			assert zero == "0:", "zero = " + repr(zero)
+			suggestions = line.split(", ")
+			assert len(suggestions) == int(n), "n mismatch: {} vs {}".format(n, len(suggestions))
+			print repr(word), ":"
+			for suggestion in suggestions[:max_suggestions]:
+				print "\t" + suggestion
+		blank = raw_input()
+		assert blank == "", "blank = " + repr(blank)
 except EOFError:
-    pass
+	pass
 except Exception:
-    print "error processing:", str((word, line))
-    raise
+	print "error processing:", str((word, line))
+	raise
 '

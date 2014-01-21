@@ -34,8 +34,8 @@ spawn() {
 # but not a real risk.
 # note: doesn't check other files, only ~/.bashrc
 check_bashrc() {
-    local new_digest=`sha512sum "$HOME/.bashrc" | cut -f1 -d' '`
-    [ "$new_digest" == "$BASHRC_DIGEST" ]
+	local new_digest=`sha512sum "$HOME/.bashrc" | cut -f1 -d' '`
+	[ "$new_digest" == "$BASHRC_DIGEST" ]
 }
 BASHRC_DIGEST=`sha512sum "$HOME/.bashrc" | cut -f1 -d' '`
 

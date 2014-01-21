@@ -1,14 +1,14 @@
 #!/bin/bash
 
 OLD_VOL=$(
-    amixer -M -c 0 get PCM |
-    egrep '^  Front Left:' |
-    egrep -o '[0-9.]*%'
+	amixer -M -c 0 get PCM |
+	egrep '^  Front Left:' |
+	egrep -o '[0-9.]*%'
 )
 
 if ! [ -n "$OLD_VOL" ]; then
-    echo "Could not determine current volume" >&2
-    exit 1
+	echo "Could not determine current volume" >&2
+	exit 1
 fi
 
 amixer -qMc 0 set PCM 100%

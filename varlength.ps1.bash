@@ -15,17 +15,17 @@ random_colour() {
 }
 
 maybe_git() {
-    if git status > /dev/null 2>&1
-    then
-        # Check if clean
-        if git status | tail -n+2 | awk 'BEGIN {val=1}; $0 == "# Untracked files:" || $0 == "nothing to commit (working directory clean)" {exit(val)}; $0 ~ /^#\t/ {val=0}'
-        then
-            echo -en '\e[31m\e[1m' # Bold red
+	if git status > /dev/null 2>&1
+	then
+		# Check if clean
+		if git status | tail -n+2 | awk 'BEGIN {val=1}; $0 == "# Untracked files:" || $0 == "nothing to commit (working directory clean)" {exit(val)}; $0 ~ /^#\t/ {val=0}'
+		then
+			echo -en '\e[31m\e[1m' # Bold red
 		else
 			echo -en '\e[m' # Clear
-        fi  
-        echo -en ' (git)\e[m'
-    fi
+		fi  
+		echo -en ' (git)\e[m'
+	fi
 }
 
 plain_if_git() {
