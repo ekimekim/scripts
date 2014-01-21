@@ -14,7 +14,7 @@ shift 1
 cd "$virtualenv" || exit 1
 
 if [ "$#" -gt 0 ]; then
-	bash --rcfile bin/activate -c "$*"
+	bash --rcfile bin/activate -i -c "$*"
 else
-	bash --rcfile bin/activate
+	bash --rcfile bin/activate -i
 fi
