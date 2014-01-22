@@ -15,8 +15,9 @@ PATH="/home/mike/.gem/ruby/2.0.0/bin:$PATH"
 # Add ~/bin to PATH, allowing user-specific scripts to be called anywhere
 PATH="$HOME/bin:$PATH"
 
-# Git autocomplete
+# source auto-complete scripts
 source "/usr/share/git/completion/git-completion.bash"
+source "/etc/bash_completion.d/password-store"
 
 # Custom functions
 spawn() {
