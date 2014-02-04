@@ -4,6 +4,7 @@ import sys
 from subprocess import check_call as cmd
 from subprocess import check_output as cmd_out
 from subprocess import CalledProcessError
+from subprocess import Popen
 
 out = cmd_out(['git', 'ls-remote', 'origin'])
 refs = [line.split("\t") for line in out.strip().split("\n")]
@@ -11,8 +12,13 @@ refs = [line.split("\t") for line in out.strip().split("\n")]
 changes = {}
 for commit, ref in refs:
 	if '/changes/' not in ref: continue
-	change_id = ref.split("/")[3] # refs/changes/??/CHANGE_ID/PATCH_NO
+	parts = ref.split('/')
+	if len(parts) != 5: continue # malformed
+	change_id = parts[3] # refs/changes/??/CHANGE_ID/PATCH_NO
 	changes[change_id] = commit
 
 fetch_args = [':'.join([commit, "refs/changes/%s" % change_id]) for change_id, commit in changes.items()]
-cmd(['git', 'fetch', '-f', 'origin'] + fetch_args)
+MAX_FETCH_ARGS = 1
+for fetch_arg in fetch_args:
+	print ' '.join(['git', 'fetch', '-f', 'origin', fetch_arg])
+	cmd(['git', 'fetch', '-f', 'origin', fetch_arg])
