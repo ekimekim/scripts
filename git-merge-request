@@ -1,0 +1,88 @@
+#!/bin/bash
+
+progname="$(basename "$(readlink -f "$0")")"
+grep "^git-" <<<"$progname" && progname="$(cut -d- -f2- <<<"$progname")"
+
+USAGE="$progname [-r REMOTE] TARGET
+
+Submit a code review to gerrit, asking to merge your current branch into TARGET branch.
+You must ensure your merge will cause no conflicts before running this script.
+If it encounters a conflict it will roll back and exit.
+If there are no conflicts you will be prompted for a commit message.
+
+Options:
+  -r REMOTE : Specify remote to use. Defaults to 'origin'.
+"
+
+# This program automates the task of creating a merge commit into TARGET branch
+# It makes use of a branch for-$TARGET that should either not yet exist or be a fast-forward
+# to TARGET.
+
+OLD_HEAD=
+
+die() {
+	[ -n "$OLD_HEAD" ] && git checkout "$OLD_HEAD"
+	echo "$@" >&2
+	exit 1
+}
+
+die_on_fail() {
+	"$@" || die "Error running command: $@"
+}
+
+quiet() {
+	"$@" >/dev/null 2>&1
+}
+
+git-state-clean() {
+	[ -z "$(git status --porcelain --untracked-files=no 2>&1)" ]
+}
+
+REMOTE="${REMOTE:-origin}"
+
+while getopts ':r:' opt; do
+	case "$opt" in
+		r)
+			REMOTE="$OPTARG"
+			;;
+		:)
+			die "Option $OPTARG requires argument"
+			;;
+		?)
+			die "Unknown option $OPTARG"
+	esac
+done
+shift $((OPTIND-1))
+
+[ "$#" -eq 1 ] || die "$USAGE"
+
+TARGET="$1"
+FOR_TARGET="for-$TARGET"
+
+# fail early under certain conditions
+quiet git status || die "We do not appear to be in a git repository."
+git-state-clean || die "Aborting - working tree and staging area not clean."
+
+# save the original HEAD so we can switch back later
+OLD_HEAD="$(git rev-parse --abbrev-ref HEAD)"
+[ -n "$OLD_HEAD" ] || die "Could not determine current HEAD"
+
+echo "Fetching latest info from ${REMOTE}"
+git fetch "$REMOTE" "${TARGET}:${FOR_TARGET}" ||
+	die "Failed to fetch from $REMOTE into local $FOR_TARGET branch."
+
+echo "Creating merge commit"
+die_on_fail git checkout "$FOR_TARGET"
+die_on_fail git merge --no-ff "$OLD_HEAD"
+
+if ! git-state-clean; then
+	echo "Merge conflict detected - rolling back."
+	git merge --abort
+	die "Aborting due to failed merge."
+fi
+
+echo "Submitting merge commit for review"
+git push "$REMOTE" "${FOR_TARGET}:refs/for/${TARGET}" ||
+	die "Failed to submit merge commit for review."
+
+git checkout "$OLD_HEAD"
