@@ -58,6 +58,7 @@ shift $((OPTIND-1))
 
 TARGET="$1"
 FOR_TARGET="for-$TARGET"
+MERGE_REF="$OLD_HEAD-for-$TARGET"
 
 # fail early under certain conditions
 quiet git status || die "We do not appear to be in a git repository."
@@ -82,7 +83,7 @@ if ! git-state-clean; then
 fi
 
 echo "Submitting merge commit for review"
-git push "$REMOTE" "${FOR_TARGET}:refs/for/${TARGET}" ||
+git push "$REMOTE" "${FOR_TARGET}:refs/for/${TARGET}" "${FOR_TARGET}:${MERGE_REF}" ||
 	die "Failed to submit merge commit for review."
 
 git checkout "$OLD_HEAD"
