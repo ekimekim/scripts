@@ -14,7 +14,6 @@
 	all = !git lg --all
 	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
 	get = fetch --prune --all
-	set-author-cs = !git config user.name "Mike" && git config user.email "mike@cloudscaling.com"
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
 	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
@@ -34,6 +33,9 @@
 
 	# mis-spellings that cause sl to run
 	lal = !sl
+
+	# cloudscaling or gerrit specific
+	set-author-cs = !git config user.name "Mike" && git config user.email "mike@cloudscaling.com"
 
 [merge]
 	ff = only
