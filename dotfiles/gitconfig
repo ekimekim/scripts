@@ -36,6 +36,7 @@
 
 	# cloudscaling or gerrit specific
 	set-author-cs = !git config user.name "Mike" && git config user.email "mike@cloudscaling.com"
+	strip-change-ids = "filter-branch --msg-filter \"grep -v ^Change-Id:\""
 
 [merge]
 	ff = only
