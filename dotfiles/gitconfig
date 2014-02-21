@@ -44,7 +44,7 @@
 	defaultToUpstream = True
 
 [push]
-	default = current
+	default = upstream
 
 [diff]
 	color=auto
