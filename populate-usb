@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# NOTE: This script is intended to be called by udev, and so should not start any long-term procs.
+# Be aware that it will run as root.
+
+USAGE="
+`basename $0` DEV PATH {MOUNT_ARGS}
+
+This script will mount a device and fill it with music
+taken from an awp playlist.
+Args are as follows:
+	DEV: Path to device to mount
+	PATH: Path within the mounted fs to place files
+	MOUNT_ARGS: Optional additional args to mount
+"
+
+PLAYLIST="/home/mike/music/main.awp"
+MIN_REMAINING="$((1024 * 1024))" # 1MiB
+
+cleanup() {
+	if [ -d "$MOUNTPOINT" ]; then
+		umount "$MOUNTPOINT"
+		rmdir "$MOUNTPOINT"
+	fi
+}
+
+die() {
+	cleanup
+	local code="$1"
+	shift
+	echo "$@" > &2
+	exit "$code"
+}
+
+[ $# -lt 2 ] && die 255 "$USAGE"
+
+DEV="$1"
+PATH="$2"
+shift 2
+
+MOUNTPOINT="$(mktemp -p /mnt -d)"
+[ -n "$MOUNTPOINT" ] || die 1 "Failed to create temporary mount point"
+
+mount "$DEV" "$MOUNTPOINT" "$@" || die 2 "Failed to mount"
+
+# clear old files first
+rm "$MOUNTPOINT/$PATH/"*
+
+remaining="$(df --output=size -B 1 "$DEV" | tail -n+2)"
+[ -n "$remaining" ] || die 3 "Failed to get df output"
+
+python -m awp.generate "$PLAYLIST" |
+while true; do
+	read file
+	[ -f "$file" ] || { echo "file does not exist: $file" >&2; continue; }
+	filesize="$(stat -c %s "$file")"
+	[ -n "$filesize" ] || { echo "failed to get size of: $file" >&2; continue; }
+	remaining="$((remaining - filesize))"
+	[ "$remaining" -gt "$MIN_REMAINING" ] || break
+	cp "$file" "$MOUNTPOINT/$PATH"
+done
+
