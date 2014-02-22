@@ -60,12 +60,14 @@ for ((n=0; 1; n++)); do
 	[ -f "$file" ] || { echo "file does not exist: $file" >&2; continue; }
 	filesize="$(stat -c %s "$file")"
 	[ -n "$filesize" ] || { echo "failed to get size of: $file" >&2; continue; }
-	remaining="$((remaining - filesize))"
-	[ "$remaining" -gt "$MIN_REMAINING" ] || break
+	newremaining="$((remaining - filesize))"
+	[ "$newremaining" -gt "$MIN_REMAINING" ] || break
 	filebase="$(basename "$file")"
 	filenum="$(printf "%04d" "$n")"
-	cp "$file" "$MOUNTPOINT/$TARGET/$filenum-$filebase"
+	cp "$file" "$MOUNTPOINT/$TARGET/$filenum-$filebase" || continue
+	remaining="$newremaining"
 	echo "Copied $MOUNTPOINT/$TARGET/$filenum-$filebase" >> "$LOGFILE"
 done
 echo "Complete" >> "$LOGFILE"
 
+cleanup
