@@ -49,9 +49,12 @@ mount "$DEV" "$MOUNTPOINT" "$@" || die 2 "Failed to mount"
 # clear old files first
 rm "$MOUNTPOINT/$TARGET/"*
 
-remaining="$(df --output=size -B 1 "$DEV" | tail -n+2)"
-[ -n "$remaining" ] || die 3 "Failed to get df output"
-echo "Populating $DEV with $remaining bytes" >> "$LOGFILE"
+get_remaining() {
+	local ret="$(df --output=size -B 1 "$DEV" | tail -n+2)"
+	[ -n "$ret" ] || die 3 "Failed to get df output"
+	echo "$ret"
+}
+echo "Populating $DEV with $(get_remaining) bytes" >> "$LOGFILE"
 
 python -m awp.generate "$PLAYLIST" |
 for ((n=0; 1; n++)); do
@@ -60,12 +63,12 @@ for ((n=0; 1; n++)); do
 	[ -f "$file" ] || { echo "file does not exist: $file" >&2; continue; }
 	filesize="$(stat -c %s "$file")"
 	[ -n "$filesize" ] || { echo "failed to get size of: $file" >&2; continue; }
+	remaining="$(get_remaining)"
 	newremaining="$((remaining - filesize))"
 	[ "$newremaining" -gt "$MIN_REMAINING" ] || break
 	filebase="$(basename "$file")"
 	filenum="$(printf "%04d" "$n")"
 	cp "$file" "$MOUNTPOINT/$TARGET/$filenum-$filebase" || continue
-	remaining="$newremaining"
 	echo "Copied $MOUNTPOINT/$TARGET/$filenum-$filebase" >> "$LOGFILE"
 done
 echo "Complete" >> "$LOGFILE"
