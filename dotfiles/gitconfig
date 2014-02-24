@@ -1,65 +1,126 @@
 [user]
+	# you should already have this section if you've set up your git correctly
 	email = mikelang3000@gmail.com
 	name = Mike Lang
 
 [core]
+	# this specifies a global gitignore file
+	# in my case, it's set to ~/.gitignore
+	# my .gitignore ignores *.pyc files, C object files (*.o) and "backup" files (files that end in a ~)
 	excludesfile = ~/.gitignore
 
-[alias]
-	lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
-	log-diff = log --decorate=short --pretty=fuller -p
-	log-diff-upstream = !git log-diff ..@{u} --reverse --date=relative
-	br = branch -av --color --list
-	initial = commit --allow-empty -m 'Initial Commit'
-	all = !git lg --all
-	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
-	get = fetch --prune --all
-
-	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
-	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
-	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
-
-	# git lg $1 and upstream of $1 (default HEAD)
-	lgu = "!f(){ git lg $(git rev-parse \"${1:-HEAD}\" \"${1:-HEAD}@{upstream}\" 2>/dev/null) ;}; f"
-
-	# del-remote BRANCH [REMOTE]: Delete branch on remote repo (default origin)
-	del-remote = "!f(){ git push \"${2:-origin}\" \":${1:=No branch given}\" ;}; f"
-
-	# pushorigin [REMOTE]: Force push current branch to REMOTE current branch, ignoring upstream
-	pushorigin = "!f(){ git push \"${2:-origin}\" \"$(git rev-parse --abbrev-ref HEAD)\" -f ;}; f"
-
-	# set BRANCH [REF]: Sets BRANCH to REF. Note HEAD is interpreted as BRANCH, not current HEAD. REF defaults to upstream.
-	set = "!f(){ upstream='@{u}'; git with \"${1:?Requires first arg}\" git reset --hard \"${2:-$upstream}\" ;}; f"
-
-	# mis-spellings that cause sl to run
-	lal = !sl
-
-	# cloudscaling or gerrit specific
-	set-author-cs = !git config user.name "Mike" && git config user.email "mike@cloudscaling.com"
-	strip-change-ids = "filter-branch --msg-filter \"grep -v ^Change-Id:\""
-
-[merge]
-	ff = only
-	conflictstyle = diff3
-	defaultToUpstream = True
-
-[push]
-	default = upstream
-
+# IF YOU TAKE NOTHING ELSE FROM THIS, TAKE THIS
+# This simply adds color by default to pretty much all git commands.
+# It's super-useful, especially for diffs.
+[color]
+	ui = auto
 [diff]
 	color=auto
 
-[sendemail]
-	smtpencryption = tls
-	smtpserver = smtp.gmail.com
-	smtpuser = mikelang3000@gmail.com
-	smtpserverport = 587
-	validate = False
-	chainreplyto = True
+[merge]
+	# This tells my `git merge` to refuse to do anything if the merge isn't a fast-forward.
+	# It will still do a proper merge commit if I explicitly tell it that it's ok.
+	# My main motivation here is so that a `git pull` won't blindly merge but instead back out
+	# and let me inspect the situation and do a merge, rebase, etc on my own.
+	ff = only
+
+	# This adds an extra stanza to conflicting hunks when merging a conflict.
+	# Instead of:
+	#     <<<<< Commit you are applying onto
+	#         state before trying to apply your commit
+	#     =====
+	#         state your commit is trying to create
+	#     >>>>> Commit you are applying
+	# you get:
+	#     <<<<< Commit you are applying onto
+	#         state before trying to apply your commit
+	#     ||||| Merged common ancestors
+	#         state that your commit was expecting to apply onto
+	#     =====
+	#         state your commit is trying to create
+	#     >>>>> Commit you are applying
+	conflictstyle = diff3
+
+	# This means that `git merge` with no args will attempt to merge to the branch's upstream
+	defaultToUpstream = True
+
+[push]
+	# This means that `git push` with no args will attempt to push to the branch's upstream
+	# The default behaviour is somewhat weirder and dangerous: It pushes all local branches where there is a remote
+	# branch with the same name. For example, it would try to push your local develop to remote.
+	default = upstream
 
 [advice]
+	# This turns off some helpful but unnessecary advice from the `git status` output.
+	# It's things like "It looks like you're merging a cherry-pick commit. Run git cherry-pick --abort to abort."
 	statusHints = False
 
-[color]
-	ui = auto
+[alias]
+	# These are helpful aliases that can be used to run a git command with certain args,
+	# or short shell commands (using !command)
+	# This is where the really personal part of the config comes in - try these out, but also adapt into your own workflow.
+
+	# This is my `git log` replacement - it creates a history graph with pretty colors
+	# and commits labelled with branch heads and relative dates (eg. "2 days ago")
+	lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+
+	# This calls git lg but with all branches in view. It gives a more wholistic overview of my branches,
+	# as opposed to git lg which by default only gives me a single branch history.
+	all = !git lg --all
+
+	# This is a hack that expands on the concept of `git all` - it presents a graph of all commits in my reflog.
+	# This is typically not useful as it contains too much garbage, but it can be good when looking for a lost commit
+	# or an old version of a commit you changed.
+	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
+
+	# This is another alternative to git log. Instead of being a graph, it prints as much info as possible about each commit,
+	# including the full diff output. This is generally what I use to review commits.
+	log-diff = log --decorate=short --pretty=fuller -p
+
+	# This is simply a shortcut for log-diff, for use when comparing "what has changed in origin/BRANCH compared to my local branch?"
+	# It adds the relative dates thing again ("2 days ago"), and presents the commits in "reverse" order (oldest to newest),
+	# ie. in the order that they would be applied.
+	log-diff-upstream = !git log-diff ..@{u} --reverse --date=relative
+
+	# This is my `git branch` replacement. It simply adds some default flags for more verbosity.
+	br = branch -av --list
+
+	# I consider it good practice to initialize a new repository with an empty commit "Initial Commit".
+	# This is a shortcut that creates that commit.
+	initial = commit --allow-empty -m 'Initial Commit'
+
+	# This is my `git fetch` replacement with some useful default flags. It fetches from all remotes (instead of only origin)
+	# and will delete local branches whose upstreams got deleted (very nice when working with feature branches)
+	get = fetch --prune --all
+
+	# === From here, the aliases get more complex, as they become multi-command bash functions.          ===
+	# === The form: "!f(){ ... ;}; f" allows me to write it like a script, referencing positional params ===
+	# === I have to do this because git calls the aliases like: "!echo foo" -> "echo foo $1 $2 $3 ..."   ===
+
+	# This is a humerously named shortcut to creating a commit with a distinctive message.
+	# I use it for fixup commits so I know to rebase them later.
+	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
+
+	# I occasionally use this alias to create an empty commit that sits in history as a reminder that something should be done.
+	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
+
+	# Runs git lg for the given branch (or HEAD if not given), as well as its upstream.
+	# This gives me a good overview of my local branch vs the remote branch if the git all output is too cluttered.
+	lgu = "!f(){ git lg $(git rev-parse \"${1:-HEAD}\" \"${1:-HEAD}@{upstream}\" 2>/dev/null) ;}; f"
+
+	# del-remote BRANCH [REMOTE]: Delete branch on remote repo (default origin)
+	# As the usage information so helpfully states, this alias lets me easily delete refs on a remote.
+	# Useful for feature branches.
+	del-remote = "!f(){ git push \"${2:-origin}\" \":${1:=No branch given}\" ;}; f"
+
+	# mis-spellings that cause sl to run
+	# just for fun :)
+	# `git all` is my most common git command, so `git lal` is my most common typo.
+	# if you don't know what sl is, I reccomend you install it.
+	lal = !sl
+
+	# This uses the super-useful `git filter-branch` to rewrite a range of commits.
+	# It uses grep to filter out the change-ids, so it looks like a fresh batch of commits to gerrit.
+	# This is useful when gerrit gets confused or isn't doing what you want.
+	strip-change-ids = "filter-branch --msg-filter \"grep -v ^Change-Id:\""
 
