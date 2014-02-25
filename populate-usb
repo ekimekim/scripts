@@ -25,17 +25,23 @@ cleanup() {
 	fi
 }
 
+log() {
+	echo "$@" >&2
+}
+
 die() {
 	cleanup
 	local code="$1"
 	shift
-	echo "$@" >&2
+	log "$@"
 	exit "$code"
 }
 
 [ $# -lt 2 ] && die 255 "$USAGE"
 
-echo "$0" "$@" >> "$LOGFILE"
+exec 2>>"$LOGFILE" || die "Could not redirect stderr"
+
+log "$0" "$@"
 
 DEV="$1"
 TARGET="$2"
@@ -54,23 +60,24 @@ get_remaining() {
 	[ -n "$ret" ] || die 3 "Failed to get df output"
 	echo "$ret"
 }
-echo "Populating $DEV with $(get_remaining) bytes" >> "$LOGFILE"
+log "Populating $DEV with $(get_remaining) bytes"
 
 python -m awp.generate "$PLAYLIST" |
 for ((n=0; 1; n++)); do
 	read file
-	echo "Considering $file" >> "$LOGFILE"
-	[ -f "$file" ] || { echo "file does not exist: $file" >&2; continue; }
+	log "Considering $file"
+	[ -f "$file" ] || { log "file does not exist: $file"; continue; }
 	filesize="$(stat -c %s "$file")"
-	[ -n "$filesize" ] || { echo "failed to get size of: $file" >&2; continue; }
+	[ -n "$filesize" ] || { log "failed to get size of: $file"; continue; }
 	remaining="$(get_remaining)"
 	newremaining="$((remaining - filesize))"
+	log "File size: $filesize  Remaining space: $remaining"
 	[ "$newremaining" -gt "$MIN_REMAINING" ] || break
 	filebase="$(basename "$file")"
 	filenum="$(printf "%04d" "$n")"
 	cp "$file" "$MOUNTPOINT/$TARGET/$filenum-$filebase" || continue
-	echo "Copied $MOUNTPOINT/$TARGET/$filenum-$filebase" >> "$LOGFILE"
+	log "Copied $MOUNTPOINT/$TARGET/$filenum-$filebase"
 done
-echo "Complete" >> "$LOGFILE"
+log "Disk is full. Complete"
 
 cleanup
