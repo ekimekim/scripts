@@ -57,7 +57,7 @@ rm "$MOUNTPOINT/$TARGET/"*
 
 get_remaining() {
 	sync
-	local ret="$(df --output=size -B 1 "$DEV" | tail -n+2)"
+	local ret="$(df --output=avail -B 1 "$DEV" | tail -n+2)"
 	[ -n "$ret" ] || die 3 "Failed to get df output"
 	echo "$ret"
 }
