@@ -17,8 +17,13 @@ Args are as follows:
 PLAYLIST="/home/mike/music/main.awp"
 MIN_REMAINING="$((1024 * 1024))" # 1MiB
 LOGFILE="/var/log/usb-populate.log"
+LOCKFILE="/var/lock/usb-populate"
+LOCK_TIMEOUT=5
+
+locked=''
 
 cleanup() {
+	[ -n "$locked" ] && flock -u 99
 	if [ -d "$MOUNTPOINT" ]; then
 		umount "$MOUNTPOINT"
 		rmdir "$MOUNTPOINT"
@@ -46,6 +51,12 @@ log "$0" "$@"
 DEV="$1"
 TARGET="$2"
 shift 2
+
+# udev sometimes runs multiple copies (?)
+# to avoid contention for who gets to mount, we simply try to flock or exit.
+exec 99>"$LOCKFILE" || die 1 "Cannot open lockfile"
+flock -w "$LOCK_TIMEOUT" 99 || die 1 "Cannot acquire lock"
+locked=true
 
 MOUNTPOINT="$(mktemp -p /mnt -d)"
 [ -n "$MOUNTPOINT" ] || die 1 "Failed to create temporary mount point"
