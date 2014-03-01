@@ -4,14 +4,13 @@
 # Be aware that it will run as root.
 
 USAGE="
-`basename $0` DEV PATH {MOUNT_ARGS}
+`basename $0` DEV [PATH]
 
 This script will mount a device and fill it with music
 taken from an awp playlist.
 Args are as follows:
 	DEV: Path to device to mount
-	PATH: Path within the mounted fs to place files
-	MOUNT_ARGS: Optional additional args to mount
+	PATH: Path within the mounted fs to place files. Default \"MUSIC\".
 "
 
 PLAYLIST="/home/mike/music/main.awp"
@@ -19,6 +18,7 @@ MIN_REMAINING="$((1024 * 1024))" # 1MiB
 LOGFILE="/var/log/usb-populate.log"
 LOCKFILE="/var/lock/usb-populate"
 LOCK_TIMEOUT=5
+MOUNT_ARGS="-t vfat"
 
 locked=''
 
@@ -42,14 +42,14 @@ die() {
 	exit "$code"
 }
 
-[ $# -lt 2 ] && die 255 "$USAGE"
+[ $# -lt 1 ] && die 255 "$USAGE"
 
 exec 2>>"$LOGFILE" || die "Could not redirect stderr"
 
 log "$0" "$@"
 
 DEV="$1"
-TARGET="$2"
+TARGET="${2:-MUSIC}"
 shift 2
 
 # udev sometimes runs multiple copies (?)
@@ -61,7 +61,7 @@ locked=true
 MOUNTPOINT="$(mktemp -p /mnt -d)"
 [ -n "$MOUNTPOINT" ] || die 1 "Failed to create temporary mount point"
 
-mount "$DEV" "$MOUNTPOINT" "$@" || die 2 "Failed to mount"
+mount "$DEV" "$MOUNTPOINT" $MOUNT_ARGS || die 2 "Failed to mount"
 
 # clear old files first
 rm "$MOUNTPOINT/$TARGET/"*
