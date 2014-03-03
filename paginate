@@ -1,0 +1,13 @@
+#!/bin/bash
+
+USAGE="$0 PAGESIZE START [LENGTH]
+Split input lines into pages of PAGESIZE lines each.
+Output LENGTH pages starting from page number START.
+Pages start at 1. LENGTH defaults to 1."
+
+PAGESIZE="$1"
+START="$2"
+LENGTH="${3:-1}"
+
+awk "-vPAGESIZE=$PAGESIZE" "-vSTART=$START" "-vLENGTH=$LENGTH" \
+	'NR-1 >= PAGESIZE * (START-1) && NR-1 < PAGESIZE * (START-1+LENGTH)'
