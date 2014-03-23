@@ -1,0 +1,75 @@
+#!/bin/env python
+
+import requests
+urljoin = '/'.join
+
+BASE_URL = "http://version1.api.memegenerator.net"
+SEARCH_URL = urljoin([BASE_URL, "Generators_Search"])
+CREATE_URL = urljoin([BASE_URL, "Instance_Create"])
+
+def get(*args, **kwargs):
+	"""Does a requests.get and returns the json result
+	or raises on error."""
+	resp = requests.get(*args, **kwargs)
+	resp.raise_for_status()
+	resp = resp.json()
+	if not resp['success']:
+		raise Exception("Request failed: %s" % resp['errorMessage'])
+	return resp['result']
+
+def search(keyword):
+	"""Search by keyword and return generator object of highest rank result"""
+	results = get(SEARCH_URL, params={"q": keyword})
+	if not results:
+		raise Exception("No results")
+	results.sort(key=lambda x: x['ranking'], reverse=True)
+	return results[0]
+
+def create_by_api(generator_id, creds, top='', bottom='', language='en'):
+	username, password = creds
+	params=dict(
+		username=username,
+		password=password,
+		languageCode=language,
+		generatorID=generator_id,
+	)
+	if top:
+		params['text0'] = top
+		params['text1'] = bottom
+	else:
+		params['text0'] = bottom
+
+	resp = get()
+	# TODO finish
+
+def create_by_post(generator, top='', bottom='', language='en'):
+	"""Returns instance_id"""
+	url = "http://memegenerator.net/{}/caption".format(generator['urlName'])
+	formdata = dict(
+		generatorID = generator['generatorID'],
+		uploadtoImgur = "false",
+		languageCode = language,
+	)
+	if top:
+		formdata['text0'] = top
+		formdata['text1'] = bottom
+	else:
+		formdata['text0'] = bottom
+	resp = requests.post(url, data=formdata, allow_redirects=False)
+	if resp.status_code != 302:
+		raise Exception("Request failed:\n" + resp.text)
+	return resp.headers['Location'].split('/')[-1]
+
+def main(search_keyword, text, more_text=''):
+	if more_text:
+		top, bottom = text, more_text
+	else:
+		top, bottom = '', text
+
+	generator = search(search_keyword)
+	instance_id = create_by_post(generator, top, bottom)
+	print "http://cdn.memegenerator.net/instances/500x/{}.jpg".format(instance_id)
+
+if __name__ == '__main__':
+	import sys
+	sys.exit(main(*sys.argv[1:]))
