@@ -37,8 +37,8 @@
 	# cloudscaling or gerrit specific
 	set-author-cs = !git config user.name "Mike" && git config user.email "mike@cloudscaling.com"
 	strip-change-ids = "filter-branch --msg-filter \"grep -v ^Change-Id:\""
-	# git review-simple TARGET [REMOTE]: Submit HEAD for gerrit review for TARGET branch at REMOTE (default origin)
-	review-simple = "!f(){ git push ${2:-origin} HEAD:refs/for/${1:?Requires first arg} ;}; f"
+	# git review-simple [TARGET [REMOTE]]: Submit HEAD for gerrit review for TARGET branch at REMOTE (defaults develop, origin)
+	review-simple = "!f(){ git push ${2:-origin} HEAD:refs/for/${1:-develop} ;}; f"
 	# I keep forgetting the name
 	simple-review = !git review-simple
 
