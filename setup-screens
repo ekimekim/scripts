@@ -1,0 +1,8 @@
+#!/bin/bash
+
+xrandr --output DVI-I-1 --mode 1920x1080 -pos 0x0
+if [ -n "$X_ONE_SCREEN" ]; then
+	xrandr --output DVI-D-0 --off
+else
+	xrandr --output DVI-D-0 --mode 1920x1080 --rotate left --pos 1920x-420
+fi

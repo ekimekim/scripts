@@ -13,9 +13,9 @@ unclutter &
 xset s noblank
 xset s off
 
-if [ -n "$X_ONE_SCREEN" ]; then
-	xrandr --output DVI-D-0 --off
-fi
+sleep 1
+setup-screens
+sleep 1
 
 if [ -n "$XRUN" ]; then
 
