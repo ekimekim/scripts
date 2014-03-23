@@ -30,6 +30,9 @@ else
 
 	# This branch is run for main X session only
 
+	# log to file
+	exec >"$HOME/.xmonad/xmonad.log" 2>&1
+
 	# Start with a terminal open
 	terminator &
 
