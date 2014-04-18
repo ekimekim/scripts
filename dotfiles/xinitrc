@@ -10,12 +10,12 @@ unclutter &
 
 # Disable monitor powersaving and screensaver
 #setterm -blank 0 -powersave off -powerdown 0
+# TODO this doesn't work
 xset s noblank
 xset s off
 
-sleep 1
+# TODO this doesn't work (need to re-run after xmonad is set up?)
 setup-screens
-sleep 1
 
 if [ -n "$XRUN" ]; then
 
