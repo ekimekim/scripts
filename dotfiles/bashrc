@@ -17,7 +17,7 @@ PATH="$HOME/bin:$PATH"
 
 # source auto-complete scripts
 source "/usr/share/git/completion/git-completion.bash"
-source "/etc/bash_completion.d/password-store"
+source "/usr/share/bash-completion/completions/pass"
 
 # Custom functions
 spawn() {
