@@ -6,7 +6,7 @@
 	excludesfile = ~/.gitignore
 
 [alias]
-	lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+	lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(yellow)%d%Creset %s %Cgreen(%ad)%Creset' --abbrev-commit --date=relative
 	log-diff = log --decorate=short --pretty=fuller -p
 	log-diff-upstream = !git log-diff ..@{u} --reverse --date=relative
 	br = branch -av --color --list
