@@ -28,6 +28,7 @@ spawn() {
 	"$PROGRAM" "$@" </dev/null >/dev/null 2>/dev/null &
 	disown
 }
+complete -c spawn
 
 # exit success if bashrc has not changed since executing (matches saved hash of bashrc)
 # 
@@ -89,3 +90,5 @@ export PAGER='less'
 export LESS='-SR'
 export BANNER='banner -c# -f2'
 
+# Misc completions
+complete -c which
