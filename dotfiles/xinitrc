@@ -17,6 +17,9 @@ xset s off
 # TODO this doesn't work (need to re-run after xmonad is set up?)
 setup-screens
 
+# Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
+setvol
+
 if [ -n "$XRUN" ]; then
 
 	# Special case: run a given command
