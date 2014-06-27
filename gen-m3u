@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ "$#" -lt 2 ]; then
+	echo -e "USAGE: $0 PLAYLIST LENGTH\nGenerate an m3u playlist suitible for windows from an awp playlist."
+	exit 1
+fi
+
+playlist="$1"
+length="$2"
+
+python -m awp.generate "$playlist" |
+awk -F '/home/mike/music/' '$2 {print "E:/Stuff/LANStuff/Music/" $2}' |
+sed 's:/:\\:g' |
+head -n "$length"
