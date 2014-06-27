@@ -17,6 +17,7 @@
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
 	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
+	derp = "!f(){ git commit -m \"herp: $*\" ;}; f"
 	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
 
 	# git lg $1 and upstream of $1 (default HEAD)
