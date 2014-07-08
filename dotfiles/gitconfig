@@ -23,6 +23,9 @@
 	# git lg $1 and upstream of $1 (default HEAD)
 	lgu = "!f(){ git lg $(git rev-parse \"${1:-HEAD}\" \"${1:-HEAD}@{upstream}\" 2>/dev/null) ;}; f"
 
+	# git lg all decendents of $1~{$2} (defaults HEAD, 10)
+	most = "!f(){ git lg --ancestry-path \"${1:-HEAD}~${2:-10}..\" --all ;}; f"
+
 	# del-remote BRANCH [REMOTE]: Delete branch on remote repo (default origin)
 	del-remote = "!f(){ git push \"${2:-origin}\" \":${1:=No branch given}\" ;}; f"
 
