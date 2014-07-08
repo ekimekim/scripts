@@ -23,4 +23,8 @@ if [ "$interval" -lt 0 ]; then
 	exit 1
 fi
 
-( sleep "$interval" && "$@" ) &
+if [ -n "$FOREGROUND" ]; then
+	( sleep "$interval" && "$@" )
+else
+	( sleep "$interval" && "$@" ) &
+fi
