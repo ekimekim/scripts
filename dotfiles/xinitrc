@@ -1,4 +1,6 @@
 
+PATH="/home/mike/bin:$PATH"
+
 # Set cursor
 xsetroot -cursor_name left_ptr
 
@@ -14,7 +16,7 @@ unclutter &
 xset s noblank
 xset s off
 
-# TODO this doesn't work (need to re-run after xmonad is set up?)
+# xrandr your way into the correct setup
 setup-screens
 
 # Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
