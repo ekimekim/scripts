@@ -19,6 +19,9 @@ xset s off
 # xrandr your way into the correct setup
 setup-screens
 
+# Something stupid is setting my volume wrong on boot, fix it to 100% Master/70% PCM
+setvol 70
+
 if [ -n "$XRUN" ]; then
 
 	# Special case: run a given command
