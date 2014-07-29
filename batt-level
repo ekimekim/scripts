@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 def parse_txt(filename):
-	f = open(filename, 'rU')
 	d = {}
-	for line in f:
-		key, val = line.split(':',1)
-		d[key] = val.strip()
+	with open(filename, 'r') as f:
+		for line in f:
+			key, val = line.split(':',1)
+			d[key] = val.strip()
 	return d
 
 info_files = ['/proc/acpi/battery/BAT0/info', '/proc/acpi/battery/BAT0/state']
