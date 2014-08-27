@@ -20,6 +20,7 @@ LOCKFILE="/var/lock/usb-populate"
 LOCK_TIMEOUT=5
 MOUNT_ARGS="-t vfat"
 BANNER=${BANNER:-banner}
+# NO_DELETE: set to preserve existing contents
 
 locked=''
 
@@ -69,7 +70,7 @@ MOUNTPOINT="$(mktemp -p /mnt -d)"
 mount "$DEV" "$MOUNTPOINT" $MOUNT_ARGS || die 2 "Failed to mount"
 
 # clear old files first
-rm "$MOUNTPOINT/$TARGET/"*
+[ -n "$NO_DELETE" ] || rm "$MOUNTPOINT/$TARGET/"*
 
 get_remaining() {
 	sync
