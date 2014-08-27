@@ -82,21 +82,30 @@ log "Populating $DEV with $(get_remaining) bytes"
 
 python -m awp.generate "$PLAYLIST" |
 for ((n=0; 1; n++)); do
+	[ -n "$converted" ] && rm -f "$converted"
+	converted=
 	read file
 	log "Considering $file"
 	[ -f "$file" ] || { log "file does not exist: $file"; continue; }
+	filebase="$(basename "$file")"
+	if ! grep -q '\.mp3$' <<<"$file"; then
+		oldfile="$file"
+		file="/tmp/$RANDOM-${filebase%.*}.mp3"
+		converted="$file"
+		ffmpeg -i "$oldfile" "$file" </dev/null >/dev/null 2>&1 || continue
+	fi
 	filesize="$(stat -c %s "$file")"
 	[ -n "$filesize" ] || { log "failed to get size of: $file"; continue; }
 	remaining="$(get_remaining)"
 	newremaining="$((remaining - filesize))"
 	log "File size: $filesize  Remaining space: $remaining"
 	[ "$newremaining" -gt "$MIN_REMAINING" ] || break
-	filebase="$(basename "$file")"
 	filenum="$(printf "%04d" "$n")"
 	cp "$file" "$MOUNTPOINT/$TARGET/$filenum-$filebase" || continue
 	log "Copied $MOUNTPOINT/$TARGET/$filenum-$filebase"
 	report_progress
 done
+[ -n "$converted" ] && rm -f "$converted"
 log "Disk is full. Complete"
 
 cleanup
