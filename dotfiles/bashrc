@@ -80,7 +80,7 @@ alias pass='DISPLAY= pass' # disable display so gpg doesn't make annoying popup 
 alias ''='cd ~+'
 
 # PS1 alerts (see alerts.ps1.bash)
-ALERTS=('webpagechecker query' 'check_bashrc')
+ALERTS=('check_bashrc')
 
 # Env vars
 HISTFILESIZE=4096
