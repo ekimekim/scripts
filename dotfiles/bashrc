@@ -101,6 +101,7 @@ export BROWSER='chromium'
 export PAGER='less'
 export LESS='-SR'
 export BANNER='banner -c# -f2'
+export PYTHONSTARTUP="$HOME/.pythonrc"
 
 # Misc completions
 complete -c which
