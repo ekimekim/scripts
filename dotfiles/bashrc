@@ -30,6 +30,17 @@ spawn() {
 }
 complete -c spawn
 
+# list pacnew files present in /etc
+list_pacnew() {
+	find '/etc' \
+		-type d \! -perm '-g+r,u+r,o+r' -prune \
+		-type f -name '*.pacnew' -print
+	# first line omits unreadable directories, second line searches for pacnew files
+}
+check_pacnew() {
+	[ -z "$(list_pacnew)" ]
+}
+
 # exit success if bashrc has not changed since executing (matches saved hash of bashrc)
 # 
 # note: vulnerable to a race if edited while executing, causing a false success,
@@ -80,7 +91,7 @@ alias pass='DISPLAY= pass' # disable display so gpg doesn't make annoying popup 
 alias ''='cd ~+'
 
 # PS1 alerts (see alerts.ps1.bash)
-ALERTS=('check_bashrc')
+ALERTS=(check_bashrc check_pacnew)
 
 # Env vars
 HISTFILESIZE=4096
