@@ -19,9 +19,6 @@ xset s off
 # xrandr your way into the correct setup
 setup-screens
 
-# Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
-setvol
-
 if [ -n "$XRUN" ]; then
 
 	# Special case: run a given command
@@ -34,6 +31,9 @@ if [ -n "$XRUN" ]; then
 else
 
 	# This branch is run for main X session only
+
+	# Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
+	setvol
 
 	# log to file
 	exec >"$HOME/.xmonad/xmonad.log" 2>&1
