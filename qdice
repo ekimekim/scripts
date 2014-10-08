@@ -1,0 +1,41 @@
+#!/usr/bin/python2
+
+import sys
+from quantumrandom import randint, cached_generator
+
+USAGE = """%s {ROLL_SPEC}
+Roll the requested rolls, presenting a total.
+If multiple ROLL_SPECs given, the results are totalled.
+
+ROLL_SPEC := EXPRESSION { + EXPRESSION }
+EXPRESSION := INT | ( [INT] d INT )
+
+INT is as per standard integer constants.
+The second form of expression XdY means to roll a Y-sided die X times.
+""" % sys.argv[0]
+
+generator = None
+
+def roll(n, sides=6, bonus=0):
+	global generator
+	if generator is None:
+		generator = cached_generator()
+	return sum(randint(1, sides+1, generator) for x in range(n)) + bonus
+
+def from_str(s):
+	total = 0
+	for part in s.split('+'):
+		if 'd' in part:
+			n, sides = part.split('d', 1)
+			n = 1 if not n else int(n)
+			sides = int(sides)
+			total += roll(n, sides)
+		else:
+			total += int(part)
+	return total
+
+if __name__=='__main__':
+	if len(sys.argv) != 2:
+		print USAGE
+	else:
+		print from_str('+'.join(sys.argv[1:]))
