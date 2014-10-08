@@ -100,7 +100,7 @@ export EDITOR='vim'
 export BROWSER='chromium'
 export PAGER='less'
 export LESS='-SR'
-export BANNER='banner -c# -f2'
+export BANNER='banner-stripped -c# -f2'
 export PYTHONSTARTUP="$HOME/.pythonrc"
 
 # Misc completions

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# strip trailing whitespace, remove blank lines, remove final newline
+banner "$@" | sed 's/ *$//' | grep -v '^$' | head -c -1
