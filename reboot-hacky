@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Experimental evidence says that I don't have hardware problems if I kill X before rebooting
+# (which probably means it's graphics card related)
+
+sudo echo "sudo test"
+(
+	pkill xmonad &&
+	sleep 5 &&
+	sudo reboot
+) & disown
