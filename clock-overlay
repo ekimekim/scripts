@@ -1,0 +1,52 @@
+#!/usr/bin/python2
+
+import sys, os
+from time import strftime
+from time import sleep
+from signal import signal, SIGALRM, setitimer, ITIMER_REAL
+from errno import EINTR
+
+format_escapes = {
+	r'\e': '\x1b',
+	r'\t': '\t',
+	r'\n': '\x1b[B\x1b[G',
+	r'\\': '\\'
+}
+
+CLEAR_NEXT_LINE = False # true to clear the line below the output as well
+
+def main(progname, _time_format='\e[1;34m%X\e[m'):
+	global time_format
+	time_format = replace_all(_time_format, format_escapes)
+	signal(SIGALRM, on_alarm)
+	setitimer(ITIMER_REAL, 1, 1)
+	patrick()
+
+def on_alarm(signum, frame):
+	clear_next_s = "\x1b[B\x1b[2K" if CLEAR_NEXT_LINE else ''
+	s = "\x1b[s\x1b[H\x1b[2K" + strftime(time_format) + clear_next_s + "\x1b[u"
+	while s:
+		n = os.write(sys.stdout.fileno(), s)
+		s = s[n:]
+
+def patrick():
+	c = None
+	while 1:
+		try:
+			n = 0
+			c = sys.stdin.read(1) if not c else c
+			if not c:
+				break
+			n = os.write(sys.stdout.fileno(), c)
+		except (OSError, IOError), ex:
+			if ex.errno != EINTR:
+				raise
+		if n: c = None
+
+def replace_all(s, replacements):
+	for item in replacements.items():
+		s = s.replace(*item)
+	return s
+
+if __name__=='__main__':
+	sys.exit(main(*sys.argv))
