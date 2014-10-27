@@ -75,6 +75,7 @@ alias poweroff='sudo poweroff'
 alias systemctl='sudo systemctl'
 alias docker='sudo docker'
 alias fuck='sudo $(history -p \!\!)'
+alias 'wifi-menu'='sudo wifi-menu'
 
 # Other aliases
 alias commit='git commit -a'
