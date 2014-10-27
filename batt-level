@@ -1,23 +1,12 @@
-#!/usr/bin/python
+#!/bin/env python
 
-def parse_txt(filename):
-	d = {}
-	with open(filename, 'r') as f:
-		for line in f:
-			key, val = line.split(':',1)
-			d[key] = val.strip()
-	return d
+def get_info(key):
+	with open("/sys/class/power_supply/BAT0/" + key) as f:
+		return int(f.read().strip())
 
-info_files = ['/proc/acpi/battery/BAT0/info', '/proc/acpi/battery/BAT0/state']
-
-info = {}
-[ info.update(parse_txt(f)) for f in info_files ]
-
-get_num = lambda s: int(s.split(' ', 1)[0])
-
-charge = get_num(info['remaining capacity'])
-design = get_num(info['design capacity'])
-last_full = get_num(info['last full capacity'])
+charge = get_info('charge_now')
+design = get_info('charge_full_design')
+last_full = get_info('charge_full')
 
 print 'Absolute Charge: %.2f%%' % (100.0*charge/design)
 print 'Relative Charge: %.2f%%' % (100.0*charge/last_full)
