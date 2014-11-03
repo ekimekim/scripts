@@ -88,6 +88,7 @@ alias zathura='spawn zathura'
 alias browser='spawn $BROWSER'
 alias xclip='xclip -selection clipboard'
 alias pass='DISPLAY= pass' # disable display so gpg doesn't make annoying popup prompt
+alias 'pip-upgrade'='pip install -U --no-deps'
 # ^X: cd to `pwd` - this "refreshes" the fd if the dir has been destroyed/recreated (eg. in a git rebase)
 alias ''='cd ~+'
 
