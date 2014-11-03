@@ -34,7 +34,7 @@ complete -c spawn
 list_pacnew() {
 	find '/etc' \
 		-type d \! -perm '-g+r,u+r,o+r' -prune \
-		-type f -name '*.pacnew' -print
+		-or -type f -name '*.pacnew' -print
 	# first line omits unreadable directories, second line searches for pacnew files
 }
 check_pacnew() {
