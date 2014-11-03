@@ -1,4 +1,27 @@
 #!/bin/bash
 
-cd ~/music &&
-youtube-dl -x "$@"
+PLAYLIST=${PLAYLIST:-~/main.awp}
+
+cd "$HOME/music" || exit 1
+
+OLDIFS="$IFS"
+IFS='
+'
+while [ -z "$finished" ]; do
+	PS3="Pick a destination in $(pwd) > "
+	select dir in $(find -maxdepth 1 -type d | sort); do
+		if [ "$dir" == "." ]; then
+			finished=true
+			break
+		fi
+		if [ -z "$dir" ]; then
+			dir="$REPLY"
+			mkdir -p "$dir"
+		fi
+		cd "$dir" || exit 1
+		break
+	done || exit 1
+done
+
+youtube-dl -x "$@" || exit 1
+[ -f "$PLAYLIST" ] && echo -e "16\t0.5\t$(pwd)/$(youtube-dl --get-filename "$@")" >> "$PLAYLIST"
