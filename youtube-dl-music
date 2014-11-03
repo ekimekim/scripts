@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd ~/tmp-music &&
+cd ~/music &&
 youtube-dl -x "$@"
