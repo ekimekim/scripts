@@ -6,6 +6,6 @@
 sudo echo "sudo test"
 (
 	pkill xmonad &&
-	sleep 5 &&
+	sleep ${1:-10} &&
 	sudo reboot
 ) & disown
