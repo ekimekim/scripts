@@ -13,7 +13,7 @@ Args are as follows:
 	PATH: Path within the mounted fs to place files. Default \"MUSIC\".
 "
 
-PLAYLIST="/home/mike/main.awp"
+PLAYLIST="${PLAYLIST:-/home/mike/main.awp}"
 MIN_REMAINING="$((1024 * 1024))" # 1MiB
 LOGFILE="/var/log/usb-populate.log"
 LOCKFILE="/var/lock/usb-populate"
