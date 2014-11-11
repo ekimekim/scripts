@@ -1,0 +1,25 @@
+#!/usr/bin/python2
+
+import sys
+from awp.playlist import *
+
+USAGE = ("USAGE: {} {{PLAYLIST}}\n"
+         "Merge playlists together by the following rules:\n"
+         "Take the weight furthest removed from 16.0\n"
+         "Take the volume furthest removed from 0.5\n"
+         "All entries are included, even if only present in one playlist"
+        ).format(sys.argv[0])
+
+def main(*args):
+	if not args:
+		sys.stderr.write(USAGE + '\n')
+		return 1
+
+	playlists = [Playlist(path) for path in args]
+	p1 = playlists.pop(0)
+	for p in playlists:
+		p1.merge(p, (MergeStrategies.extreme(16), MergeStrategies.extreme(0.5)))
+	p1.write(sys.stdout)
+
+if __name__ == '__main__':
+	sys.exit(main(*sys.argv[1:]))
