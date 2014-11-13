@@ -1,0 +1,10 @@
+#!/bin/bash
+
+conf="$1"
+shift
+
+# canonicalise path
+conf=$(readlink -f "$conf")
+
+cd ~/src/mikeirc
+python main.py --conf="$conf" "$@"
