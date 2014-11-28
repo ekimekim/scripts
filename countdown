@@ -8,6 +8,10 @@ For example: 10m, 10m00, 10m0s, 10:00 or 600 are all ways of saying 10 minutes.
 If given, COMMAND will be run with ARGS once the timer has completed.
 "
 
+now() {
+	date +%s
+}
+
 timestr=$1
 BANNER="${BANNER:-banner}"
 shift
@@ -16,19 +20,23 @@ if egrep -q '^[0-9]+[m:][0-9]*s?$' <<<"$timestr"; then
 	leading_number () { grep -o '^[0-9]*' <<<"$1"; }
 	mins=`leading_number "$timestr"`
 	secs=`leading_number $(egrep -o '[0-9]*s?$' <<<"$timestr")`
-	n=$((mins*60+secs))
+	duration=$((mins*60+secs))
 	unset leading_number
 else
-	n="$timestr"
+	duration="$timestr"
 fi
 
-for ((; n>0; n--)); do
-	m=$((n/60))
-	s=$((n-m*60))
+start=$(now)
+diff=1
+while (( diff > 0 )); do
+	diff=$(( duration - ($(now) - start) ))
+	m=$((diff/60))
+	s=$((diff-m*60))
 	clear
 	echo
 	$BANNER "`printf "%02d:%02d" "$m" "$s"`"
 	sleep 1
 done
+clear
 
 [ "$#" -gt 0 ] && "$@"
