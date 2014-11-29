@@ -24,4 +24,4 @@ while [ -z "$finished" ]; do
 done
 
 youtube-dl -x "$@" || exit 1
-[ -f "$PLAYLIST" ] && echo -e "16\t0.5\t$(pwd)/$(youtube-dl --get-filename "$@")" >> "$PLAYLIST"
+[ -f "$PLAYLIST" ] && echo -e "16\t0.5\t$(pwd)/$(youtube-dl -x --get-filename "$@")" >> "$PLAYLIST"
