@@ -6,5 +6,4 @@ shift
 # canonicalise path
 conf=$(readlink -f "$conf")
 
-cd ~/src/mikeirc
-python main.py --conf="$conf" "$@"
+python -m mikeirc --conf="$conf" "$@"
