@@ -41,13 +41,6 @@ else
 	# Start with a terminal open
 	terminator &
 
-	# Start up steam in background (still needs an X connection,
-	# or we could put this in systemd instead)
-	steam -silent -console &
-
-	# Start oculusd (needs an X connection)
-	~/src/ovr_sdk_linux_0.4.3/oculusd >~/.oculusd.log 2>&1 &
-
 	exec xmonad
 
 fi
