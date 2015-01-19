@@ -11,7 +11,9 @@ if ! [ -n "$OLD_VOL" ]; then
 	exit 1
 fi
 
-amixer -qMc 0 set PCM 100%
+NEW_VOL="${1:-100}"
+
+amixer -qMc 0 set PCM "$NEW_VOL%"
 read -p "Press any key to return volume to $OLD_VOL
 " -s -n1
 amixer -qMc 0 set PCM "$OLD_VOL"
