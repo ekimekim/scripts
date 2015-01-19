@@ -16,7 +16,10 @@ fetch_all() {
 	done
 }
 
-[ -n "$1" ] && CHANNEL="$1"
+if [ -n "$1" ]; then
+	CHANNEL="$1"
+	shift
+fi
 if [ -z "$CHANNEL" ]; then
 	echo "Getting followed channels"
 	# present a list of live followed channels to the user
@@ -44,4 +47,4 @@ if [ -z "$CHANNEL" ]; then
 	exit 1
 fi
 
-exec /home/mike/src/mikeirc/configs/twitch --channel=#"$channel"
+exec /home/mike/src/mikeirc/configs/twitch --channel=#"$CHANNEL" "$@"
