@@ -73,6 +73,7 @@ alias shutdown='sudo shutdown'
 alias reboot='sudo reboot'
 alias poweroff='sudo poweroff'
 alias systemctl='sudo systemctl'
+alias docker='sudo docker'
 alias fuck='sudo $(history -p \!\!)'
 
 # Other aliases
