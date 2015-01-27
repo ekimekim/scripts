@@ -1,5 +1,10 @@
 #!/bin/bash
 
+logexec() {
+	echo -e "\e[33m> $@\e[m"
+	"$@"
+}
+
 PLAYLIST=${PLAYLIST:-~/main.awp}
 
 cd "$HOME/music" || exit 1
@@ -22,6 +27,27 @@ while [ -z "$finished" ]; do
 		break
 	done || exit 1
 done
+IFS="$OLDIFS"
 
-youtube-dl -x "$@" || exit 1
-[ -f "$PLAYLIST" ] && echo -e "16\t0.5\t$(pwd)/$(youtube-dl -x --get-filename "$@")" >> "$PLAYLIST"
+filepath=$(youtube-dl -x --get-filename "$@")
+
+rm -f "$filepath" # delete if exists
+logexec youtube-dl -x "$@" || exit 1
+
+# TRIM: format "start:end", where either can be blank
+if [ -n "$TRIM" ]; then
+	tmppath=$(mktemp --suffix=".${filepath##*.}")
+	trap "rm $tmppath" exit
+	start="${TRIM%%:*}"
+	end="${TRIM##*:}"
+	opts=()
+	[ -n "$start" ] && opts+=(-ss "$start")
+	[ -n "$end" ] && opts+=(-t "$((end-start))")
+	logexec ffmpeg -y "${opts[@]}" -i "$filepath" -strict -2 "$tmppath" || exit 1
+	logexec cp "$tmppath" "$filepath" || exit 1
+fi
+
+if [ -f "$PLAYLIST" ]; then
+	echo -e "16\t0.5\t$(pwd)/$filepath" >> "$PLAYLIST"
+	echo "Added to playlist: $PLAYLIST"
+fi
