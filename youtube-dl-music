@@ -36,15 +36,15 @@ logexec youtube-dl -x "$@" || exit 1
 
 # TRIM: format "start:end", where either can be blank
 if [ -n "$TRIM" ]; then
-	tmppath=$(mktemp --suffix=".${filepath##*.}")
-	trap "rm $tmppath" exit
 	start="${TRIM%%:*}"
 	end="${TRIM##*:}"
+	newpath="${filepath%.*}.${start}:${end}.${filepath##*.}"
 	opts=()
 	[ -n "$start" ] && opts+=(-ss "$start")
 	[ -n "$end" ] && opts+=(-t "$((end-start))")
-	logexec ffmpeg -y "${opts[@]}" -i "$filepath" -strict -2 "$tmppath" || exit 1
-	logexec cp "$tmppath" "$filepath" || exit 1
+	logexec ffmpeg -y "${opts[@]}" -i "$filepath" -strict -2 "$newpath" || exit 1
+	rm "$filepath"
+	filepath="$newpath"
 fi
 
 if [ -f "$PLAYLIST" ]; then
