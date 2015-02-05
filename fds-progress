@@ -31,22 +31,22 @@ while [ "$first" ] || sleep "$INTERVAL"; do
 			continue
 		fi
 
-		file="`readlink -e "/proc/$pid/fd/$fd"`"
+		file="$(readlink -e "/proc/$pid/fd/$fd")"
 		if [ ! "$file" ]; then
 			echo "$pid has no readable fd $fd"
 			continue
 		fi
 
 		if [ -b "$file" ]; then
-			totalsize="`blockdev --getsize64 "$file" 2>/dev/null`"
+			totalsize="$(blockdev --getsize64 "$file" 2>/dev/null)"
 		elif [ -f "$file" ]; then
-			totalsize="`stat -c %s "$file" 2>/dev/null`"
+			totalsize="$(stat -c %s "$file" 2>/dev/null)"
 		else
 			echo "Cannot read size of $file"
 			continue
 		fi
 
-		position="`grep pos "/proc/$pid/fdinfo/$fd"| cut -f2`"
+		position="$(grep pos "/proc/$pid/fdinfo/$fd"| cut -f2)"
 		complete=$((position * 100 / totalsize))
 		echo
 		echo

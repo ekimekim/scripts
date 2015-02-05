@@ -1,6 +1,7 @@
 #!/bin/bash
 
 USAGE="$0 [FORMAT]"
+[ "$1" == "--help" ] && { echo "$USAGE" >&2; exit 255; }
 
 FORMAT="${1:-%T}"
 BANNER="${BANNER:-banner}"
@@ -8,5 +9,5 @@ BANNER="${BANNER:-banner}"
 while sleep 1; do
 	clear
 	echo
-	$BANNER "`date "+$FORMAT"`"
+	$BANNER "$(date "+$FORMAT")"
 done

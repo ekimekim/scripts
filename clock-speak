@@ -7,6 +7,7 @@ while \"$0 15 minutes\" would speak four times as often.
 In technical terms, the time is reported when time since epoch is divisible by TIMESPEC.
 TIMESPEC defaults to 1 hour.
 "
+[ "$1" == "--help" ] && { echo "$USAGE" >&2; exit 255; }
 
 # set this to empty string to disable special case "o'clock" behaviour
 OCLOCK=${OCLOCK:-true}
@@ -17,7 +18,7 @@ SPEAK="espeak"
 if [ "$#" -lt 1 ]; then
 	timespec=3600
 else
-	timespec=$((`date +%s -d "$*"` - `date +%s`))
+	timespec=$(($(date +%s -d "$*") - $(date +%s)))
 fi
 
 if [ ! "$timespec" ] || [ "$timespec" -lt 0 ]; then
@@ -26,9 +27,9 @@ if [ ! "$timespec" ] || [ "$timespec" -lt 0 ]; then
 fi
 
 while true; do
-	timeleft=$((timespec - (`date +%s` % timespec)))
+	timeleft=$((timespec - ($(date +%s) % timespec)))
 	sleep "$timeleft" || exit # in case of bad screwup causing an inf loop
-	if [ -n "$OCLOCK" ] && [ "`date +%M`" == "00" ]; then
+	if [ -n "$OCLOCK" ] && [ "$(date +%M)" == "00" ]; then
 		date +"%-H o clock" | $SPEAK
 	else
 		date +"%-H %-M" | $SPEAK

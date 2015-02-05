@@ -27,7 +27,7 @@ die() {
 }
 
 die_on_fail() {
-	"$@" || die "Error running command: $@"
+	"$@" || die "Error running command: $*"
 }
 
 quiet() {

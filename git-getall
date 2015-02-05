@@ -10,7 +10,7 @@ If not specified, PATH defaults to ~/src
 "
 
 die() { echo "$@"; exit 1; }
-interrupt() { kill $current; }
+interrupt() { kill "$current"; }
 
 
 SRCDIR="$1"
@@ -31,5 +31,5 @@ for d in "$SRCDIR"/*; do
 		git get
 	) &
 	current=$!
-	wait $current # if we get a ^C, interrupt() will kill the $current proc and we continue.
+	wait "$current" # if we get a ^C, interrupt() will kill the $current proc and we continue.
 done

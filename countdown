@@ -18,8 +18,8 @@ shift
 if egrep -q '^[0-9]+[m:][0-9]*s?$' <<<"$timestr"; then
 	# of form XXm, XXmXXs? or XX:XXs?, eg. 10m, 10m30s, 10m30, 10:30
 	leading_number () { grep -o '^[0-9]*' <<<"$1"; }
-	mins=`leading_number "$timestr"`
-	secs=`leading_number $(egrep -o '[0-9]*s?$' <<<"$timestr")`
+	mins=$(leading_number "$timestr")
+	secs=$(leading_number "$(egrep -o '[0-9]*s?$' <<<"$timestr")")
 	duration=$((mins*60+secs))
 	unset leading_number
 else
@@ -34,7 +34,7 @@ while (( diff > 0 )); do
 	s=$((diff-m*60))
 	clear
 	echo
-	$BANNER "`printf "%02d:%02d" "$m" "$s"`"
+	$BANNER "$(printf "%02d:%02d" "$m" "$s")"
 	sleep 1
 done
 clear

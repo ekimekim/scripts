@@ -27,7 +27,7 @@ while sleep "$INTERVAL"; do
 		exit 1
 	fi
 
-	file="`readlink "/proc/$PID/fd/$FD"`"
+	file="$(readlink "/proc/$PID/fd/$FD")"
 	if [ ! "$file" ]; then
 		clear
 		echo "File closed."
@@ -35,9 +35,9 @@ while sleep "$INTERVAL"; do
 	fi
 	if [ "$file" != "$oldfile" ]; then
 		if [ -b "$file" ]; then
-			totalsize="`blockdev --getsize64 "$file"`"
+			totalsize="$(blockdev --getsize64 "$file")"
 		elif [ -f "$file" ]; then
-			totalsize="`stat -c %s "$file"`"
+			totalsize="$(stat -c %s "$file")"
 		else
 			clear
 			echo "Could not determine size of file: $file"
@@ -45,7 +45,7 @@ while sleep "$INTERVAL"; do
 		fi
 	fi
 	oldfile="$file"
-	position="`grep pos "/proc/$PID/fdinfo/$FD"| cut -f2`"
+	position="$(grep pos "/proc/$PID/fdinfo/$FD"| cut -f2)"
 	complete=$((position * 100 / totalsize))
 	clear
 	echo

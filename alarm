@@ -10,12 +10,12 @@ fi
 duestr="$1"
 shift
 
-due=`date -d "$duestr" +%s`
+due=$(date -d "$duestr" +%s)
 if [ ! "$due" ]; then
 	echo "Error: Could not understand due time."
 	exit 1
 fi
-now=`date +%s`
+now=$(date +%s)
 interval=$((due - now))
 
 if [ "$interval" -lt 0 ]; then
