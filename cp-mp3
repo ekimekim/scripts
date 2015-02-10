@@ -5,6 +5,8 @@ Copy SRC to TARGET, converting to mp3 if not already.
 If TARGET is a directory, copies to TARGET/<src basename>.mp3
 If TARGET is a file, it *must* end in .mp3"
 
+# DRY=true enables a dry-run mode for testing
+
 if [ "$#" -lt 2 ]; then
 	echo "$USAGE" >&2
 	exit 255
@@ -13,9 +15,15 @@ fi
 SRC="$1"
 TARGET="$2"
 
+run() {
+	echo "$@"
+	[ -z "$DRY" ] && "$@"
+}
+
 if grep '\.mp3$' <<<"$SRC"; then
-	cp "$SRC" "$TARGET"
+	run cp "$SRC" "$TARGET"
 else
-	[ -d "$TARGET" ] && TARGET="$TARGET/$(basename "${SRC%.*}").mp3"
-	ffmpeg -i "$SRC" "$TARGET"
+	[ -d "$TARGET" ] && TARGET="$TARGET/$(basename "$SRC")"
+	TARGET="${TARGET%.*}.mp3"
+	run ffmpeg -y -i "$SRC" "$TARGET"
 fi
