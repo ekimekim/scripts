@@ -1,0 +1,21 @@
+#!/bin/bash
+
+USAGE="$0 SRC TARGET
+Copy SRC to TARGET, converting to mp3 if not already.
+If TARGET is a directory, copies to TARGET/<src basename>.mp3
+If TARGET is a file, it *must* end in .mp3"
+
+if [ "$#" -lt 2 ]; then
+	echo "$USAGE" >&2
+	exit 255
+fi
+
+SRC="$1"
+TARGET="$2"
+
+if grep '\.mp3$' <<<"$SRC"; then
+	cp "$SRC" "$TARGET"
+else
+	[ -d "$TARGET" ] && TARGET="$TARGET/$(basename "${SRC%.*}").mp3"
+	ffmpeg -i "$SRC" "$TARGET"
+fi
