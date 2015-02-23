@@ -5,5 +5,6 @@ xrandr --output eDP2 --mode 1920x1080
 		xrandr --output "$screen" --off
 	done
 if [ -z "$X_ONE_SCREEN" ]; then
-	xrandr --output DP2-3 --mode 2048x1152 --pos 1920x0 || true # may fail if not connected
+	xrandr --output DP2-3 --mode 2048x1152 --right-of eDP2 || true # may fail if not connected
+	xrandr --output DP2-2 --mode 1920x1200 --left-of eDP2 || true # may fail if not connected
 fi
