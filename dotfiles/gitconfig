@@ -46,6 +46,7 @@
 	# I keep forgetting the name
 	simple-review = !git review-simple
 
+	gud = !cowsay "You just have to git gud."
 [merge]
 	ff = only
 	conflictstyle = diff3
