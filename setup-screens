@@ -1,10 +1,2 @@
 #!/bin/bash
-
-xrandr --output DVI-I-1 --mode 1920x1080
-if [ -n "$X_ONE_SCREEN" ]; then
-	xrandr --output DVI-D-0 --off
-	xrandr --output HDMI-0 --off
-else
-	xrandr --output DVI-D-0 --mode 1920x1080 --rotate left --pos 1920x-420
-	xrandr --output HDMI-0 --mode 1080x1920 --rotate left --right-of DVI-D-0 # Oculus Rift
-fi
+exit 0

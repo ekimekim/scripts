@@ -18,8 +18,6 @@ done
 PATH="$HOME/bin:$PATH"
 
 # source auto-complete scripts
-source "/usr/share/git/completion/git-completion.bash"
-source "/usr/share/bash-completion/completions/pass"
 source "$HOME/bin/git-alias-completion.bash"
 
 # Custom functions
@@ -99,8 +97,8 @@ alias fgrep='fgrep --color=auto'
 alias tree='tree -C'
 
 # Privilige aliases
-alias _pacman="`which pacman`" # _pacman is unpriviliged pacman, eg. _pacman -Ss
-alias pacman='sudo pacman'
+alias 'apt-get'='sudo apt-get'
+alias aptitude='sudo aptitude'
 alias pip='sudo pip2'
 alias svim='sudo vim'
 alias scat='sudo cat'
@@ -138,7 +136,7 @@ alias 'pip-upgrade'='pip install -U --no-deps'
 alias ''='cd ~+'
 
 # PS1 alerts (see alerts.ps1.bash)
-ALERTS=(check_bashrc check_pacnew check_kernel_version)
+ALERTS=(check_bashrc check_kernel_version)
 
 # Env vars
 HISTFILESIZE=$(( 1024 * 1024 ))
