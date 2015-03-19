@@ -105,6 +105,7 @@ ALERTS=(check_bashrc check_pacnew)
 HISTFILESIZE=4096
 HISTSIZE=4096
 export EDITOR='vim'
+export VISUAL='vim'
 export BROWSER='chromium'
 export PAGER='less'
 export LESS='-SR'
