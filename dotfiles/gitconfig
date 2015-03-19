@@ -26,6 +26,9 @@
 	# git lg all decendents of $1~{$2} (defaults HEAD, 10)
 	most = "!f(){ git lg --ancestry-path \"${1:-HEAD}~${2:-10}..\" --all ;}; f"
 
+	# git lg all local branches
+	lglocal = "!git for-each-ref --format=\"%(objectname)\" refs/heads | xargs git lg"
+
 	# del-remote BRANCH [REMOTE]: Delete branch on remote repo (default origin)
 	del-remote = "!f(){ git push \"${2:-origin}\" \":${1:=No branch given}\" ;}; f"
 
