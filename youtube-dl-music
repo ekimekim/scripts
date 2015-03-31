@@ -7,27 +7,31 @@ logexec() {
 
 PLAYLIST=${PLAYLIST:-~/main.awp}
 
-cd "$HOME/music" || exit 1
+if [ -n "$DEST" ]; then
+	cd "$DEST" || exit 1
+else
+	cd "$HOME/music" || exit 1
 
-OLDIFS="$IFS"
-IFS='
-'
-while [ -z "$finished" ]; do
-	PS3="Pick a destination in $(pwd) > "
-	select dir in $(find -maxdepth 1 -type d | sort); do
-		if [ "$dir" == "." ]; then
-			finished=true
+	OLDIFS="$IFS"
+	IFS='
+	'
+	while [ -z "$finished" ]; do
+		PS3="Pick a destination in $(pwd) > "
+		select dir in $(find -maxdepth 1 -type d | sort); do
+			if [ "$dir" == "." ]; then
+				finished=true
+				break
+			fi
+			if [ -z "$dir" ]; then
+				dir="$REPLY"
+				mkdir -p "$dir"
+			fi
+			cd "$dir" || exit 1
 			break
-		fi
-		if [ -z "$dir" ]; then
-			dir="$REPLY"
-			mkdir -p "$dir"
-		fi
-		cd "$dir" || exit 1
-		break
-	done || exit 1
-done
-IFS="$OLDIFS"
+		done || exit 1
+	done
+	IFS="$OLDIFS"
+fi
 
 filepath=$(youtube-dl -x --get-filename "$@")
 
@@ -42,7 +46,7 @@ if [ -n "$TRIM" ]; then
 	opts=()
 	[ -n "$start" ] && opts+=(-ss "$start")
 	[ -n "$end" ] && opts+=(-t "$((end-start))")
-	logexec ffmpeg -y "${opts[@]}" -i "$filepath" -strict -2 "$newpath" || exit 1
+	logexec ffmpeg -y "${opts[@]}" -i "$filepath" -strict -2 "$newpath" </dev/null || exit 1
 	rm "$filepath"
 	filepath="$newpath"
 fi
