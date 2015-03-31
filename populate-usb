@@ -21,6 +21,7 @@ LOCK_TIMEOUT=5
 MOUNT_ARGS="-t vfat"
 BANNER=${BANNER:-banner}
 # NO_DELETE: set to preserve existing contents
+GENERATE="${GENERATE:-python -m awp.generate "$PLAYLIST"}"
 
 locked=''
 
@@ -80,7 +81,7 @@ get_remaining() {
 }
 log "Populating $DEV with $(get_remaining) bytes"
 
-python -m awp.generate "$PLAYLIST" |
+$GENERATE |
 for ((n=0; 1; n++)); do
 	[ -n "$converted" ] && rm -f "$converted"
 	converted=
