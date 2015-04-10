@@ -1,1 +1,3 @@
-/home/mike/bin/awp2
+#!/bin/bash
+
+python -m awp.simple "$@"
