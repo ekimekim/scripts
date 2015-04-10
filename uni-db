@@ -1,1 +1,0 @@
-psql -h postgres.it.usyd.edu.au -U mlan1031 -d mlan1031

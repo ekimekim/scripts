@@ -1,3 +1,0 @@
-#!/bin/bash
-
-/home/mike/bin/xrun bash -c 'wine "/home/mike/stuff/LANStuff/Games/Warcraft III/Warcraft III 1.24.4.6387/Frozen Throne.exe"; while [ -n `ps aux|grep "Warcraft III"|grep -v grep` ]; do echo sleeping; sleep 1; done'
