@@ -1,12 +1,15 @@
 #!/bin/bash -e
 
+laptop='eDP-0'
+left='DisplayPort-0'
+
 # Add 1920x1080 to laptop screen
 cvt 1920 1080 | tail -n1 | cut -f2- -d' ' | xargs xrandr --newmode || true # may fail if already exists
-xrandr --addmode eDP-0 1920x1080_60.00
+xrandr --addmode "$laptop" 1920x1080_60.00
 # Set up laptop screen
-xrandr --output eDP-0 --mode 1920x1080_60.00
+xrandr --output "$laptop" --mode 1920x1080_60.00
 # Try to set up left screen if present
-xrandr --output DisplayPort-0 --mode 1920x1200 --left-of eDP-0 || exit 0
+xrandr --output "$left" --mode 1920x1200 --left-of "$laptop" || exit 0
 # Since that worked, now we can set the remaining positions correctly
-xrandr --output eDP-0 --pos 1920x850 # 850 chosen experimentally
+xrandr --output "$laptop" --pos 1920x850 # 850 chosen experimentally
 # xrandr --output ??? --mode 1920x1200 --pos 3840x0 || exit 0
