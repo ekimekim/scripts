@@ -1,0 +1,13 @@
+#!/bin/env python
+
+import sys
+
+if len(sys.argv) not in (2,3):
+	print 'USAGE: {} START END'.format(sys.argv[0])
+
+start = int(sys.argv[1]) if sys.argv[1] else 0
+end = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2] else None
+
+for line in sys.stdin:
+	line = line[:-1] # remove newline
+	print line[start:end]
