@@ -1,0 +1,50 @@
+#!/bin/env python
+
+import gevent.monkey
+gevent.monkey.patch_all()
+
+import requests
+
+TWITCH = 'https://api.twitch.tv/kraken'
+USER = 'ekimekim3000'
+
+def fetch(*parts, **data):
+	no_host = data.pop('no_host', False)
+	if not no_host:
+		parts = (TWITCH,) + parts
+	resp = requests.get('/'.join(parts), params=data)
+	resp.raise_for_status()
+	return resp.json()
+
+def fetch_all(key, *parts):
+	"""Fetch pages from path until exhausted.
+	key should be list of results to check in response.
+	Returns list of all results
+	"""
+	path = '/'.join((TWITCH,) + parts)
+	while True:
+		data = fetch(path, limit=100, no_host=True)
+		results = data[key]
+		if not results:
+			return
+		for result in results:
+			yield result
+		path = data['_links']['next']
+
+def is_live(name):
+	return fetch('streams', name).get('stream', None) is not None
+
+def main(*targets):
+	channels = (o['channel'] for o in fetch_all('follows', 'users', USER, 'follows', 'channels')
+	            if not targets or o['channel']['name'] in targets)
+	results = [(channel, gevent.spawn(is_live, channel['name'])) for channel in channels]
+	results = [(channel, live.get()) for channel, live in results]
+	for channel, live in results:
+		if not live:
+			continue
+		print u"{name} playing {game}: {status}".format(**channel).encode('utf-8')
+
+
+if __name__ == '__main__':
+	import sys
+	main(*sys.argv[1:])
