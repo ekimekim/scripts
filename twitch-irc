@@ -1,0 +1,26 @@
+#!/home/mike/bin/mikeirc
+
+import os
+import sys
+import subprocess
+
+password = None
+
+if not password: # from ~/.twitch-irc.oauth
+	try:
+		with open(os.path.expanduser("~/.twitch-irc.oauth")) as f:
+			password = f.read().strip()
+	except (OSError, IOError) as ex:
+		sys.stderr.write("Failed to look up oauth token: {}\n".format(ex))
+
+if not password: # from pass(1)
+	try:
+		password = subprocess.check_output(["pass", "show", "twitch.tv/oauth"], env={}).strip()
+	except subprocess.CalledProcessError:
+		sys.stderr.write("Failed to get oauth token from pass(1)")
+
+nick = 'ekimekim3000'
+quiet = True
+host = 'irc.twitch.tv'
+twitch = True
+

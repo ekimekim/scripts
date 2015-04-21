@@ -47,4 +47,4 @@ if [ -z "$CHANNEL" ]; then
 	exit 1
 fi
 
-exec /home/mike/src/mikeirc/configs/twitch --channel=#"$CHANNEL" "$@"
+exec twitch-irc --channel=#"$CHANNEL" "$@"
