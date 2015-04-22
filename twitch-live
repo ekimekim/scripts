@@ -34,12 +34,16 @@ def fetch_all(key, *parts):
 def is_live(name):
 	return fetch('streams', name).get('stream', None) is not None
 
+def get_channel_info(name):
+	return is_live(name), fetch('channels', name)
+
 def main(*targets):
-	channels = (o['channel'] for o in fetch_all('follows', 'users', USER, 'follows', 'channels')
-	            if not targets or o['channel']['name'] in targets)
-	results = [(channel, gevent.spawn(is_live, channel['name'])) for channel in channels]
-	results = [(channel, live.get()) for channel, live in results]
-	for channel, live in results:
+	if not targets:
+		targets = (o['channel']['name']
+		           for o in fetch_all('follows', 'users', USER, 'follows', 'channels'))
+	results = {name: gevent.spawn(get_channel_info, name) for name in targets}
+	results = {name: g.get() for name, g in results.items()}
+	for name, (live, channel) in results.items():
 		if not live:
 			continue
 		print u"{name} playing {game}: {status}".format(**channel).encode('utf-8')
