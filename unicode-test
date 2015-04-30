@@ -1,0 +1,16 @@
+#!/bin/env python
+
+import sys
+
+lines = sys.argv[1:] or sys.stdin
+
+for line in lines:
+	line = line.rstrip('\n')
+	print "Results for {!r}:".format(line)
+	for encoding in ('latin1', 'utf-8', 'utf-16'):
+		try:
+			result = line.decode(encoding)
+		except UnicodeDecodeError:
+			result = u'[invalid]'
+		print "{}: {}".format(encoding, result.encode('utf-8'))
+	print
