@@ -88,7 +88,7 @@ for ((n=0; 1; n++)); do
 	read file
 	log "Considering $file"
 	[ -f "$file" ] || { log "file does not exist: $file"; continue; }
-	filebase="$(basename "$file")"
+	filebase="$(basename "$file" | sed 's/:/_/g')"
 	if ! grep -q '\.mp3$' <<<"$file"; then
 		oldfile="$file"
 		file="/tmp/$RANDOM-${filebase%.*}.mp3"
