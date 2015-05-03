@@ -23,8 +23,5 @@ if [ "$interval" -lt 0 ]; then
 	exit 1
 fi
 
-if [ -n "$FOREGROUND" ]; then
-	( sleep "$interval" && "$@" )
-else
-	( sleep "$interval" && "$@" ) &
-fi
+echo "Setting alarm for $interval seconds"
+sleep "$interval" && "$@"
