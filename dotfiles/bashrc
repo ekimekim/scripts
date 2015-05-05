@@ -86,7 +86,7 @@ alias 'wifi-menu'='sudo wifi-menu'
 # Other aliases
 alias commit='git commit -a'
 alias status='git status -sb'
-alias clock='watch -n1 date'
+alias clock-small='watch -n1 date'
 alias pso='ps -o pid,start,command'
 alias rflakes='find -name "*.py" -exec pyflakes {} +'
 alias rflakes-watch='watch -pn.2 "find -name \\*.py -exec pyflakes {} +"'
