@@ -17,7 +17,7 @@ fi
 
 position="$(python2 -c "import random; print int(random.random() * $duration)")"
 
-mplayer </dev/null >/dev/null 2>&1 -loop 0 "$rainfile" -ss "$position" &
+mplayer </dev/null >/dev/null 2>&1 -loop 0 "$rainfile" -ss "$position" "$@" &
 pid="$!"
 trap "kill $pid" exit
 
