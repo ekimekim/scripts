@@ -47,4 +47,10 @@ if [ -z "$CHANNEL" ]; then
 	exit 1
 fi
 
+if [ "$(basename "$0")" == "twitch-watch" ]; then
+	livestreamer -p mplayer "http://www.twitch.tv/$CHANNEL" "${QUALITY:-medium}" &
+	pid="$!"
+	trap 'kill $pid' exit
+	echo "Started livestreamer as $pid"
+fi
 exec /home/mike/src/mikeirc/configs/twitch --channel=#"$CHANNEL" "$@"
