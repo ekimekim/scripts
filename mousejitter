@@ -1,13 +1,13 @@
 #!/bin/bash
 
-export X=${1:-1930}
-export Y=${2:-10}
-export INTERVAL=${INTERVAL:-10}
+export INTERVAL=${INTERVAL:-60}
 
 exec 2>/dev/null
 
 (while sleep "$INTERVAL"; do
-	swarp $((X+RANDOM/1000)) $((Y+RANDOM/1000))
+	eval $(xdotool getmouselocation --shell)
+	RAND=$((RANDOM % 8))
+	swarp $((X+RAND-4)) $Y
 done) &
 pid="$!"
 
