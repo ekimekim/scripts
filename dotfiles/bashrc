@@ -136,6 +136,9 @@ alias 'pip-upgrade'='pip install -U --no-deps'
 # ^X: cd to `pwd` - this "refreshes" the fd if the dir has been destroyed/recreated (eg. in a git rebase)
 alias ''='cd ~+'
 
+# mixpanel aliases
+alias arb='printf "arb-c%02d-s%02d-r%02d"'
+
 # PS1 alerts (see alerts.ps1.bash)
 ALERTS=(check_bashrc check_kernel_version)
 
