@@ -35,8 +35,8 @@
 	# pushorigin [REMOTE]: Force push current branch to REMOTE current branch, ignoring upstream
 	pushorigin = "!f(){ git push \"${2:-origin}\" \"$(git rev-parse --abbrev-ref HEAD)\" -f ;}; f"
 
-	# set BRANCH [REF]: Sets BRANCH to REF. Note HEAD is interpreted as BRANCH, not current HEAD. REF defaults to upstream.
-	set = "!f(){ upstream='@{u}'; git with \"${1:?Requires first arg}\" git reset --hard \"${2:-$upstream}\" ;}; f"
+	# set [BRANCH [REF]]: Sets BRANCH (default head) to REF. Note HEAD is interpreted as BRANCH, not current HEAD. REF defaults to upstream.
+	set = "!f(){ upstream='@{u}'; git with \"${1:-HEAD}\" git reset --hard \"${2:-$upstream}\" ;}; f"
 
 	# mis-spellings that cause sl to run
 	lal = !sl

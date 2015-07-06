@@ -90,7 +90,7 @@ alias fuck='sudo $(history -p \!\!)'
 alias 'wifi-menu'='sudo wifi-menu'
 
 # Other aliases
-alias commit='git commit -a'
+alias commit='git commit -av'
 alias status='git status -sb'
 alias clock-small='watch -n1 date'
 alias pso='ps -o pid,start,command'
