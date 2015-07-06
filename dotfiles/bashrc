@@ -112,6 +112,7 @@ alias 'systemctl-user'="$(which systemctl) --user"
 alias docker='sudo docker'
 alias fuck='sudo $(history -p \!\!)'
 alias 'wifi-menu'='sudo wifi-menu'
+alias service='sudo service'
 
 # Other aliases
 alias commit='git commit -av'
