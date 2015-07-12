@@ -34,9 +34,10 @@ else
 fi
 
 filepath=$(youtube-dl -x --get-filename "$@")
-
-rm -f "$filepath" # delete if exists
+filepath=${filepath%.*}
+rm -f "$filepath".* # delete if exists
 logexec youtube-dl -x "$@" || exit 1
+filepath=$( ls "${filepath}".* )
 
 # TRIM: format "start:end", where either can be blank
 if [ -n "$TRIM" ]; then
