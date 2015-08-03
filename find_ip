@@ -1,0 +1,4 @@
+#!/bin/bash
+
+source ~/env/bin/activate
+sl server list | awk -v "ip=$1" '$6 == ip || $7 == ip {print $3}'

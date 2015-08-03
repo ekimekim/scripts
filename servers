@@ -1,0 +1,11 @@
+#!/bin/bash
+
+USAGE="USAGE: $0 ROLE JQ_PROG {JQ_ARGS}"
+
+[ "$#" -lt 2 ] && echo $USAGE >&2 && exit 255
+
+role="$1"
+prog="$2"
+shift 2
+
+settings live ".SERVERS[\"$role\"]|($prog)" "$@"

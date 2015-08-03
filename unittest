@@ -1,0 +1,19 @@
+#!/bin/bash -e
+
+ENV=${ENV:-$HOME/env}
+CODE=${CODE:-$HOME/src/analytics}
+
+source "$ENV/bin/activate"
+cd "$CODE"
+export MP_ENV_TYPE='unit_test'
+
+if [ "$1" == "-f" ]; then
+	# force state reset first
+	'tests/scripts/user-test-linux-start.sh'
+elif [ "$1" == "-ff" ]; then
+	# force db and state reset first
+	'servers/scripts/setup_mysql_sandbox.sh'
+	'tests/scripts/user-test-linux-start.sh'
+fi
+
+python 'tests/unit_tests.py'

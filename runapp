@@ -1,0 +1,23 @@
+#!/bin/bash
+
+ENV="${ENV:-$HOME/env}"
+CODE="${CODE:-$HOME/src/analytics}"
+
+export MP_ENV_TYPE='dev'
+
+source "$ENV/bin/activate" || exit 1
+cd "$CODE" || exit 1
+
+PIDS=()
+
+spawn() {
+	python "$@" &
+	PIDS+=("$!")
+}
+
+trap 'kill "${PIDS[@]}"' EXIT
+
+spawn manage.py runserver --nothreading
+spawn api/version_2_0/server.py -f -d
+
+wait "${PIDS[@]}"

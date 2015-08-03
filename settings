@@ -1,0 +1,22 @@
+#!/bin/bash
+
+export MP_ENV_TYPE="${1:?Env type required}"
+JQ_PROG="${2:-.}"
+shift 2
+
+source ~/env/bin/activate
+cd ~/analytics
+
+python -c '
+import settings
+import json
+
+def cast(o):
+	try:
+		return list(o)
+	except TypeError:
+		return str(o)
+
+data = {k: getattr(settings, k) for k in dir(settings) if k.isupper()}
+print json.dumps(data, default=cast)
+' | jq "$@" "$JQ_PROG"

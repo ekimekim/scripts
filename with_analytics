@@ -1,0 +1,23 @@
+#!/bin/bash
+
+USAGE="$0 MP_ENV_TYPE [COMMAND {ARGS}]
+Runs bash in analytics venv and cd'd to ~/analytics."
+
+virtualenv="$HOME/env"
+export MP_ENV_TYPE="$1"
+shift 1
+
+cd "$virtualenv" || exit 1
+
+cat > /tmp/rcfile <<EOF
+source ~/.bashrc
+source bin/activate
+cd ~/analytics
+EOF
+
+if [ "$#" -gt 0 ]; then
+	echo "$@" >> /tmp/rcfile
+	bash /tmp/rcfile
+else
+	bash --rcfile /tmp/rcfile -i
+fi
