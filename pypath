@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+ 
+from sys import argv, exit
+import os
+ 
+if len(argv) < 2:
+	print 'USAGE: {0} MODULE\nPrint filepath of module'.format(*sys.argv)
+	exit(1)
+ 
+module = argv[1]
+exec 'import %s as subject' % module
+
+orig_path = subject.__file__
+path, ext = os.path.splitext(orig_path)
+py_path = path + '.py'
+if os.path.exists(py_path):
+	print py_path
+else:
+	print orig_path
