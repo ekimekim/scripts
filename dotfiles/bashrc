@@ -108,8 +108,8 @@ alias ''='cd ~+'
 ALERTS=(check_bashrc check_pacnew check_kernel_version)
 
 # Env vars
-HISTFILESIZE=4096
-HISTSIZE=4096
+HISTFILESIZE=$(( 1024 * 1024 ))
+HISTSIZE=$(( 1024 * 1024 ))
 export EDITOR='vim'
 export VISUAL='vim'
 export BROWSER='chromium'
