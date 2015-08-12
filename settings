@@ -8,6 +8,9 @@ source ~/env/bin/activate
 cd ~/analytics
 
 python -c '
+import standalone
+standalone.init()
+
 import settings
 import json
 
