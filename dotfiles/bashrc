@@ -19,6 +19,7 @@ PATH="$HOME/bin:$PATH"
 
 # source auto-complete scripts
 source "$HOME/bin/git-alias-completion.bash"
+source "$HOME/bin/fab-completion.bash"
 
 # Custom functions
 spawn() {
