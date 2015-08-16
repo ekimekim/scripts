@@ -35,9 +35,12 @@ fi
 
 filepath=$(youtube-dl -x --get-filename "$@")
 filepath=${filepath%.*}
-rm -f "$filepath".* # delete if exists
+ls | grep "^${filepath}[.][^.]*$" | while read line; do
+	echo "DELETING $line"
+	rm "$line"
+done
 logexec youtube-dl -x "$@" || exit 1
-filepath=$( ls "${filepath}".* )
+filepath=$( ls | grep "^${filepath}[.][^.]*$" )
 
 # TRIM: format "start:end", where either can be blank
 if [ -n "$TRIM" ]; then
