@@ -1224,7 +1224,7 @@ xkb_symbols "pc+us+inet(evdev)" {
         type= "CTRL+ALT",
         symbols[Group1]= [     KP_Multiply,     KP_Multiply,     KP_Multiply,     KP_Multiply,   XF86ClearGrab ]
     };
-    key <LALT> {         [           Alt_L,          Meta_L ] };
+    key <LALT> {         [           space ] };
     key <SPCE> {         [           space ] };
     key <CAPS> {         [          Escape ] };
     key <FK01> {
