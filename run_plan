@@ -1,0 +1,30 @@
+#!/bin/bash
+
+lines=()
+while read prog line; do
+	if [ "$prog" != "fab" ]; then
+		echo "Bad line: $prog $line"
+	fi
+	lines+=("run-fab $line")
+done
+
+echo
+echo "Executing:"
+for line in "${lines[@]}"; do
+	echo "    $line"
+done
+echo
+
+for line in "${lines[@]}"; do
+	echo "=== $line ==="
+	$line
+	rc="$?"
+	if [ "$rc" -ne 0 ]; then
+		echo "Failed $line"
+		echo "exit code $rc"
+		exit "$rc"
+	fi
+	echo
+done
+
+echo "All steps completed successfully"
