@@ -14,11 +14,15 @@
 	all = !git lg --all
 	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
 	get = fetch --prune --all
+	fpush = push --force-with-lease
+	co = checkout
+	master = checkout master
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
 	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
 	derp = "!f(){ git commit -m \"herp: $*\" ;}; f"
 	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
+	archive-branch = "!f(){ for b in \"$@\"; do git branch -m \"$b\" \"archive-$b\"; done ;}; f"
 
 	# git lg $1 and upstream of $1 (default HEAD)
 	lgu = "!f(){ git lg $(git rev-parse \"${1:-HEAD}\" \"${1:-HEAD}@{upstream}\" 2>/dev/null) ;}; f"
