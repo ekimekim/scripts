@@ -2,9 +2,9 @@
 
 trap 'echo -e "\x1b[m"' exit
 sed -s '
-	s/^DEBUG:/\x1b[0;35m/;
-	s/^INFO:/\x1b[32;1m/;
-	s/^WARNING:/\x1b[0;33m/;
-	s/^ERROR:/\x1b[31;1m/;
-	s/^CRITICAL:/\x1b[30;41;1m/;
+	s/^DEBUG/\x1b[0;35m/;
+	s/^INFO/\x1b[32;1m/;
+	s/^WARNING/\x1b[0;33m/;
+	s/^ERROR/\x1b[31;1m/;
+	s/^CRITICAL/\x1b[30;41;1m/;
 '
