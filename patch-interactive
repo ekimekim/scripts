@@ -1,0 +1,55 @@
+#!/bin/bash
+
+USAGE="$0 ORIGINAL NEW
+A simple script that combines diff and patch to interactively compare and reconcile two files.
+ORIGINAL is compared to NEW, the user is given the chance to edit the diff, then ORIGINAL is modified to match.
+Finally, NEW is deleted."
+
+patch="$(mktemp)"
+outfile="$(mktemp)"
+
+die() {
+	code="$1"
+	shift
+	[ -n "$*" ] && echo "$@" >&2
+	[ -f "$patch" ] && rm "$patch"
+	[ -f "$outfile" ] && rm "$outfile"
+	exit "$code"
+}
+
+[ "$#" -eq 2 ] || die 255 "$USAGE"
+
+original="$1"
+new="$2"
+
+diff -u -U99999 "$original" "$new" >"$patch"
+code="$?"
+if [ "$code" -eq 0 ]; then
+	echo "Files are identical"
+elif [ "$code" -eq 1 ]; then
+	while true; do
+		"${EDITOR:-vim}" "$patch"
+		[ -n "$(cat "$patch")" ] || die 1 "Patch is empty - cancelling"
+		if patch --posix -N -u -o "$outfile" "$original" "$patch"; then
+			echo "Patch applied successfully."
+			echo
+			cat "$outfile"
+			echo
+			read -s -p "Is this correct? (y/N)" -n 1 confirm
+			echo
+			[ "$confirm" == "y" ] && break
+		else
+			echo "Patch failed to apply, press any key to re-edit"
+			read -sn 1
+		fi
+	done
+	echo "Replacing original file"
+	mv "$outfile" "$original" || die "$?" "Failed to replace original file with patched file"
+else
+	die "$code" "diff failed with status $code"
+fi
+
+read -s -p "Delete original modified version? (y/N)" -n 1 confirm
+echo
+[ "$confirm" == "y" ] && { rm "$new" || die "$?" "Failed to delete original modified version"; }
+die 0

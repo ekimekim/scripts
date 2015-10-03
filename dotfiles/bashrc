@@ -42,6 +42,12 @@ list_pacnew() {
 check_pacnew() {
 	[ -z "$(list_pacnew)" ]
 }
+diff_pacnew() {
+	for path in $(list_pacnew); do
+		original="${path%.pacnew}"
+		sudo patch-interactive "$original" "$path" || break
+	done
+}
 
 # exit success if bashrc has not changed since executing (matches saved hash of bashrc)
 # 
