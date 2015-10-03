@@ -38,8 +38,9 @@ else
 	# log to file
 	exec >"$HOME/.xmonad/xmonad.log" 2>&1
 
-	# Start with a terminal open
+	# Startup applications
 	terminator &
+	chromium &
 
 	# Start up steam in background (still needs an X connection,
 	# or we could put this in systemd instead)
