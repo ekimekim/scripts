@@ -2,6 +2,7 @@
 
 cd ~/analytics
 export MP_ENV_TYPE=live
+source ~/env/bin/activate
 
 BUF="$(tempfile)"
 
@@ -9,4 +10,4 @@ tail -f "$BUF" &
 pid="$!"
 trap 'rm "$BUF"; kill "$pid"' exit
 
-~/env/bin/python -u "$(which fab)" "$@" >>$BUF 2>&1
+python -u "$(which fab)" "$@" >>$BUF 2>&1
