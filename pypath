@@ -4,7 +4,7 @@ from sys import argv, exit
 import os
  
 if len(argv) < 2:
-	print 'USAGE: {0} MODULE\nPrint filepath of module'.format(*sys.argv)
+	print 'USAGE: {0} MODULE\nPrint filepath of module'.format(*argv)
 	exit(1)
  
 module = argv[1]
