@@ -32,6 +32,19 @@ spawn() {
 }
 complete -c spawn
 
+ytplay() {
+	# Credit to https://github.com/exogen/dotfiles
+	# Skip DASH manifest for speed purposes. This might actually disable
+	# being able to specify things like 'bestaudio' as the requested format,
+	# but try anyway.
+	youtube-dl --default-search=ytsearch: \
+	       --youtube-skip-dash-manifest \
+	       --output="/tmp/%(title)s-%(id)s.%(ext)s" \
+	       --restrict-filenames \
+	       --format="bestaudio" \
+	       --exec='mplayer -vo null -softvol -volume 50' "$*"
+}
+
 # list pacnew files present in /etc
 list_pacnew() {
 	find '/etc' \
