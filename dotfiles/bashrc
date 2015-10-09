@@ -155,6 +155,7 @@ export LESS='-SR'
 export BANNER='banner-stripped -c# -f2'
 export PYTHONSTARTUP="$HOME/.pythonrc"
 export QUOTING_STYLE='literal'
+source "$HOME/.secrets" # set sensitive env vars, eg. api secrets
 
 # Misc completions
 complete -c which
