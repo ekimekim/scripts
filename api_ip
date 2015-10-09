@@ -1,0 +1,6 @@
+#!/bin/bash
+
+CONF_JSON="$HOME/src/analytics/configurations/api-balancer/live.json"
+
+jq -r "with_entries(select(.value.addresses|contains([\"$1\"])))|
+       if . != null then (keys|.[0]) else empty end" <"$CONF_JSON"
