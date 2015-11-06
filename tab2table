@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """USAGE: tab2table.py {FILENAME}
 
@@ -12,51 +12,49 @@ Flags:
 """
 
 import sys
-from sys import argv
+
+
 
 def printhelp():
 	print __doc__
 	sys.exit(1)
 
-flags = {'-h':printhelp, '--help':printhelp}
 
-argv = argv[1:]
-
-for arg in argv:
-	if arg in flags:
-		argv.pop(arg)
-		flags[arg]()
-
-files = []
-if len(argv) == 0:
-	files.append(sys.stdin)
-else:
+def main(*argv):
+	flags = {'-h': printhelp, '--help': printhelp}
 	for arg in argv:
-		if arg == '-':
-			files.append(sys.stdin)
-		else:
-			files.append(open(arg,'rU'))
+		if arg in flags:
+			argv.pop(arg)
+			flags[arg]()
 
-tabwidth = 4
+	if not argv:
+		argv = ['-']
+	files = [sys.stdin if path == '-' else open(path) for path in argv]
+	text = ''.join([f.read() for f in files])
 
-widths = [] # list of column widths
+	tabwidth = 4
 
-text = ''.join([f.read() for f in files])
-if not text:
-	exit(0)
-if text[-1] == '\n':
-	text = text[:-1] # strip final newline to avoid [proper lines, ..., '']
-lines = text.split('\n')
-for line in lines:
-	parts = line.split('\t')
-	for x in range(len(parts)):
-		while x >= len(widths):
-			widths.append(tabwidth)
-		if len(parts[x])+tabwidth > widths[x]:
-			widths[x] = len(parts[x])+tabwidth
+	widths = [] # list of column widths
 
-for line in lines:
-	parts = line.split('\t')
-	for x in range(len(parts)):
-		sys.stdout.write(parts[x] + ' ' * (widths[x] - len(parts[x])))
-	sys.stdout.write('\n')
+	if not text:
+		return
+	if text[-1] == '\n':
+		text = text[:-1] # strip final newline to avoid [proper lines, ..., '']
+	lines = text.split('\n')
+	for line in lines:
+		parts = line.split('\t')
+		for column, value in enumerate(parts):
+			# pad widths up to column number
+			while column >= len(widths):
+				widths.append(tabwidth)
+			if len(value) + tabwidth > widths[column]:
+				widths[column] = len(value) + tabwidth
+
+	for line in lines:
+		for width, value in zip(widths, line.split('\t')):
+			sys.stdout.write(value + ' ' * (width - len(value)))
+		sys.stdout.write('\n')
+
+
+if __name__ == '__main__':
+	main(*sys.argv[1:])
