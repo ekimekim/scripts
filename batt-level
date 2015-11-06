@@ -1,12 +1,18 @@
 #!/bin/env python
 
+import os
+
 def get_info(key):
-	with open("/sys/class/power_supply/BAT0/" + key) as f:
+	batteries = [x for x in os.listdir("/sys/class/power_supply/") if x.startswith('BAT')]
+	if len(batteries) > 1:
+		print "Warning: Multiple batteries detected. Using first."
+	battery = batteries[0]
+	with open("/sys/class/power_supply/{}/{}".format(battery, key)) as f:
 		return int(f.read().strip())
 
-charge = get_info('charge_now')
-design = get_info('charge_full_design')
-last_full = get_info('charge_full')
+charge = get_info('energy_now')
+design = get_info('energy_full_design')
+last_full = get_info('energy_full')
 
 print 'Absolute Charge: %.2f%%' % (100.0*charge/design)
 print 'Relative Charge: %.2f%%' % (100.0*charge/last_full)
