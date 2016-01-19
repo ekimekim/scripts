@@ -1,4 +1,33 @@
 #!/bin/bash
 
-source ~/env/bin/activate
-sl server list | awk -v "ip=$1" '$6 == ip || $7 == ip {print $3}'
+MP_ENV_TYPE=live ~/env/bin/python -c '
+import standalone
+standalone.init()
+
+import sys
+from analytics.settings import SERVERS
+
+def search(o):
+	if isinstance(o, dict):
+		if "host" in o and "addresses" in o:
+			return {o["addresses"]["internal"]: o["host"]}
+		else:
+			o = o.values()
+	if isinstance(o, list):
+		results = {}
+		for sub in o:
+			results.update(search(sub))
+		return results
+	return {}
+
+def main(*ips):
+	results = search(SERVERS)
+	if not ips:
+		for ip, host in results.items():
+			print "{}: {}".format(ip, host)
+		return
+	for ip in ips:
+		print "{}: {}".format(ip, results.get(ip, "unknown"))
+
+main(*sys.argv[1:])
+' "$@"
