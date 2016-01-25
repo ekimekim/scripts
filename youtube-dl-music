@@ -35,6 +35,7 @@ fi
 
 filepath=$(youtube-dl -x --get-filename "$@")
 filepath=${filepath%.*}
+[ -n "$filepath" ] || exit 1
 ls "${filepath}".* | while read line; do
 	echo "DELETING $line"
 	rm "$line"
