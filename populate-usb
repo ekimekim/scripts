@@ -103,8 +103,8 @@ for ((n=0; 1; n++)); do
 	log "File size: $filesize  Remaining space: $remaining"
 	[ "$newremaining" -gt "$MIN_REMAINING" ] || break
 	filenum="$(printf "%04d" "$n")"
-	cp "$file" "$MOUNTPOINT/$TARGET/$filenum-$filebase" || continue
-	log "Copied $MOUNTPOINT/$TARGET/$filenum-$filebase"
+	cp "$file" "$MOUNTPOINT/$TARGET/$filenum-${filebase}.mp3" || continue
+	log "Copied $MOUNTPOINT/$TARGET/$filenum-${filebase}.mp3"
 	report_progress
 done
 [ -n "$converted" ] && rm -f "$converted"
