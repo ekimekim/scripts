@@ -36,7 +36,7 @@ while sleep "$INTERVAL"; do
 	if ! [ -d "/proc/$PID" ]; then
 		clear
 		echo "Process complete."
-		exit 1
+		exit 0
 	fi
 
 	fromfile="$(readlink "/proc/$1/fd/3")"
