@@ -36,8 +36,8 @@
 	# del-remote BRANCH [REMOTE]: Delete branch on remote repo (default origin)
 	del-remote = "!f(){ git push \"${2:-origin}\" \":${1:=No branch given}\" ;}; f"
 
-	# pushorigin [REMOTE]: Force push current branch to REMOTE current branch, ignoring upstream
-	pushorigin = "!f(){ git push \"${2:-origin}\" \"$(git rev-parse --abbrev-ref HEAD)\" -f ;}; f"
+	# pushorigin [REMOTE]: Push current branch to REMOTE current branch, setting upstream
+	pushorigin = "!f(){ git push \"${2:-origin}\" \"$(git rev-parse --abbrev-ref HEAD)\" -u ;}; f"
 
 	# set [BRANCH [REF]]: Sets BRANCH (default head) to REF. Note HEAD is interpreted as BRANCH, not current HEAD. REF defaults to upstream.
 	set = "!f(){ upstream='@{u}'; git with \"${1:-HEAD}\" git reset --hard \"${2:-$upstream}\" ;}; f"
