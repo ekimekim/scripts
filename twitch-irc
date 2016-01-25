@@ -20,7 +20,7 @@ if not password: # from pass(1)
 		sys.stderr.write("Failed to get oauth token from pass(1)")
 
 nick = 'ekimekim3000'
-quiet = True
+nousers = True
 host = 'irc.twitch.tv'
 twitch = True
 

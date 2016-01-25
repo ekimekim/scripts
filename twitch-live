@@ -3,10 +3,12 @@
 import gevent.monkey
 gevent.monkey.patch_all()
 
+import os
+
 import requests
 
 TWITCH = 'https://api.twitch.tv/kraken'
-USER = 'ekimekim3000'
+USER = os.environ.get('TWITCH_USER', 'ekimekim3000')
 
 def fetch(*parts, **data):
 	no_host = data.pop('no_host', False)
