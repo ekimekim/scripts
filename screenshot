@@ -1,0 +1,15 @@
+#!/bin/bash
+
+USAGE="$0 PATH [WAIT]
+Wait WAIT seconds then take a screenshot of the active window, saving to PATH.
+WAIT defaults to 5 seconds."
+
+if [ "$#" -lt 1 ]; then
+	echo "$USAGE" >&2
+	exit 1
+fi
+
+SHOTPATH="$1"
+WAIT="${2:-5}"
+
+sleep "$WAIT" && import -window "$(xdotool getwindowfocus -f)" "$SHOTPATH"
