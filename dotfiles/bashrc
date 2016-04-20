@@ -129,6 +129,7 @@ alias ''='clear'
 alias ''='cd && clear'
 alias browser='spawn $BROWSER'
 alias mplayer-music='mplayer -vo null -softvol -volume 50'
+alias monstercat='twitch_play monstercat audio'
 alias xclip='xclip -selection clipboard'
 alias pass='DISPLAY= pass' # disable display so gpg doesn't make annoying popup prompt
 alias 'pip-upgrade'='pip install -U --no-deps'
