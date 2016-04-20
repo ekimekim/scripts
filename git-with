@@ -8,10 +8,22 @@ shift
 current="$(git symbolic-ref HEAD)"
 current="${current#refs/heads/}"
 
-git checkout $subject || exit
+changes="$(git status --porcelain --untracked-files=no)"
+if [ -n "$changes" ]; then
+	git stash || exit
+fi
+
+git checkout $subject || exit 1
 if [ $# -lt 1 ]; then
 	bash
 else
 	"$@"
 fi
-git checkout $current
+ret="$?"
+git checkout $current || exit 1
+
+if [ -n "$changes" ]; then
+	git stash pop || exit 1
+fi
+
+exit "$ret"
