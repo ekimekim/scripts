@@ -45,6 +45,17 @@ ytplay() {
 	       --exec='mplayer -vo null -softvol -volume 50' "$*"
 }
 
+twitch_play() {
+	if [ "$#" -lt 1 ]; then
+		echo "USAGE: $0 CHANNEL [QUALITY {MPLAYER_ARGS}]" >&2
+		return 255
+	fi
+	local channel="$1"
+	local quality="${2:-source}"
+	shift 2
+	livestreamer twitch.tv/"$channel" "$quality" --player "mplayer -cache 1024 $* -"
+}
+
 # list pacnew files present in /etc
 list_pacnew() {
 	find '/etc' \
