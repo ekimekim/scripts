@@ -109,6 +109,7 @@ alias shutdown='sudo shutdown'
 alias reboot='sudo reboot'
 alias poweroff='sudo poweroff'
 alias systemctl='sudo systemctl'
+alias 'systemctl-user'="$(which systemctl) --user"
 alias docker='sudo docker'
 alias fuck='sudo $(history -p \!\!)'
 alias 'wifi-menu'='sudo wifi-menu'
