@@ -10,10 +10,13 @@ export MP_ENV_TYPE='unit_test'
 if [ "$1" == "-f" ]; then
 	# force state reset first
 	'tests/scripts/user-test-linux-start.sh'
+	shift
 elif [ "$1" == "-ff" ]; then
 	# force db and state reset first
 	'servers/scripts/setup_mysql_sandbox.sh'
 	'tests/scripts/user-test-linux-start.sh'
+	shift
 fi
 
-python 'tests/unit_tests.py'
+TARGET="${1-tests/unit_tests.py}"
+python "$TARGET"
