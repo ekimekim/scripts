@@ -8,6 +8,5 @@ source ~/env/bin/activate
 export MP_ENV_TYPE=live
 
 firewall/generate.py
-monitoring/gen_munin_conf.py
 monitoring/gen_nagios_hosts.py
 monitoring/gen_nagios_services.py
