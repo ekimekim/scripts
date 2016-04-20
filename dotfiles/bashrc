@@ -20,6 +20,7 @@ PATH="$HOME/bin:$PATH"
 # source auto-complete scripts
 source "/usr/share/git/completion/git-completion.bash"
 source "/usr/share/bash-completion/completions/pass"
+source "$HOME/bin/git-alias-completion.bash"
 
 # Custom functions
 spawn() {
