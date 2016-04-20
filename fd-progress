@@ -46,7 +46,7 @@ while sleep "$INTERVAL"; do
 	fi
 	oldfile="$file"
 	position="$(grep pos "/proc/$PID/fdinfo/$FD"| cut -f2)"
-	complete=$((position * 100 / totalsize))
+	complete=$(python -c "print '%.2f' % ($position * 100. / $totalsize)")
 	clear
 	echo
 	echo "$file"

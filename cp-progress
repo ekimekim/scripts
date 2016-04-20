@@ -46,7 +46,7 @@ while sleep "$INTERVAL"; do
 	fi
 	oldfile="$fromfile"
 	position="$(grep pos "/proc/$1/fdinfo/4"| cut -f2)"
-	complete=$((position * 100 / totalsize))
+	complete=$(python -c "print '%.2f' % ($position * 100. / $totalsize)")
 	clear
 	echo
 	echo "Copying $fromfile"
