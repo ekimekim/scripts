@@ -17,12 +17,17 @@
 	fpush = push --force-with-lease
 	co = checkout
 	master = checkout master
+	rim = rebase -i master
+	b = rev-parse --symbolic-full-name HEAD
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
 	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
 	derp = "!f(){ git commit -m \"herp: $*\" ;}; f"
 	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
 	archive-branch = "!f(){ for b in \"$@\"; do git branch -m \"$b\" \"archive-$b\"; done ;}; f"
+
+	# display a diff consisting of all commits on $2 (default HEAD) but not $1 (default master)
+	diff-branch = "!f(){ base=\"${1:-master}\"; target=\"${2:-HEAD}\"; git diff $(git merge-base \"$base\" \"$target\") \"$target\"; }; f"
 
 	# git lg $1 and upstream of $1 (default HEAD)
 	lgu = "!f(){ git lg $(git rev-parse \"${1:-HEAD}\" \"${1:-HEAD}@{upstream}\" 2>/dev/null) ;}; f"
@@ -41,6 +46,9 @@
 
 	# set [BRANCH [REF]]: Sets BRANCH (default head) to REF. Note HEAD is interpreted as BRANCH, not current HEAD. REF defaults to upstream.
 	set = "!f(){ upstream='@{u}'; git with \"${1:-HEAD}\" git reset --hard \"${2:-$upstream}\" ;}; f"
+
+	# del-merged [BRANCH]: Delete all branches merged into BRANCH (default: master)
+	del-merged = "!f(){ target=\"${1:-master}\"; git branch --merged \"$target\" | grep -v \" $target\\$\" | xargs git branch -d ;}; f"
 
 	# mis-spellings that cause sl to run
 	lal = !sl
