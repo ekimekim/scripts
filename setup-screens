@@ -3,7 +3,8 @@
 laptop='eDP1'
 left='DP1'
 # offset=850 # with laptop on desk
-offset=350 # with laptop on box
+# offset=350 # with laptop on box
+offset=200 # with laptop on stand + box - keyboard box
 
 # Add 1920x1080 to laptop screen
 #cvt 1920 1080 | tail -n1 | cut -f2- -d' ' | xargs xrandr --newmode || true # may fail if already exists
