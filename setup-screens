@@ -1,10 +1,18 @@
 #!/bin/bash
 
-xrandr --output DVI-I-1 --mode 1920x1080
+main='DVI-I-1'
+side='DP-1'
+bedside='DVI-D-0'
+rift='HDMI-0'
+
+xrandr --output "$main" --mode 1920x1080
 if [ -n "$X_ONE_SCREEN" ]; then
-	xrandr --output DVI-D-0 --off
-	xrandr --output HDMI-0 --off
+	xrandr --output "$side" --off
+	xrandr --output "$rift" --off
+	xrandr --output "$bedside" --off
 else
-	xrandr --output DVI-D-0 --mode 1920x1080 --rotate left --pos 1920x-420
-	xrandr --output HDMI-0 --mode 1080x1920 --rotate left --right-of DVI-D-0 # Oculus Rift
+	xrandr --output "$main" --pos 0x420 # move main down so side can reach above its top
+	xrandr --output "$side" --mode 1920x1080 --rotate left --pos 1920x0
+	xrandr --output "$bedside" --mode 1920x1080 --right-of "$side"
+	xrandr --output "$rift" --mode 1080x1920 --rotate left --left-of "$main" # Oculus Rift
 fi
