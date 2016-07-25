@@ -22,6 +22,7 @@ MOUNT_ARGS="-t vfat"
 BANNER=${BANNER:-banner}
 # NO_DELETE: set to preserve existing contents
 GENERATE="${GENERATE:-python -m awp.generate "$PLAYLIST"}"
+CONVERT_ARGS=('-b:a' '64k')
 
 locked=''
 
@@ -94,7 +95,7 @@ for ((n=0; 1; n++)); do
 		oldfile="$file"
 		file="/tmp/$RANDOM-${filebase%.*}.mp3"
 		converted="$file"
-		ffmpeg -i "$oldfile" "$file" </dev/null >/dev/null 2>&1 || continue
+		ffmpeg -i "$oldfile" "${CONVERT_ARGS[@]}" "$file" </dev/null >/dev/null 2>&1 || continue
 	fi
 	filesize="$(stat -c %s "$file")"
 	[ -n "$filesize" ] || { log "failed to get size of: $file"; continue; }
