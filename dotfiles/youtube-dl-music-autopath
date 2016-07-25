@@ -6,6 +6,8 @@ import sys
 
 PATHS_BY_VALUE = {
 	"uploader_id": {
+		"FamilyJules7X": "~/music/Artists/FamilyJules7X",
+		"pellekofficial": "~/music/Artists/Pellek",
 		"SmoothMcGroove": "~/music/Artists/Smooth McGroove",
 	}
 }
