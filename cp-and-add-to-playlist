@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PLAYLIST=${PLAYLIST:-~/main.awp}
+src="$1"
+dest="$2"
+
+if [ -d "$dest" ]; then
+	dest="$dest/$(basename "$src")"
+fi
+dest=$(python -c 'import sys, os; print os.path.normpath(os.path.abspath(sys.stdin.read().strip()))' <<<"$dest")
+
+cp "$src" "$dest"
+printf "16\t0.5\t%s\n" "$dest" >> "$PLAYLIST"
