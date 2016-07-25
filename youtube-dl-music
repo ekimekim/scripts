@@ -6,6 +6,16 @@ logexec() {
 }
 
 PLAYLIST=${PLAYLIST:-~/main.awp}
+AUTOPATH_SCRIPT=${AUTOPATH_SCRIPT:-~/.youtube-dl-music-autopath}
+
+if [ -z "$DEST" ] && [ -x "$AUTOPATH_SCRIPT" ]; then
+	echo "Attempting to autopath"
+	autopath_output="$(youtube-dl "$@" --dump-json | $AUTOPATH_SCRIPT)"
+	if [ $? -eq 0 ] && [ -n "$autopath_output" ]; then
+		DEST="$autopath_output"
+		echo "Using autopath: $autopath_output"
+	fi
+fi
 
 if [ -n "$DEST" ]; then
 	cd "$DEST" || exit 1

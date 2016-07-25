@@ -1,0 +1,22 @@
+#!/usr/bin/python2
+
+import json
+import os
+import sys
+
+PATHS_BY_VALUE = {
+	"uploader_id": {
+		"SmoothMcGroove": "~/music/Artists/Smooth McGroove",
+	}
+}
+
+def main(video):
+	for key, lut in PATHS_BY_VALUE.items():
+		if key in video and video[key] in lut:
+			return lut[video[key]]
+
+if __name__ == '__main__':
+	video = json.loads(sys.stdin.read())
+	output = main(video)
+	if output:
+		print os.path.expanduser(output)
