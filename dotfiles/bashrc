@@ -57,6 +57,13 @@ twitch_play() {
 	livestreamer twitch.tv/"$channel" "$quality" --player "mplayer -cache 1024 $* -"
 }
 
+pyedit() {
+	local target="$1"
+	shift 1
+	local path="$(pypath "$target")"
+	[ -n "$path" ] && "$EDITOR" "$path" "$@"
+}
+
 # list pacnew files present in /etc
 list_pacnew() {
 	find '/etc' \
