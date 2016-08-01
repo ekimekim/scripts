@@ -54,7 +54,7 @@ twitch_play() {
 	local channel="$1"
 	local quality="${2:-source}"
 	shift 2
-	livestreamer twitch.tv/"$channel" "$quality" --player "mplayer -cache 1024 $* -"
+	livestreamer twitch.tv/"$channel" "$quality" --player "mplayer -cache 4096 -softvol $* -"
 }
 
 # list pacnew files present in /etc
