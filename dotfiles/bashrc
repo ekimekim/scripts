@@ -141,6 +141,7 @@ alias ''='cd ~+'
 alias arb='printf "arb-data-c%02d-s%02d-r%02d"'
 alias slcli='with_analytics live sl'
 alias cda='cd ~/src/analytics'
+alias cdan='cd ~/src/analytics/backend/notifications'
 
 # PS1 alerts (see alerts.ps1.bash)
 ALERTS=(check_bashrc)

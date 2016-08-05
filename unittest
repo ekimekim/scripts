@@ -3,6 +3,8 @@
 ENV=${ENV:-$HOME/env}
 CODE=${CODE:-$HOME/src/analytics}
 
+export FAST=true
+
 source "$ENV/bin/activate"
 cd "$CODE"
 export MP_ENV_TYPE='unit_test'
