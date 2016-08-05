@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo rfkill unblock all
+sudo ip link set wlp6s0 ${1:-down}
+sudo wifi-menu
