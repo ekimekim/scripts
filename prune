@@ -1,0 +1,3 @@
+#!/bin/bash
+
+find "${1:-.}" -wholename '*/.*' -or '(' -name '*.pyc' -or -type d -empty ')' -print -delete
