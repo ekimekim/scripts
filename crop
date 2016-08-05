@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+
+from argh import dispatch_command, arg
+from PIL import Image
+
+@arg('x0', type=int)
+@arg('y0', type=int)
+@arg('x1', type=int)
+@arg('y1', type=int)
+def main(infile, outfile, x0, y0, x1, y1):
+	img = Image.open(infile)
+	img = img.crop((x0, y0, x1, y1))
+	img.save(outfile)
+
+dispatch_command(main)

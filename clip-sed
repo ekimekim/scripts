@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ARGS=()
+
+_xclip() {
+	xclip -selection clipboard "$@"
+}
+
+for expr in "$@"; do
+	ARGS+=('-e' "$expr")
+done
+
+_xclip -o | sed "${ARGS[@]}" | _xclip
