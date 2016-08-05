@@ -1,0 +1,11 @@
+#!/bin/bash
+
+DATA_DIR="${DATA_DIR:-/home/mike/.config/chromium-forward}"
+HOST="${1:?Need a host to forward through}"
+PORT="${PORT:-6666}"
+mkdir -p "$DATA_DIR"
+
+ssh "$HOST" -ND "$PORT" &
+pid="$!"
+trap 'kill $pid' exit
+chromium --user-data-dir="$DATA_DIR" --proxy-server="socks://localhost:$PORT"
