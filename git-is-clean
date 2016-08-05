@@ -1,0 +1,60 @@
+#!/bin/bash
+
+progname="$(basename "$0")"
+
+USAGE="$progname BRANCH [TARGET]
+Test if a git branch cleanly rebases onto TARGET commit.
+Does not modify any branches, but does temporarily change the repo's checked out branch.
+Exit codes:
+	0: Branch applies cleanly
+	1: Branch requires conflict resolution
+	2: Rebase was a no-op (fast-forward or changes already applied)
+	3: Other error
+TARGET defaults to 'master'
+"
+
+die() {
+	local code="$1"
+	shift 1
+	echo "$@" >&2
+	exit "$code"
+}
+
+failed() {
+	local code="$1"
+	shift 1
+	die 3 "failed to $* with status $code, exiting"
+}
+
+[ "$#" -gt 0 ] || die 255 "$USAGE"
+
+BRANCH="$1"
+TARGET="${2:-master}"
+TEMP="temp/$progname/$1"
+
+git branch "$TEMP" "$BRANCH" || failed "$?" create temp branch
+
+current="$(git symbolic-ref HEAD)"
+current="${current#refs/heads/}"
+git checkout "$TEMP"
+
+git rebase "$TARGET"
+status="$?"
+
+if [ "$status" -eq 128 ]; then
+	git rebase --abort || failed $? abort after conflicting rebase
+	git checkout "$current"
+	git branch -d -f "$TEMP"
+	die 1 "Branch $BRANCH does not rebase cleanly onto $TARGET"
+elif [ "$status" -eq 0 ]; then
+	git checkout "$current"
+	if [ "$(git rev-parse "$TARGET")" == "$(git rev-parse "$TEMP")" ]; then
+		git branch -d -f "$TEMP"
+		die 2 "$TARGET already contains all commits from $BRANCH"
+	else
+		git branch -d -f "$TEMP"
+		die 0 "Branch $BRANCH cleanly rebases onto $TARGET"
+	fi
+else
+	failed "$status" rebase onto target
+fi
