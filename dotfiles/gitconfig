@@ -13,7 +13,7 @@
 	initial = commit --allow-empty -m 'Initial Commit'
 	all = !git lg --all
 	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
-	get = fetch --prune --all
+	get = fetch --all
 	fpush = push --force-with-lease
 	co = checkout
 	master = checkout master
@@ -62,6 +62,9 @@
 
 [push]
 	default = upstream
+
+[fetch]
+	prune = true
 
 [diff]
 	color=auto
