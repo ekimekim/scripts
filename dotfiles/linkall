@@ -1,0 +1,28 @@
+#!/bin/bash
+
+log_and_run() {
+	echo "$@"
+	"$@"
+}
+
+cd "$(dirname "$0")"
+
+for file in *; do
+	[ "$file" = 'linkall' ] && continue # exclude self
+
+	# if contains _
+	if grep -Fq _ <<<"$file"; then
+		# split "foo_bar_baz" into ".foo/bar" and "baz"
+		prefix="${file%_*}"
+		name="${file##*_}"
+		prefix=".$(sed 's|_|/|g' <<<"$prefix")"
+
+		mkdir -p "$HOME/$prefix"
+		dest="$HOME/$prefix/$name"
+	else
+		dest="$HOME/.$file"
+	fi
+
+	log_and_run ln -s ~+/"$file" "$dest"
+
+done
