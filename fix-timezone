@@ -1,0 +1,20 @@
+#!/usr/bin/python2
+
+import os
+from subprocess import check_call
+
+import tzupdate
+
+def main():
+	current_tz = os.readlink('/etc/localtime')
+	assert current_tz.startswith(tzupdate.DEFAULT_ZONEINFO_PATH + '/')
+	current_tz = current_tz[len(tzupdate.DEFAULT_ZONEINFO_PATH + '/'):]
+	new_tz = tzupdate.get_timezone_for_ip()
+	if current_tz == new_tz:
+		print 'Current timezone {} is good'.format(current_tz)
+	else:
+		if raw_input('Update timezone from {} to {}? (y/N) > '.format(current_tz, new_tz)).lower().startswith('y'):
+			check_call(['sudo', 'ln', '-sf', '/usr/share/zoneinfo/{}'.format(new_tz), '/etc/localtime'])
+
+if __name__ == '__main__':
+	main()
