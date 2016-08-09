@@ -1,24 +1,3 @@
 #!/bin/bash
 
-main='DVI-D-0'
-right='DP-4'
-left='DP-2'
-top='DP-0'
-
-xrandr --output "$left" --off
-xrandr --output "$right" --off
-xrandr --output "$top" --off
-xrandr --output "$main" --mode 1920x1080 --pos 0x0
-
-[ -n "$X_ONE_SCREEN" ] && exit
-
-xrandr --output "$right" --mode 1920x1080 --rotate left --pos 3840x0
-xrandr --output "$main" --pos 1920x420 # move main/left down so side can reach above its top
-xrandr --output "$left" --mode 1920x1080 --pos 0x420
-# I don't know why, but these don't stick the first time. Ordering issues?
-xrandr --output "$right" --pos 3840x0
-xrandr --output "$main" --pos 1920x420 # move main/left down so side can reach above its top
-
-# add top above, shoving everything else down. top is flush with left and middle
-# and halfway between.
-xrandr --output "$top" --mode 1920x1080 --pos 960x-660
+xrandr --output eDP-1 --mode 1920x1080
