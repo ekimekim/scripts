@@ -19,35 +19,20 @@ xset s off
 # xrandr your way into the correct setup
 setup-screens
 
-if [ -n "$XRUN" ]; then
+# Run package-mandated x init scripts
+source /etc/X11/xinit/xinitrc.d/*
 
-	# Special case: run a given command
+# Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
+setvol
 
-	[ -n "$XRUN_SINGLE_MONITOR" ] && single-monitor simple
+# log to file
+exec >"$HOME/.xmonad/xmonad.log" 2>&1
 
-	eval $XRUN
-	exit
+# Startup applications
+terminator &
+chromium &
 
-else
+# Start X-based systemd user services
+systemctl --user start x-started.target
 
-	# This branch is run for main X session only
-
-	# Run package-mandated x init scripts
-	source /etc/X11/xinit/xinitrc.d/*
-
-	# Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
-	setvol
-
-	# log to file
-	exec >"$HOME/.xmonad/xmonad.log" 2>&1
-
-	# Startup applications
-	terminator &
-	chromium &
-
-	# Start X-based systemd user services
-	systemctl --user start x-started.target
-
-	exec xmonad
-
-fi
+exec xmonad
