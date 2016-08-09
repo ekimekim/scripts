@@ -10,6 +10,9 @@ set -o vi
 # This sets env vars and sets up keychain if needed, without locking the agent
 source "$HOME/bin/setup-keychain.bash" -Q
 
+# This is needed for gpg to work
+export GPG_TTY=$(tty)
+
 # Add ruby gem executables to path
 for rubypath in /home/mike/.gem/ruby/*/bin; do
 	PATH="$rubypath:$PATH"
