@@ -17,6 +17,8 @@ export GPG_TTY=$(tty)
 for rubypath in /home/mike/.gem/ruby/*/bin; do
 	PATH="$rubypath:$PATH"
 done
+# Add go binaries to PATH (see GOPATH below)
+PATH="$HOME/.go/bin:$PATH"
 # Add ~/bin to PATH, allowing user-specific scripts to be called anywhere
 PATH="$HOME/bin:$PATH"
 
@@ -162,6 +164,7 @@ export LESS='-SR'
 export BANNER='banner-stripped -c# -f2'
 export PYTHONSTARTUP="$HOME/.pythonrc"
 export QUOTING_STYLE='literal'
+export GOPATH="$HOME/.go"
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets" # set sensitive env vars, eg. api secrets
 
 # Misc completions
