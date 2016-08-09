@@ -69,6 +69,19 @@ pyedit() {
 	[ -n "$path" ] && "$EDITOR" "$path" "$@"
 }
 
+# shadow the real docker command to make "docker foo" run "docker-foo" if it exists, like git
+docker() {
+	local arg="$1"
+	shift 1
+	cmd=("docker-$arg")
+	if which "$cmd" >/dev/null 2>&1; then
+		cmd=$(which "$cmd")
+	else
+		cmd=("docker" "$arg")
+	fi
+	sudo "${cmd[@]}" "$@"
+}
+
 # list pacnew files present in /etc
 list_pacnew() {
 	find '/etc' \
@@ -123,7 +136,6 @@ alias reboot='sudo reboot'
 alias poweroff='sudo poweroff'
 alias systemctl='sudo systemctl'
 alias 'systemctl-user'="$(which systemctl) --user"
-alias docker='sudo docker'
 alias ip='sudo ip'
 alias fuck='sudo $(history -p \!\!)'
 alias 'wifi-menu'='sudo wifi-menu'
