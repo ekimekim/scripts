@@ -4,6 +4,7 @@
 
 [core]
 	excludesfile = ~/.gitignore
+	hooksPath = ~/.githooks
 
 [alias]
 	lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(auto)%d%Creset %s %Cgreen(%ad)%Creset' --abbrev-commit --date=relative
