@@ -10,7 +10,7 @@
 	lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(auto)%d%Creset %s %Cgreen(%ad)%Creset' --abbrev-commit --date=relative
 	log-diff = log --decorate=short --pretty=fuller -p
 	log-diff-upstream = !git log-diff ..@{u} --reverse --date=relative
-	br = branch -av --color --list
+	br = branch -v --color --list
 	initial = commit --allow-empty -m 'Initial Commit'
 	all = !git lg --all
 	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
