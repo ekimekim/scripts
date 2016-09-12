@@ -1,0 +1,17 @@
+#!/bin/bash
+
+OUTPUT="${1:?Specify an output}"
+ROTATION="${2:?Specify a rotation}"
+
+die () {
+	echo "$@" >&2
+	exit 1
+}
+
+original="$(xrandr -q | awk -v "OUTPUT=$OUTPUT" '$1 == OUTPUT {print $4}')"
+[ -z "$original" ] && die "Couldn't detect original rotation"
+[ "$original" == "(normal" ] && original="normal" # special case: normal isn't displayed
+xrandr --output "$OUTPUT" --rotate "$ROTATION" || die "Failed to set rotation"
+read -s -n 1 -p 'Press any key to continue
+'
+xrandr --output "$OUTPUT" --rotate "$original" || die "Failed to set rotation"
