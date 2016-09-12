@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+	echo "USAGE: $0 PAC_URL" >&2
+	exit 1
+fi
+
+DATA_DIR="${DATA_DIR:-/home/mike/.config/chromium-pac}"
+mkdir -p "$DATA_DIR"
+
+chromium --user-data-dir="$DATA_DIR" --proxy-pac-url="$1"
