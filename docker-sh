@@ -1,0 +1,9 @@
+#!/bin/bash
+
+USAGE="$0 {DOCKER ARGS} IMAGE {SHELL ARGS}"
+[ $# -gt 0 ] || {
+	echo "$USAGE" >&2
+	exit 255
+}
+
+docker run -ti --entrypoint=sh "$@"
