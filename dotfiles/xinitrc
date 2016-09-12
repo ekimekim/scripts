@@ -1,6 +1,10 @@
 
 PATH="/home/mike/bin:$PATH"
 
+# Use NVIDIA card
+xrandr --setprovideroutputsource modesetting NVIDIA-0
+xrandr --auto
+
 # Set cursor
 xsetroot -cursor_name left_ptr
 
