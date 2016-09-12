@@ -1,0 +1,81 @@
+#!/bin/env python2
+
+import gevent.monkey
+gevent.monkey.patch_all()
+
+import os
+
+from gevent.pool import Pool
+
+from easycmd import cmd
+
+pool = Pool(8)
+AUDIO_EXTS = ['flac', 'aac', 'm4a', 'wav', 'ogg', 'mp3', 'wma', 'opus', 'webm', 'mp4']
+DRY = False
+main_greenlet = gevent.getcurrent()
+EXT = os.environ.get('EXT', 'mp3')
+
+
+def do(i, n, fn, src, dest, *args):
+	print "Doing {}/{}: {} {}".format(i, n, fn.__name__, dest)
+	try:
+		dest_dir = os.path.dirname(dest)
+		if not os.path.exists(dest_dir):
+			os.makedirs(dest_dir)
+		fn(src, dest, *args)
+		print "Done {}/{}".format(i, n)
+	except Exception as ex:
+		print "Failed {}/{}".format(i, n)
+		main_greenlet.throw(ex)
+
+def copy(src, dest):
+	if not DRY:
+		cmd(['cp', src, dest])
+
+
+def convert(src, dest, ffargs):
+	if not DRY:
+		cmd(['ffmpeg', '-y', '-i', src] + ffargs + [dest])
+
+
+def get_dest(src_root, dest_root, src):
+	rel_src_dir = os.path.relpath(os.path.dirname(src), src_root)
+	src_name = os.path.basename(src)
+	src_name, _ = os.path.splitext(src_name)
+	dest_name = "{}.{}".format(src_name, EXT)
+	return os.path.join(dest_root, rel_src_dir, dest_name)
+
+
+def do_file(i, n, src, dest, ffargs, force=False):
+	if os.path.exists(dest) and not force:
+		print "Skipping {}/{}: already exists {}".format(i, n, dest)
+		return
+	if src.lower().endswith('.{}'.format(EXT)):
+		pool.spawn(do, i, n, copy, src, dest)
+	else:
+		pool.spawn(do, i, n, convert, src, dest, ffargs)
+
+
+def get_items(src_root, dest_root):
+	for path, dirs, files in os.walk(src_root):
+		for filename in files:
+			if any(filename.lower().endswith(".{}".format(ext)) for ext in AUDIO_EXTS):
+				src = os.path.join(path, filename)
+				dest = get_dest(src_root, dest_root, src)
+				yield src, dest
+
+
+def main(src_root, dest_root, *ffargs):
+	force = os.environ.get('FORCE', False)
+	items = list(get_items(src_root, dest_root))
+	n = len(items)
+	try:
+		for i, (src, dest) in enumerate(items):
+			do_file(i, n, src, dest, list(ffargs), force)
+	finally:
+		pool.join()
+
+
+if __name__ == '__main__':
+	import sys
+	main(*sys.argv[1:])
