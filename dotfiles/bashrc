@@ -80,7 +80,7 @@ docker() {
 	else
 		cmd=("docker" "$arg")
 	fi
-	sudo "${cmd[@]}" "$@"
+	"${cmd[@]}" "$@"
 }
 
 # list pacnew files present in /etc
