@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+
+USAGE="git splay BASE PREFIX
+
+For each commit in BASE..HEAD, create a new branch PREFIX/N which is that commit, rebased onto BASE."
+
+if [ "$#" -ne 2 ]; then
+	echo "$USAGE" >&2
+	exit 1
+fi
+
+BASE="$1"
+PREFIX="$2"
+
+COMMITS=($(git log --format=%H "$BASE..")) # split on whitespace and make array
+
+n=0
+for commit in "${COMMITS[@]}"; do
+	branch="$PREFIX/$((n++))"
+	git branch "$branch" "$BASE"
+	git checkout "$branch"
+	git cherry-pick "$commit"
+done
+
+# This seems as sane a choice as any to leave the state in
+git checkout "$BASE"
