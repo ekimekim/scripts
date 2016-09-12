@@ -1,8 +1,10 @@
 
 PATH="/home/mike/bin:$PATH"
 
-# Set cursor
+# Set cursor image, speed and acceleration
 xsetroot -cursor_name left_ptr
+xinput --set-prop ' USB OPTICAL MOUSE' 'Device Accel Constant Deceleration' 0.6
+xset m 3/1 4 # acceleration as fraction, threshold
 
 # Unclutter hides the cursor when idle
 unclutter &
@@ -11,43 +13,26 @@ unclutter &
 [ -f ~/.Xkeymap ] && xkbcomp ~/.Xkeymap $DISPLAY
 
 # Disable monitor powersaving and screensaver
-#setterm -blank 0 -powersave off -powerdown 0
-# TODO this doesn't work
-xset s noblank
 xset s off
+xset -dpms
 
 # xrandr your way into the correct setup
 setup-screens
 
-if [ -n "$XRUN" ]; then
+# Run package-mandated x init scripts
+source /etc/X11/xinit/xinitrc.d/*
 
-	# Special case: run a given command
+# Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
+setvol
 
-	[ -n "$XRUN_SINGLE_MONITOR" ] && single-monitor simple
+# log to file
+exec >"$HOME/.xmonad/xmonad.log" 2>&1
 
-	eval $XRUN
-	exit
+# Startup applications
+terminator &
+chromium &
 
-else
+# Start X-based systemd user services
+systemctl --user start x-started.target
 
-	# This branch is run for main X session only
-
-	# Run package-mandated x init scripts
-	source /etc/X11/xinit/xinitrc.d/*
-
-	# Something stupid is setting my volume wrong on boot, fix it to 100% Master/55% PCM
-	setvol
-
-	# log to file
-	exec >"$HOME/.xmonad/xmonad.log" 2>&1
-
-	# Startup applications
-	terminator &
-	chromium &
-
-	# Start X-based systemd user services
-	systemctl --user start x-started.target
-
-	exec xmonad
-
-fi
+exec xmonad
