@@ -15,3 +15,6 @@ map  :let @/ = ""<CR>
 
 " set noeol for this one project that doesn't like trailing newlines
 :autocmd BufRead,BufNewFile ~/src/txircd/* set noeol expandtab
+
+" Settings for yaml files
+:autocmd BufRead,BufNewFile *.yaml set expandtab ts=2 sw=2
