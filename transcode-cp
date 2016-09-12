@@ -7,6 +7,7 @@ import os
 
 from gevent.pool import Pool
 
+import argh
 from easycmd import cmd
 
 pool = Pool(8)
@@ -56,18 +57,28 @@ def do_file(i, n, src, dest, ffargs, force=False):
 		pool.spawn(do, i, n, convert, src, dest, ffargs)
 
 
-def get_items(src_root, dest_root):
-	for path, dirs, files in os.walk(src_root):
-		for filename in files:
-			if any(filename.lower().endswith(".{}".format(ext)) for ext in AUDIO_EXTS):
-				src = os.path.join(path, filename)
-				dest = get_dest(src_root, dest_root, src)
-				yield src, dest
+def get_items(src_root, dest_root, stdin=False):
+	if stdin:
+		items = (os.path.split(filepath.rstrip('\n')) for filepath in sys.stdin)
+	else:
+		items = (
+			(path, filename)
+			for path, _, files in os.walk(src_root)
+			for filename in files
+		)
+	for path, filename in items:
+		if any(filename.lower().endswith(".{}".format(ext)) for ext in AUDIO_EXTS):
+			src = os.path.join(path, filename)
+			dest = get_dest(src_root, dest_root, src)
+			yield src, dest
 
 
-def main(src_root, dest_root, *ffargs):
-	force = os.environ.get('FORCE', False)
-	items = list(get_items(src_root, dest_root))
+@argh.arg('--stdin', default=False)
+@argh.arg('--force', default=False)
+def main(src_root, dest_root, *ffargs, **kwargs):
+	force = kwargs['force']
+	stdin = kwargs['stdin']
+	items = list(get_items(src_root, dest_root, stdin=stdin))
 	n = len(items)
 	try:
 		for i, (src, dest) in enumerate(items):
@@ -78,4 +89,4 @@ def main(src_root, dest_root, *ffargs):
 
 if __name__ == '__main__':
 	import sys
-	main(*sys.argv[1:])
+	argh.dispatch_command(main)
