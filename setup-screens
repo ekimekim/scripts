@@ -1,25 +1,15 @@
 #!/bin/bash
 
-main='DVI-D-0'
-side='DP-2'
-bedside='DP-0'
-vive='HDMI-0'
+SCREENS=('DVI-I-1' 'DP-0' 'DP-2' 'DP-4')
+MODE='2560x1440'
 
-bedside_on_desk="true"
-if [ -n "$bedside_on_desk" ]; then
-	bedside_rot=normal
-else
-	bedside_rot=inverted
-fi
-
-xrandr --output "$main" --mode 1920x1080
-if [ -n "$X_ONE_SCREEN" ]; then
-	xrandr --output "$side" --off
-	xrandr --output "$vive" --off
-	xrandr --output "$bedside" --off
-else
-	xrandr --output "$main" --pos 0x420 # move main down so side can reach above its top
-	xrandr --output "$side" --mode 1920x1080 --rotate left --pos 1920x0
-	xrandr --output "$bedside" --mode 1920x1080 --left-of "$main" --rotate "$bedside_rot"
-	xrandr --output "$vive" --off
-fi
+prev=
+for screen in "${SCREENS[@]}"; do
+	if [ -z "$prev" ]; then
+		location=(--pos '0x0')
+	else
+		location=(--right-of "$prev")
+	fi
+	xrandr --output "$screen" --mode "$MODE" "${location[@]}"
+	prev="$screen"
+done
