@@ -6,8 +6,7 @@ main = do
 	xmonad $ defaultConfig
 		{
 			terminal = "terminator",
-			modMask = myModMask,
-			-- handleEventHook = fullscreenEventHook
+			modMask = myModMask
 		}`additionalKeys`[
 		((myModMask, xK_p), spawn "dmenu_run")
 		]
