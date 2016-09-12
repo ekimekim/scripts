@@ -125,7 +125,7 @@ alias fgrep='fgrep --color=auto'
 alias tree='tree -C'
 
 # Privilige aliases
-alias _pacman="`which pacman`" # _pacman is unpriviliged pacman, eg. _pacman -Ss
+alias user_pacman="`which pacman`" # unpriviliged pacman
 alias pacman='sudo pacman'
 alias pip='sudo pip2'
 alias svim='sudo vim'
