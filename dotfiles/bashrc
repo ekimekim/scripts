@@ -27,6 +27,7 @@ source "/usr/share/git/completion/git-completion.bash"
 source "/usr/share/bash-completion/completions/pass"
 source "$HOME/bin/git-alias-completion.bash"
 source <(kubectl completion bash)
+source <(kubeenv complete)
 
 # Custom functions
 spawn() {

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ "$1" == "complete" ]; then
+	cat <<-EOF
+	_kubeenv() {
+		# insert the kubeconfig arg then pass through to kubectl completion
+		ENV="\${COMP_WORDS[1]}"
+		INFRA_ROOT="\${INFRA_ROOT:-/home/mike/src/service-conf/infra}"
+		KUBECONFIG="\$INFRA_ROOT/\$ENV/kubeconfig"
+		COMP_WORDS[0]="kubectl"
+		COMP_WORDS[1]="--kubeconfig=\$KUBECONFIG"
+		__start_kubectl
+	}
+	complete -o default -F _kubeenv kubeenv
+	EOF
+	exit
+fi
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 ENV {KUBECTL ARGS}" >&2
+	echo "Run kubectl with config for env" >&2
+fi
+
+ENV="$1"
+shift
+
+INFRA_ROOT="${INFRA_ROOT:-/home/mike/src/service-conf/infra}"
+KUBECONFIG="$INFRA_ROOT/$ENV/kubeconfig"
+
+kubectl --kubeconfig="$KUBECONFIG" "$@"
