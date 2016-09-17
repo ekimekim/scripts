@@ -78,7 +78,7 @@ docker() {
 	if which "$cmd" >/dev/null 2>&1; then
 		cmd=$(which "$cmd")
 	else
-		cmd=("docker" "$arg")
+		cmd=("$(which docker)" "$arg")
 	fi
 	"${cmd[@]}" "$@"
 }
