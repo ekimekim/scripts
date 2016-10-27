@@ -1,0 +1,25 @@
+#!/bin/env python2
+
+import time
+
+import argh
+from easycmd import cmd
+
+
+def get_idle():
+	return int(cmd(['xprintidle'])) / 1000.
+
+
+def main(interval=600, command='slock'):
+	"""After X has been idle for INTERVAL seconds, run COMMAND.
+	COMMAND is shell-interpreted."""
+	while True:
+		remaining = interval - get_idle()
+		if remaining < 0:
+			cmd(command)
+		else:
+			time.sleep(remaining)
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
