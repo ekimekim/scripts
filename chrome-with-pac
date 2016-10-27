@@ -8,4 +8,7 @@ fi
 DATA_DIR="${DATA_DIR:-/home/mike/.config/chromium-pac}"
 mkdir -p "$DATA_DIR"
 
-chromium --user-data-dir="$DATA_DIR" --proxy-pac-url="$1"
+chromium --user-data-dir="$DATA_DIR" --proxy-pac-url="$1" &
+pid="$!"
+trap 'kill "$pid"' exit
+wait

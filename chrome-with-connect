@@ -3,7 +3,7 @@
 ENV="${1:?Need an environment, eg local}"
 
 PIDS=()
-trap 'kill "${PIDS[@]}"' exit
+trap 'echo killing "${PIDS[@]}" && kill "${PIDS[@]}"' exit
 
 run() {
 	"$@" &
