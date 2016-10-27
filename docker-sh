@@ -6,4 +6,4 @@ USAGE="$0 {DOCKER ARGS} IMAGE {SHELL ARGS}"
 	exit 255
 }
 
-docker run -ti --entrypoint=sh "$@"
+docker run --rm -ti --entrypoint=sh "$@"
