@@ -18,3 +18,4 @@ map  :let @/ = ""<CR>
 
 " Settings for yaml files
 :autocmd BufRead,BufNewFile *.yaml set expandtab ts=2 sw=2
+:autocmd BufRead,BufNewFile *.yml set expandtab ts=2 sw=2
