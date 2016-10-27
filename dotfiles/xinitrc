@@ -3,7 +3,7 @@ PATH="/home/mike/bin:$PATH"
 
 # Set cursor image, speed and acceleration
 xsetroot -cursor_name left_ptr
-xinput --set-prop ' USB OPTICAL MOUSE' 'Device Accel Constant Deceleration' 0.6
+xinput --set-prop 'USB Optical Wheel Mouse' 'Device Accel Constant Deceleration' 0.6
 xset m 3/1 4 # acceleration as fraction, threshold
 
 # Unclutter hides the cursor when idle
