@@ -2,6 +2,7 @@
 
 SCREENS=('DVI-I-1' 'DP-0' 'DP-2' 'DP-4')
 MODE='2560x1440'
+ROTATE=left
 
 prev=
 for screen in "${SCREENS[@]}"; do
@@ -10,6 +11,6 @@ for screen in "${SCREENS[@]}"; do
 	else
 		location=(--right-of "$prev")
 	fi
-	xrandr --output "$screen" --mode "$MODE" "${location[@]}"
+	xrandr --output "$screen" --mode "$MODE" "${location[@]}" --rotate "$ROTATE"
 	prev="$screen"
 done
