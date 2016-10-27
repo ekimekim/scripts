@@ -160,6 +160,7 @@ alias mplayer-music='mplayer -vo null -softvol -volume 50'
 alias monstercat='twitch_play monstercat audio'
 alias xclip='xclip -selection clipboard'
 alias pass='DISPLAY= pass' # disable display so gpg doesn't make annoying popup prompt
+alias kubectx='kubectl config use-context'
 alias 'pip-upgrade'='pip install -U --no-deps'
 # ^X: cd to `pwd` - this "refreshes" the fd if the dir has been destroyed/recreated (eg. in a git rebase)
 alias ''='cd ~+'
