@@ -1,0 +1,62 @@
+#!/usr/bin/python2 -u
+
+"""Takes the output from loggly's livetail on stdin, parses it, and outputs
+a json blob containing:
+{
+	"tags": {map from tag keys to values},
+	"data": Log data as json if parsable as json, otherwise log data as string
+}
+"""
+
+import json
+import re
+import sys
+
+
+def process(line):
+	line = strip_colors(line)
+	header = 'Loggly-LiveTail: ['
+	if not line.startswith(header):
+		raise ValueError("Line does not start with {!r}".format(header))
+	line = line[len(header):]
+	if '] ' not in line:
+		raise ValueError("Line does not contain end of tags sequence '] '")
+	tagstr, line = line.split('] ', 1)
+
+	tags = {}
+	for tag in tagstr.strip().split(', '):
+		if ':' not in tag:
+			raise ValueError("Malformed tag part {!r}".format(tag))
+		key, value = tag.split(':', 1)
+		if key in tags:
+			raise ValueError("Duplicate tag key {!r}".format(key))
+		tags[key] = value
+
+	try:
+		data = json.loads(line)
+	except ValueError:
+		data = line
+
+	return json.dumps({'tags': tags, 'data': data})
+
+
+def strip_colors(line):
+	return re.sub('\x1b\\[[0-9;]*m', '', line)
+
+
+def main():
+	# ignore first two lines
+	sys.stdin.readline()
+	sys.stdin.readline()
+	for line in sys.stdin:
+		try:
+			print process(line.rstrip('\n'))
+		except Exception as ex:
+			sys.stderr.write("Failed to parse line {!r}: {}\n".format(line, ex))
+
+
+if __name__ == '__main__':
+	try:
+		main()
+	except KeyboardInterrupt:
+		pass
