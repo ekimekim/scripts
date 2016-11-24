@@ -1,0 +1,10 @@
+#!/bin/bash
+
+USAGE="$0 [COMMAND {ARGS}]
+Runs bash (or a command) with docker env vars set up for minikube's docker"
+
+if [ "$#" -gt 0 ]; then
+	bash --rcfile <(minikube docker-env) -i -c "$*"
+else
+	bash --rcfile <(minikube docker-env) -i
+fi
