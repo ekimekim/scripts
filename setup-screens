@@ -1,6 +1,7 @@
 #!/bin/bash
 
-SCREENS=('DVI-I-1' 'DP-0' 'DP-2' 'DP-4')
+#SCREENS=('DVI-I-1' 'DP-0' 'DP-2' 'DP-4')
+SCREENS=('DP-0' 'DP-2' 'DP-4')
 MODE='2560x1440'
 ROTATE=left
 
