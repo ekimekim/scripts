@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+minikube stop </dev/null || true
+minikube delete || true
+
+minikube start --cpus=$(nproc) --memory=16384 --host-only-cidr=192.168.97.1/26 --disk-size=100G
+
+minikube-sync
+kubectl config use-context minikube
+kubectl create -f <(find ~/src/service-conf/k8s/local -name '*.yaml' -exec cat {} +)
