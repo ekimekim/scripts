@@ -1,0 +1,19 @@
+#!/bin/bash
+
+USAGE="$0 NAME COMMAND {ARGS}
+Run COMMAND ARGS in the background, then wait for an xorg window with name NAME.
+When it appears, force it to be mapped."
+
+if [ "$#" -lt 2 ]; then
+	echo "$USAGE" >&2
+	exit 255
+fi
+
+NAME="$1"
+shift 1
+
+"$@" &
+sleep 5 # fudge to make this work right
+xdotool search --sync --limit 1 --name "$NAME" windowmap
+
+fg
