@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ "$#" -lt 2 ]; then
+	echo "USAGE: $0 ZIPFILE TARGET_DIR [FILETYPE]" >&2
+	exit 255
+fi
+
+zip="$1"
+target="$2"
+ext="${3:-flac}"
+
+# convert relative to absolute path
+grep -q "^/" <<<"$zip" || zip="$(pwd)/$zip"
+
+set -e
+mkdir -p "$target"
+cd "$target"
+unzip "$zip"
+cp ~/main.awp ~/.main.backup.awp
+find "$(pwd)" -type f -name "*.$ext" | awk '{print "16\t0.5\t" $0}' >> ~/main.awp
