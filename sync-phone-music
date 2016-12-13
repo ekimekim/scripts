@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+
+PLAYLISTS=(
+	# NAME SCALE {FILTER}
+#	"playlist 8"
+	"list-64 64"
+	"list-32 32"
+	"list-64u 64 uniq"
+	"list-128u 128 uniq"
+	"list-16 16"
+	"list-16-len1000 16 shuf -n 1000"
+	"list-16-len100 16 shuf -n 100"
+)
+
+awk -F'\t' '$1 >= 16 {print $3}' ~/main.awp |
+transcode-cp --stdin --safe ~/music/ /srv/btsync/music/ -- -b:a 64k
+
+for line in "${PLAYLISTS[@]}"; do
+	read name scale filter <<<"$line"
+	[ -n "$filter" ] || filter=cat
+	python -m awp.to_m3u ~/main.awp ~/music/ . --scale="$scale" |
+	$filter | sed 's/\.[^.]\+$/.mp3/' |
+	LC_ALL=C sed -e 's|[^a-zA-Z0-9/ .-]|_|g' -e 's|^file_//|file://|' >"/srv/btsync/music/$name.m3u"
+done
