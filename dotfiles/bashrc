@@ -84,6 +84,14 @@ docker() {
 	"${cmd[@]}" "$@"
 }
 
+screenshot() {
+	local filepath="${1:-/tmp/screenshot.png}"
+	shift
+	echo "Select a screen region..."
+	scrot "$@" -s "$filepath" &&
+		echo "Saved to $filepath"
+}
+
 # list pacnew files present in /etc
 list_pacnew() {
 	find '/etc' \
