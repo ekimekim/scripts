@@ -10,6 +10,7 @@ PATHS_BY_VALUE = {
 		"MonstercatMedia": "~/music/Artists/Monstercat",
 		"pellekofficial": "~/music/Artists/Pellek",
 		"SmoothMcGroove": "~/music/Artists/Smooth McGroove",
+		"ScottBradleeLovesYa": "~/music/Artists/Post Modern Jukebox",
 	}
 }
 
