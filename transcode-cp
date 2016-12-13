@@ -4,6 +4,7 @@ import gevent.monkey
 gevent.monkey.patch_all()
 
 import os
+import re
 
 from gevent.pool import Pool
 
@@ -39,11 +40,18 @@ def convert(src, dest, ffargs):
 		cmd(['ffmpeg', '-y', '-i', src] + ffargs + [dest])
 
 
-def get_dest(src_root, dest_root, src):
+def make_safe(s):
+	return re.sub(r'[^a-zA-Z0-9/ .-]', '_', s)
+
+
+def get_dest(src_root, dest_root, src, safe=False):
 	rel_src_dir = os.path.relpath(os.path.dirname(src), src_root)
 	src_name = os.path.basename(src)
 	src_name, _ = os.path.splitext(src_name)
 	dest_name = "{}.{}".format(src_name, EXT)
+	if safe:
+		rel_src_dir = make_safe(rel_src_dir)
+		dest_name = make_safe(dest_name)
 	return os.path.join(dest_root, rel_src_dir, dest_name)
 
 
@@ -57,7 +65,7 @@ def do_file(i, n, src, dest, ffargs, force=False):
 		pool.spawn(do, i, n, convert, src, dest, ffargs)
 
 
-def get_items(src_root, dest_root, stdin=False):
+def get_items(src_root, dest_root, stdin=False, safe=False):
 	if stdin:
 		items = (os.path.split(filepath.rstrip('\n')) for filepath in sys.stdin)
 	else:
@@ -69,16 +77,18 @@ def get_items(src_root, dest_root, stdin=False):
 	for path, filename in items:
 		if any(filename.lower().endswith(".{}".format(ext)) for ext in AUDIO_EXTS):
 			src = os.path.join(path, filename)
-			dest = get_dest(src_root, dest_root, src)
+			dest = get_dest(src_root, dest_root, src, safe=safe)
 			yield src, dest
 
 
 @argh.arg('--stdin', default=False)
 @argh.arg('--force', default=False)
+@argh.arg('--safe', default=False)
 def main(src_root, dest_root, *ffargs, **kwargs):
 	force = kwargs['force']
 	stdin = kwargs['stdin']
-	items = list(get_items(src_root, dest_root, stdin=stdin))
+	safe = kwargs['safe']
+	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe))
 	n = len(items)
 	try:
 		for i, (src, dest) in enumerate(items):
