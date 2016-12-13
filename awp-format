@@ -1,0 +1,6 @@
+#!/bin/bash
+
+WEIGHT=${1:-16}
+VOL=${2:-0.5}
+
+awk -v"weight=$WEIGHT" -v"vol=$VOL" '{print weight "\t" vol "\t" $0}'
