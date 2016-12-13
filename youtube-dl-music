@@ -10,7 +10,7 @@ AUTOPATH_SCRIPT=${AUTOPATH_SCRIPT:-~/.youtube-dl-music-autopath}
 
 if [ -z "$DEST" ] && [ -x "$AUTOPATH_SCRIPT" ]; then
 	echo "Attempting to autopath"
-	autopath_output="$(youtube-dl "$@" --dump-json | $AUTOPATH_SCRIPT)"
+	autopath_output="$(youtube-dl --dump-json  -- "$@"| $AUTOPATH_SCRIPT)"
 	if [ $? -eq 0 ] && [ -n "$autopath_output" ]; then
 		DEST="$autopath_output"
 		echo "Using autopath: $autopath_output"
@@ -43,14 +43,14 @@ else
 	IFS="$OLDIFS"
 fi
 
-filepath=$(youtube-dl -x --get-filename "$@")
+filepath=$(youtube-dl -x --get-filename -- "$@")
 filepath=${filepath%.*}
 [ -n "$filepath" ] || exit 1
 ls "${filepath}".* | while read line; do
 	echo "DELETING $line"
 	rm "$line"
 done
-logexec youtube-dl -x "$@" || exit 1
+logexec youtube-dl -x -- "$@" || exit 1
 filepath=$( ls "${filepath}".* )
 
 # TRIM: format "start:end", where either can be blank
