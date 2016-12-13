@@ -7,9 +7,11 @@
 # Note: Commands in ALERTS are run every time PS1 is printed.
 # However, if any command fails (indicates an alert), no further commands will be run.
 
+# Defines the function alerts() which will run and print results verbosely
+
 declare -a ALERTS[0]
 
-alerts_check() {
+_alerts_check() {
 	for command in "${ALERTS[@]}"; do
 		if ! $command; then
 			echo -en '\b!'
@@ -20,4 +22,13 @@ alerts_check() {
 	return 0
 }
 
-PS1='?\[$(alerts_check)\]'"${PS1}"
+alerts() {
+	for command in "${ALERTS[@]}"; do
+		echo "Alert: $command"
+		$command
+		echo "Exit status: $?"
+		echo
+	done
+}
+
+PS1='?\[$(_alerts_check)\]'"${PS1}"
