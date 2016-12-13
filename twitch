@@ -2,6 +2,10 @@
 
 TWITCH_USER='ekimekim3000'
 
+_curl() {
+	curl "$@" -H 'Client-ID:jzkbprff40iqj646a697cyrvl0zt2m6'
+}
+
 fetch_all() {
 	endpoint="$1"
 	key="$2"
@@ -9,7 +13,7 @@ fetch_all() {
 	# and outputs key from endpoint response. exhaused := key is empty
 	url="https://api.twitch.tv/kraken/$endpoint?limit=100"
 	while true; do
-		data=$(curl -sS "$url")
+		data=$(_curl -sS "$url")
 		[ "$(jq -r ".$key|length" <<<"$data")" -eq 0 ] && break
 		jq ".$key[]" <<<"$data"
 		url=$(jq -r '._links.next' <<<"$data")
@@ -28,7 +32,7 @@ if [ -z "$CHANNEL" ]; then
 	live=$(
 		for channel in $follows; do
 			(
-				stream=$(curl -Ss "https://api.twitch.tv/kraken/streams/$channel" | jq -r '.stream')
+				stream=$(_curl -Ss "https://api.twitch.tv/kraken/streams/$channel" | jq -r '.stream')
 				[ "$stream" != "null" ] && echo "$channel"
 			)&
 		done
