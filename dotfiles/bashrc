@@ -40,6 +40,22 @@ spawn() {
 }
 complete -c spawn
 
+# Wrapper around xargs and sudo to expand aliases
+_maybe_expand_alias() {
+	local cmd="$(which "$1")"
+	local subcmd="$2"
+	local leading=()
+	shift 2
+	if [ "$(type -t "$subcmd")" = 'alias' ]; then
+		leading=(${BASH_ALIASES[$subcmd]}) # note intentional no quotes
+	else
+		leading=("$subcmd")
+	fi
+	"$cmd" "${leading[@]}" "$@"
+}
+xargs() { _maybe_expand_alias xargs "$@"; }
+sudo() { _maybe_expand_alias sudo "$@"; }
+
 ytplay() {
 	# Credit to https://github.com/exogen/dotfiles
 	# Skip DASH manifest for speed purposes. This might actually disable
