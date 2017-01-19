@@ -5,10 +5,13 @@ set tabstop=4
 set shiftwidth=4
 set hlsearch
 set nomodeline
+colorscheme peachpuff
 hi MatchParen ctermfg=red ctermbg=NONE
+hi Search term=reverse ctermfg=0 ctermbg=3 guibg=Gold2
 
 " Map ctrl-/ in command mode to clear search state (unhighlight search items)
 map  :let @/ = ""<CR>
+command Git /^[<>|=]\{7\}
 
 " Expand tabs only for these projects / under these directories:
 :autocmd BufRead,BufNewFile ~/src/boltons/* set expandtab
