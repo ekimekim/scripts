@@ -1,0 +1,101 @@
+#!/bin/env python2
+
+from calendar import timegm
+import argh
+import logging
+import re
+import time
+
+import requests
+requests = requests.Session()
+requests.headers['Client-ID'] = 'jzkbprff40iqj646a697cyrvl0zt2m6'
+
+TWITCH_API = 'https://api.twitch.tv/kraken'
+TWITCH_RECHAT = 'https://rechat.twitch.tv/rechat-messages'
+SEEN_EVICT_TIME = 120
+WINDOW = 30 # twitch messages are only available in chunks of 30s, relative to start of video
+
+
+def fetch(*parts, **data):
+	resp = requests.get('/'.join(parts), params=data)
+	resp.raise_for_status()
+	return resp.json()
+
+
+def display(message):
+	SENDER_WIDTH = 11
+	print '{from:>{SENDER_WIDTH}}: {message}'.format(SENDER_WIDTH=SENDER_WIDTH, **message['attributes'])
+
+
+@argh.arg('video_id', help='Video ID or playback URL')
+@argh.arg('start_at', help='start time within the video, as integer seconds or [hh:]mm:ss', default='0', nargs='?')
+def main(video_id, start_at, log='WARNING'):
+	logging.basicConfig(level=log)
+
+	# parse video id from url
+	match = re.match(r"(https?://)?(www\.)?twitch.tv/[^/]+/v/(?P<id>[^/]+)", video_id)
+	if match:
+		video_id = 'v{}'.format(match.group('video_id'))
+
+	# parse start_at into int seconds
+	parts = start_at.split(':')
+	if len(parts) > 3:
+		raise ValueError("Bad start time")
+	parts = map(int, parts)[::-1] # parts is now eg. (seconds, minutes, hours)
+	start_at = sum(value * 60**n for n, value in enumerate(parts))
+
+	# get details on video
+	try:
+		video = fetch(TWITCH_API, 'videos', video_id)
+	except requests.HTTPError as e:
+		if e.response.status_code in (400, 404):
+			raise ValueError("Bad or non-existent video id")
+		raise
+
+	logging.info("Got video info: {}".format(video))
+
+	video_start_time = timegm(time.strptime(video['recorded_at'], '%Y-%m-%dT%H:%M:%SZ'))
+	end_time = video_start_time + video['length']
+	start_time = video_start_time + start_at
+	poll_start_time = video_start_time + int(start_at / WINDOW) * WINDOW # truncate to previous window
+	time_diff = time.time() - start_time # subtract time_diff from real time to get replay time
+	get_time = lambda: time.time() - time_diff # returns current replay time
+	seen = {} # {id: timestamp}. message with id is already seen if present. timestamp is used to evict.
+
+	for poll_time in xrange(poll_start_time, end_time, WINDOW):
+		now = get_time()
+		logging.debug("current time {}, poll time {}".format(now, poll_time))
+		# wait for poll time
+		if poll_time > now:
+			logging.debug("waiting {}s for poll time".format(poll_time - now))
+			time.sleep(poll_time - now)
+
+		# get messages for next POLL_INTERVAL seconds
+		messages = fetch(TWITCH_RECHAT, video_id=video_id, start=poll_time)['data']
+		logging.debug("got {} messages".format(len(messages)))
+		# we assume the messages are already in display order
+		for message in messages:
+			# wait for message time
+			message_ts = message['attributes']['timestamp'] / 1000.
+			if message_ts > now:
+				logging.debug("waiting {}s for message time {}".format(message_ts - now, message_ts))
+				time.sleep(message_ts - now)
+				now = get_time()
+			# dedupe if already seen (overlap between windows (is this possible?))
+			if message['id'] in seen:
+				logging.info("ignoring already seen message {}".format(message['id']))
+			else:
+				logging.debug("displaying message {}".format(message['id']))
+				display(message)
+			seen[message['id']] = message_ts
+
+		# evict old, no longer needed values from seen, so memory doesn't get huge
+		old_len = len(seen)
+		seen = {id: timestamp for id, timestamp in seen.items() if now - timestamp < SEEN_EVICT_TIME}
+		logging.debug("seen eviction: {} -> {} messages".format(old_len, len(seen)))
+
+	print 'Video is finished'
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
