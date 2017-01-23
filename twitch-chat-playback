@@ -12,7 +12,6 @@ requests.headers['Client-ID'] = 'jzkbprff40iqj646a697cyrvl0zt2m6'
 
 TWITCH_API = 'https://api.twitch.tv/kraken'
 TWITCH_RECHAT = 'https://rechat.twitch.tv/rechat-messages'
-SEEN_EVICT_TIME = 120
 WINDOW = 30 # twitch messages are only available in chunks of 30s, relative to start of video
 
 
@@ -24,7 +23,7 @@ def fetch(*parts, **data):
 
 def display(message):
 	SENDER_WIDTH = 11
-	print '{from:>{SENDER_WIDTH}}: {message}'.format(SENDER_WIDTH=SENDER_WIDTH, **message['attributes'])
+	print u'{from:>{SENDER_WIDTH}}: {message}'.format(SENDER_WIDTH=SENDER_WIDTH, **message['attributes']).encode('utf-8')
 
 
 @argh.arg('video_id', help='Video ID or playback URL')
@@ -60,7 +59,6 @@ def main(video_id, start_at, log='WARNING'):
 	poll_start_time = video_start_time + int(start_at / WINDOW) * WINDOW # truncate to previous window
 	time_diff = time.time() - start_time # subtract time_diff from real time to get replay time
 	get_time = lambda: time.time() - time_diff # returns current replay time
-	seen = {} # {id: timestamp}. message with id is already seen if present. timestamp is used to evict.
 
 	for poll_time in xrange(poll_start_time, end_time, WINDOW):
 		now = get_time()
@@ -81,18 +79,8 @@ def main(video_id, start_at, log='WARNING'):
 				logging.debug("waiting {}s for message time {}".format(message_ts - now, message_ts))
 				time.sleep(message_ts - now)
 				now = get_time()
-			# dedupe if already seen (overlap between windows (is this possible?))
-			if message['id'] in seen:
-				logging.info("ignoring already seen message {}".format(message['id']))
-			else:
-				logging.debug("displaying message {}".format(message['id']))
-				display(message)
-			seen[message['id']] = message_ts
-
-		# evict old, no longer needed values from seen, so memory doesn't get huge
-		old_len = len(seen)
-		seen = {id: timestamp for id, timestamp in seen.items() if now - timestamp < SEEN_EVICT_TIME}
-		logging.debug("seen eviction: {} -> {} messages".format(old_len, len(seen)))
+			logging.debug("displaying message {}".format(message['id']))
+			display(message)
 
 	print 'Video is finished'
 
