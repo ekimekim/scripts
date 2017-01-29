@@ -6,6 +6,10 @@ import logging
 import re
 import time
 
+from gevent.event import Event
+
+from monotonic import monotonic
+
 from requests import HTTPError
 import requests
 requests = requests.Session()
@@ -22,9 +26,78 @@ def fetch(*parts, **data):
 	return resp.json()
 
 
-def display(message):
+def display(message, video_start_time):
 	SENDER_WIDTH = 11
-	print u'{from:>{SENDER_WIDTH}}: {message}'.format(SENDER_WIDTH=SENDER_WIDTH, **message['attributes']).encode('utf-8')
+	t = int(message['attributes']['timestamp'] / 1000. - video_start_time)
+	hours, mins, secs = t / 3600, (t / 60) % 60, t % 60
+	print u'[{hours:02d}:{mins:02d}:{secs:02d}] {from:>{SENDER_WIDTH}}: {message}'.format(
+		SENDER_WIDTH=SENDER_WIDTH,
+		hours=hours, mins=mins, secs=secs,
+		**message['attributes']
+	).encode('utf-8')
+
+
+class Timer(object):
+	"""A timer where you can set and get the time, which counts along with wall clock time"""
+	def __init__(self, start_time):
+		self.logger = logging.Logger(type(self).__name__).getChild(str(id(self)))
+		self.paused_at = None
+		self.set(start_time)
+		self._changed_state = Event()
+
+	@property
+	def paused(self):
+		return self.paused_at is not None
+
+	def set(self, current_time):
+		if self.paused:
+			self.logger.debug("Set time while paused to {}".format(current_time))
+			self.paused_at = current_time
+			return
+		self.offset = monotonic() - current_time # seconds different to real time
+		self.logger.debug("Set offset to {} for current time of {}".format(self.offset, current_time))
+
+	def get(self, now=None):
+		if self.paused:
+			current_time = self.paused_at
+		else:
+			current_time = monotonic() - self.offset
+		self.logger.debug("Got current time: {}".format(current_time))
+		return current_time
+
+	def pause(self):
+		self.paused_at = self.get()
+		self.logger.debug("Paused timer at time {}".format(self.paused_at))
+		self._wake_waiters()
+
+	def unpause(self):
+		if not self.paused:
+			return
+		paused_time = self.paused_at
+		self.logger.debug("Unpausing timer at time {}".format(paused_time))
+		self.paused_at = None
+		self.set(paused_time)
+		self._wake_waiters()
+
+	def wait(self, target_time):
+		while True:
+			time_until = target_time - self.get()
+			self.logger.debug("wait until {}: {} to go".format(target_time, time_until))
+			if time_until <= 0:
+				return
+			if self.paused:
+				self.logger.debug("wait until {}: waiting for unpause".format(target_time))
+				time_until = None # wait forever (until woken by unpause)
+			else:
+				self.logger.debug("wait until {}: waiting {} or until pause".format(target_time, time_until))
+			# wait for either time_until or until state change (pause/unpause) and check again
+			self._changed_state.wait(time_until)
+
+	def _wake_waiters(self):
+		# wake current waiters and reset event so new waiters can start waiting
+		self.logger.debug("Waking waiters")
+		self._changed_state.set()
+		self._changed_state = Event()
 
 
 @argh.arg('video_id', help='Video ID or playback URL')
@@ -58,30 +131,20 @@ def main(video_id, start_at, log='WARNING'):
 	end_time = video_start_time + video['length']
 	start_time = video_start_time + start_at
 	poll_start_time = video_start_time + int(start_at / WINDOW) * WINDOW # truncate to previous window
-	time_diff = time.time() - start_time # subtract time_diff from real time to get replay time
-	get_time = lambda: time.time() - time_diff # returns current replay time
+	timer = Timer(start_time)
 
 	for poll_time in xrange(poll_start_time, end_time, WINDOW):
-		now = get_time()
-		logging.debug("current time {}, poll time {}".format(now, poll_time))
-		# wait for poll time
-		if poll_time > now:
-			logging.debug("waiting {}s for poll time".format(poll_time - now))
-			time.sleep(poll_time - now)
+		timer.wait(poll_time)
 
 		# get messages for next POLL_INTERVAL seconds
 		messages = fetch(TWITCH_RECHAT, video_id=video_id, start=poll_time)['data']
 		logging.debug("got {} messages".format(len(messages)))
 		# we assume the messages are already in display order
 		for message in messages:
-			# wait for message time
-			message_ts = message['attributes']['timestamp'] / 1000.
-			if message_ts > now:
-				logging.debug("waiting {}s for message time {}".format(message_ts - now, message_ts))
-				time.sleep(message_ts - now)
-				now = get_time()
+			logging.debug("waiting for message {}".format(message['id']))
+			timer.wait(message['attributes']['timestamp'] / 1000.)
 			logging.debug("displaying message {}".format(message['id']))
-			display(message)
+			display(message, video_start_time)
 
 	print 'Video is finished'
 
