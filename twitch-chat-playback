@@ -6,6 +6,7 @@ import logging
 import re
 import time
 
+from requests import HTTPError
 import requests
 requests = requests.Session()
 requests.headers['Client-ID'] = 'jzkbprff40iqj646a697cyrvl0zt2m6'
@@ -46,7 +47,7 @@ def main(video_id, start_at, log='WARNING'):
 	# get details on video
 	try:
 		video = fetch(TWITCH_API, 'videos', video_id)
-	except requests.HTTPError as e:
+	except HTTPError as e:
 		if e.response.status_code in (400, 404):
 			raise ValueError("Bad or non-existent video id")
 		raise
