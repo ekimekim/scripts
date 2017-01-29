@@ -2,13 +2,20 @@
 
 from calendar import timegm
 import argh
+import errno
 import logging
 import re
+import sys
 import time
 
-from gevent.event import Event
+import gevent
+import gevent.event
+import gevent.pool
+import gevent.select
 
 from monotonic import monotonic
+
+import lineedit
 
 from requests import HTTPError
 import requests
@@ -18,6 +25,7 @@ requests.headers['Client-ID'] = 'jzkbprff40iqj646a697cyrvl0zt2m6'
 TWITCH_API = 'https://api.twitch.tv/kraken'
 TWITCH_RECHAT = 'https://rechat.twitch.tv/rechat-messages'
 WINDOW = 30 # twitch messages are only available in chunks of 30s, relative to start of video
+SENDER_WIDTH = 11 # for display
 
 
 def fetch(*parts, **data):
@@ -26,13 +34,16 @@ def fetch(*parts, **data):
 	return resp.json()
 
 
-def display(message, video_start_time):
-	SENDER_WIDTH = 11
-	t = int(message['attributes']['timestamp'] / 1000. - video_start_time)
+def format_video_time(t):
+	t = int(t)
 	hours, mins, secs = t / 3600, (t / 60) % 60, t % 60
-	print u'[{hours:02d}:{mins:02d}:{secs:02d}] {from:>{SENDER_WIDTH}}: {message}'.format(
+	return '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+
+def display(message, video_start_time):
+	print u'[{time}] {from:>{SENDER_WIDTH}}: {message}'.format(
 		SENDER_WIDTH=SENDER_WIDTH,
-		hours=hours, mins=mins, secs=secs,
+		time=format_video_time(message['attributes']['timestamp'] / 1000. - video_start_time),
 		**message['attributes']
 	).encode('utf-8')
 
@@ -43,7 +54,7 @@ class Timer(object):
 		self.logger = logging.Logger(type(self).__name__).getChild(str(id(self)))
 		self.paused_at = None
 		self.set(start_time)
-		self._changed_state = Event()
+		self._changed_state = gevent.event.Event()
 
 	@property
 	def paused(self):
@@ -97,7 +108,7 @@ class Timer(object):
 		# wake current waiters and reset event so new waiters can start waiting
 		self.logger.debug("Waking waiters")
 		self._changed_state.set()
-		self._changed_state = Event()
+		self._changed_state = gevent.event.Event()
 
 
 @argh.arg('video_id', help='Video ID or playback URL')
@@ -130,12 +141,21 @@ def main(video_id, start_at, log='WARNING'):
 	video_start_time = timegm(time.strptime(video['recorded_at'], '%Y-%m-%dT%H:%M:%SZ'))
 	end_time = video_start_time + video['length']
 	start_time = video_start_time + start_at
-	poll_start_time = video_start_time + int(start_at / WINDOW) * WINDOW # truncate to previous window
 	timer = Timer(start_time)
 
+	group = gevent.pool.Group()
+	group.spawn(output_loop, timer, video_id, video_start_time, end_time, start_at)
+	group.spawn(input_loop, timer, video_start_time)
+	try:
+		gevent.wait(group, count=1) # wait for any one to finish
+	finally:
+		group.kill() # then kill the rest
+
+
+def output_loop(timer, video_id, video_start_time, end_time, start_at):
+	poll_start_time = video_start_time + int(start_at / WINDOW) * WINDOW # truncate to previous window
 	for poll_time in xrange(poll_start_time, end_time, WINDOW):
 		timer.wait(poll_time)
-
 		# get messages for next POLL_INTERVAL seconds
 		messages = fetch(TWITCH_RECHAT, video_id=video_id, start=poll_time)['data']
 		logging.debug("got {} messages".format(len(messages)))
@@ -145,8 +165,32 @@ def main(video_id, start_at, log='WARNING'):
 			timer.wait(message['attributes']['timestamp'] / 1000.)
 			logging.debug("displaying message {}".format(message['id']))
 			display(message, video_start_time)
-
 	print 'Video is finished'
+
+
+def input_loop(timer, video_start_time):
+	# we're not actually using lineedit, but we want the same termattrs
+	with lineedit.get_termattrs(), lineedit.HiddenCursor():
+		while True:
+			try:
+				r, w, x = gevent.select.select([sys.stdin], [], [])
+			except EnvironmentError as e:
+				if e.errno == errno.EINTR:
+					continue
+				raise
+			if sys.stdin not in r:
+				continue
+			c = sys.stdin.read(1)
+			if c == ' ':
+				if timer.paused:
+					print 'Unpaused'
+					timer.unpause()
+				else:
+					timer.pause()
+					print 'Paused at {}'.format(format_video_time(timer.get() - video_start_time))
+			elif c == 'q':
+				print 'Quit'
+				return
 
 
 if __name__ == '__main__':
