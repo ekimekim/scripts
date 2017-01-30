@@ -117,7 +117,7 @@ def main(video_id, start_at, log='WARNING'):
 	logging.basicConfig(level=log)
 
 	# parse video id from url
-	match = re.match(r"(https?://)?(www\.)?twitch.tv/[^/]+/v/(?P<id>[^/]+)", video_id)
+	match = re.match(r"(https?://)?(www\.)?twitch.tv/.+/(?P<id>[^/]+)", video_id)
 	if match:
 		video_id = 'v{}'.format(match.group('id'))
 
