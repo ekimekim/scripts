@@ -45,9 +45,6 @@ else
 	terminator &
 	chromium &
 
-	# Start oculusd (needs an X connection)
-	~/src/ovr_sdk_linux_0.4.3/oculusd >~/.oculusd.log 2>&1 &
-
 	# Start X-based systemd user services
 	systemctl --user start x-started.target
 
