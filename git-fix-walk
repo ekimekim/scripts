@@ -78,16 +78,16 @@ die() {
 }
 
 save_command() {
-	local gitdir=$(git rev-parse --git-dir)
-	[ -n "$gitdir" ] || return 1
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
 	COMMAND=("$@") # note: COMMAND is global
 	declare -p COMMAND > "$gitdir/FIX-WALK-COMMAND"
 }
 
 load_command() {
-	local gitdir=$(git rev-parse --git-dir)
-	[ -n "$gitdir" ] || return 1
-	eval $(cat "$gitdir/FIX-WALK-COMMAND") # declares COMMAND array as a global
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
+	eval "$(cat "$gitdir/FIX-WALK-COMMAND")" # declares COMMAND array as a global
 }
 
 run_command() {
@@ -95,16 +95,16 @@ run_command() {
 }
 
 delete_command_file() {
-	local gitdir=$(git rev-parse --git-dir)
-	[ -n "$gitdir" ] || return 1
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
 	rm -f "$gitdir/FIX-WALK-COMMAND"
 }
 
 check_fix_walk_active() {
 	# err on the side of it being active if in a weird state
-	local gitdir=$(git rev-parse --git-dir)
-	[ -n "$gitdir" ] || return 1
-	return [ -n "$(git for-each-ref refs/fix-walk/)" ] || [ -f "$gitdir/FIX-WALK-COMMAND" ]
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
+	[ -n "$(git for-each-ref refs/fix-walk/)" ] || [ -f "$gitdir/FIX-WALK-COMMAND" ]
 }
 
 check_bisect_active() {
@@ -175,7 +175,7 @@ commit_fixed() {
 	echo "Rebasing $(git rev-parse refs/fix-walk/fixing)..$(git rev-parse refs/fix-walk/top) onto $(git rev-parse refs/fix-walk/fixed)"
 	code=0
 	git rebase --onto refs/fix-walk/fixed refs/fix-walk/fixing refs/fix-walk/top || code="$?"
-	if [ code -eq 128 ]; then
+	if [ "$code" -eq 128 ]; then
 		echo "The rebase on top of your fix has encountered a conflict. Please resolve it via the normal means and 'git fix-walk continue' when the rebase is complete."
 		return 0
 	fi
