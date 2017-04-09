@@ -10,7 +10,7 @@ run() {
 	PIDS+=("$!")
 }
 
-run ~/src/weaveworks/service-conf/connect "$ENV"
+run ~/src/service-conf/connect "$ENV"
 run chrome-with-pac 'http://localhost:8080/proxy.pac'
 
 # wait for either
