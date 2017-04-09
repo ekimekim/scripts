@@ -1,0 +1,284 @@
+#!/bin/bash
+
+set -e -o pipefail
+
+shortusage() {
+	cat >&2 <<-EOF
+		git fix-walk start REF COMMAND {ARGS}
+		git fix-walk continue
+		git fix-walk abort
+	EOF
+}
+
+usage() {
+	shortusage
+	cat >&2 <<-EOF
+
+		fix-walk combines aspects of git bisect and git rebase to walk through
+		a range of commits, fixing any failing commits as it goes.
+
+		fix-walk start begins a fix-walk by specifying the last known good commit
+		and a command that can be used to test if a commit is good.
+
+		fix-walk will then find failing commits and prompt the user to fix them.
+		Once the user has (generally by amending or adding a commit) fixed the commit,
+		all remaining commits will be rebased on top of it (note: like a normal rebase,
+		the user may be prompted to fix conflicts during this operation).
+
+		This will repeat until all commits in the range are good, at which time the
+		original HEAD will be updated (if a branch) to point at the final rebased result.
+	EOF
+}
+
+# Implementation outline:
+# start (check: no refs/fix-walk/* exist, no .git/FIX-WALK-COMMAND, no active rebase or bisect)
+#	set refs/fix-walk/top = HEAD
+#	set refs/fix-walk/fixing = given REF
+#	store run command in .git/FIX-WALK-COMMAND for safekeeping
+#	git bisect start
+#	goto "run next"
+# "run next"
+#	run command against fix-walk/top
+#		if success:
+#			goto "finish"
+#	git bisect: set fix-walk/top bad, set fix-walk/fixing good
+#	git bisect run
+#	set refs/fix-walk/fixing = HEAD
+#	drop to user for interaction
+# continue (refs/fix-walk/fixed does not exist): "commit fixed"
+#	run command to confirm actually fixed
+#	set refs/fix-walk/fixed = HEAD
+#	if fixed-walk/fixing == fixed-walk/top:
+#		We're done. Goto "finish"
+#	rebase fix-walk/fixing..fix-walk/top onto fix-walk/fixed and update fix-walk/top
+#	this rebase may have conflicts. if so, drop to user for interaction
+#	otherwise goto "rebase finished"
+# continue (refs/fix-walk/fixed exists, active rebase): "rebase ongoing"
+#	Tell user to complete rebase before continuing
+# continue (refs/fix-walk/fixed exists, no active rebase): "rebase finished"
+#	set fix-walk/fixing = fix-walk/fixed
+#	delete fix-walk/fixed
+#	goto run next
+# abort
+#	Note this is designed to be idempotent and run even if we're in a weird state.
+#	if rebase in progress:
+#		git rebase --abort
+#	if bisect in progress:
+#		git bisect reset
+#	delete refs/fix-walk/*
+#	delete .git/FIX-WALK-COMMAND
+# "finish"
+#	git bisect reset, restoring original head
+#	git reset --hard onto fix-walk/top, so original head now points to fully fixed branch
+#	delete refs/fix-walk/*
+#	delete .git/FIX-WALK-COMMAND
+
+# WARNING: Uses declare -a / eval to save an array to a file. I _think_ this is safe,
+# especially since it's code to be executed anyway.
+
+die() {
+	local code="$1"
+	shift
+	echo "$@" >&2
+	exit "$code"
+}
+
+save_command() {
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
+	COMMAND=("$@") # note: COMMAND is global
+	printf "%q " "${COMMAND[@]}" > "$gitdir/FIX-WALK-COMMAND"
+}
+
+load_command() {
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
+	COMMAND=($(cat "$gitdir/FIX-WALK-COMMAND")) # declares COMMAND array as a global. Note intentional word splitting.
+}
+
+run_command() {
+	[ -n "${COMMAND[0]}" ] || load_command
+	[ -n "${COMMAND[0]}" ] || die 3 'Failed to load command'
+	echo "Running command: ${COMMAND[*]}"
+	set +e
+	"${COMMAND[@]}"
+	code=$?
+	set -e
+	return "$code"
+}
+
+delete_command_file() {
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
+	rm -f "$gitdir/FIX-WALK-COMMAND"
+}
+
+check_fix_walk_active() {
+	# err on the side of it being active if in a weird state
+	local gitdir
+	gitdir=$(git rev-parse --git-dir)
+	[ -n "$(git for-each-ref refs/fix-walk/)" ] || [ -f "$gitdir/FIX-WALK-COMMAND" ]
+}
+
+check_bisect_active() {
+	# TODO
+	echo "WARNING: ASSUMING NO BISECT ACTIVE (fixme)"
+	return 1
+}
+
+check_rebase_active() {
+	# TODO
+	echo "WARNING: ASSUMING NO REBASE ACTIVE (fixme)"
+	return 1
+}
+
+start() {
+	if [ "$#" -lt 2 ]; then
+		echo "Not enough args for start"
+		echo
+		shortusage
+		return 255
+	fi
+
+	local firstgood="$1"
+	shift
+
+	check_fix_walk_active && die 1 "You appear to already be doing a fix walk. Please 'git fix-walk abort' first."
+	check_bisect_active && die 1 "You appear to be currently bisecting. Please 'git bisect reset' first."
+	check_rebase_active && die 1 "You appear to be currently rebasing. Please 'git rebase --abort' first."
+
+	git update-ref refs/fix-walk/top HEAD
+	git update-ref refs/fix-walk/fixing "$firstgood"
+	save_command "$@"
+
+	git bisect start
+
+	run_next
+}
+
+run_next() {
+	# Assumptions: fix-walk/fixing is the last known good commit.
+	# Afterwards, it will be the first known bad commit.
+
+	# check if we're done by re-checking if the top commit is still bad
+	git checkout refs/fix-walk/top
+	if run_command; then
+		finish
+		return
+	fi
+
+	git bisect good refs/fix-walk/fixing
+	git bisect bad refs/fix-walk/top
+
+	echo "Bisecting from $(git rev-parse refs/fix-walk/fixing) to $(git rev-parse refs/fix-walk/top)"
+	git bisect run "${COMMAND[@]}" # bisect will leave us checked out to first bad commit
+
+	git update-ref refs/fix-walk/fixing HEAD
+
+	echo
+	echo "This is the first bad commit. Please fix it (generally with a new commit or by amending this commit) and run 'git fix-walk continue'."
+}
+
+commit_fixed() {
+	# Assumptions: a fixed version of the bad commit is checked out.
+
+	# check it's really fixed (worthwhile tradeoff to catch user error)
+	run_command || die 2 "This commit still has problems. Try again or run 'git fix-walk abort' to reset to your initial state."
+
+	# An optimization here: if the one we just fixed is the top, we don't need to do anything else.
+	# In particular, without this we would do another run_command check on the same commit for no reason.
+	if [ "$(git rev-parse refs/fix-walk/fixing)" = "$(git rev-parse refs/fix-walk/top)" ]; then
+		echo "Final commit fixed. We're done."
+		finish
+	fi
+
+	git update-ref refs/fix-walk/fixed HEAD
+
+	echo "Rebasing $(git rev-parse refs/fix-walk/fixing)..$(git rev-parse refs/fix-walk/top) onto $(git rev-parse refs/fix-walk/fixed)"
+	git checkout refs/fix-walk/top
+	set +e
+	git rebase --onto refs/fix-walk/fixed refs/fix-walk/fixing
+	code=$?
+	set -e
+	if [ "$code" -eq 128 ]; then
+		echo "The rebase on top of your fix has encountered a conflict. Please resolve it via the normal means and 'git fix-walk continue' when the rebase is complete."
+		return 0
+	fi
+
+	rebase_finished
+}
+
+rebase_ongoing() {
+	echo "Your rebase appears to still be ongoing. Please complete the rebase before continuing, or 'git fix-walk abort' to reset to your initial state."
+}
+
+rebase_finished() {
+	git update-ref refs/fix-walk/top HEAD
+	git update-ref refs/fix-walk/fixing refs/fix-walk/fixed
+	git update-ref -d refs/fix-walk/fixed
+	run_next
+}
+
+finish() {
+	git bisect reset # this restores the original checkout
+	git reset --hard refs/fix-walk/top # if original checkout was a branch, this updates it. otherwise just checks out final state as dangling head.
+	git update-ref -d refs/fix-walk/fixing
+	git update-ref -d refs/fix-walk/top
+	delete_command_file
+	echo "Fix walk done. Your original branch (if any) has been updated to point at the final result."
+}
+
+abort() {
+	# Note this is designed to be idempotent and run even if we're in a weird state.
+	set +e
+	check_rebase_active && git rebase --abort
+	check_bisect_active && git bisect reset
+	git for-each-ref --format='delete %(refname)' refs/fix-walk | git update-ref --stdin
+	delete_command_file
+	set -e
+	echo "Fix walk aborted."
+}
+
+cont() {
+	# (continue is a reserved word)
+	# Does dispatch to various next steps for continue.
+
+	if ! check_fix_walk_active; then
+		echo "No fix walk appears to be in progress."
+	elif ! git show-ref --quiet --verify refs/fix-walk/fixed; then
+		commit_fixed
+	elif check_rebase_active; then
+		rebase_ongoing
+	else
+		rebase_finished
+	fi
+}
+
+main() {
+	action="$1"
+	shift 1 || true # may fail if no args
+
+	case "$action" in
+		'start')
+			start "$@"
+			;;
+		'continue')
+			cont "$@"
+			;;
+		'abort')
+			abort "$@"
+			;;
+		'help' | '-h' | '--help' | '')
+			usage
+			return 255
+			;;
+		*)
+			echo "Unknown subcommand: $action"
+			echo
+			shortusage
+			return 255
+			;;
+	esac
+}
+
+main "$@"
