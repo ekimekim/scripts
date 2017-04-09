@@ -3,7 +3,7 @@
 VERSION=${1:-latest}
 
 docker images |
-awk -v"version=$VERSION" '$1 ~ "^quay.io/weaveworks" && $2 == version {print $1 ":" $2}' |
+awk -v"version=$VERSION" '$1 ~ "weaveworks" && $2 == version {print $1 ":" $2}' |
 while read img; do
     docker save "$img" |
     minikube-docker load

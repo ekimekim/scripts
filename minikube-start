@@ -9,4 +9,5 @@ minikube start --cpus=$(nproc) --memory=16384 --host-only-cidr=192.168.97.1/26 -
 
 minikube-sync
 kubectl config use-context minikube
-kubectl create -f <(find ~/src/service-conf/k8s/local -name '*.yaml' -exec cat {} +)
+kubectl apply -f <(find ~/src/service-conf/k8s/local -name '*-ns.yaml' -exec cat {} +)
+kubectl apply -f <(find ~/src/service-conf/k8s/local -name '*.yaml' -exec cat {} +)
