@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 FIELD [START LINE] {AWK FLAGS}" 2>&1
+fi
+
+FIELD="$1"
+START="${2:-0}"
+shift 2
+
+awk -v"FIELD=$FIELD" -v"START=$START" "$@" 'NR > START {print $FIELD}'
