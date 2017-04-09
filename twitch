@@ -21,7 +21,7 @@ fetch_all() {
 }
 
 if [ -n "$1" ]; then
-	CHANNEL="$1"
+	CHANNEL="$(tr A-Z a-z <<<"$1")"
 	shift
 fi
 if [ -z "$CHANNEL" ]; then

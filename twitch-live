@@ -50,7 +50,7 @@ def main(*targets):
 	for name, (live, channel) in results.items():
 		if not live:
 			continue
-		print u"{name} playing {game}: {status}".format(**channel).encode('utf-8')
+		print u"https://twitch.tv/{name} playing {game}: {status}".format(**channel).encode('utf-8')
 
 
 if __name__ == '__main__':
