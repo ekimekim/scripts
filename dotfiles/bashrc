@@ -46,7 +46,7 @@ _maybe_expand_alias() {
 	local subcmd="$2"
 	local leading=()
 	shift 2
-	if [ "$(type -t "$subcmd")" = 'alias' ]; then
+	if [ "$(type -t -- "$subcmd")" = 'alias' ]; then
 		leading=(${BASH_ALIASES[$subcmd]}) # note intentional no quotes
 	else
 		leading=("$subcmd")
