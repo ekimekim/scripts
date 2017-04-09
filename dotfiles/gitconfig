@@ -53,6 +53,9 @@
 	# del-merged [BRANCH]: Delete all branches merged into BRANCH (default: master)
 	del-merged = "!f(){ target=\"${1:-master}\"; git branch --merged \"$target\" | grep -v \" $target\\$\" | xargs git branch -d ;}; f"
 
+	# bi GOODREF COMMAND {ARGS}: 'git bisect run COMMAND ARGS' from GOODREF(good) to HEAD(bad). Don't use relative ref paths.
+	bi = "!f(){ good=\"$1\"; shift; git bisect start && git bisect bad && git checkout \"$good\" && git bisect good && git bisect run \"$@\" ;}; f"
+
 	# mis-spellings that cause sl to run
 	lal = !sl
 
@@ -85,6 +88,13 @@
 
 [color]
 	ui = auto
+
+[status]
+	# Don't collapse fully untracked folders down to just a folder name
+	showUntrackedFiles = all
+
+[http "https://gopkg.in"]
+	followRedirects = True
 
 [github]
 	user = ekimekim
