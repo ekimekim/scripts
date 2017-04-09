@@ -1,6 +1,10 @@
 #!/bin/bash
 
 for f in "$@"; do
+	[ -f "$f" ] || {
+		echo "Not a file: $f"
+		continue
+	}
 	gofmt -s "$f" | diff -u "$f" -
 	read -p "Press enter to apply or ^C to abort"
 	gofmt -s -w "$f"
