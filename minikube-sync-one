@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker save "$1:latest" | minikube-docker load
