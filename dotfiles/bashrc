@@ -92,6 +92,30 @@ screenshot() {
 		echo "Saved to $filepath"
 }
 
+ndurl() {
+	echo "rtmp://rtmp.condorleague.tv/$1/live"
+}
+
+ndpair() {
+	for name in "$@"; do
+		spawn vlc "$(ndurl "$name")"
+	done
+}
+
+# wrap a command in a check to prompt confirmation if this appears to be an ssh session
+# useful for preventing accidential eg. poweroff to the wrong machine
+check-ssh() {
+	if [ -n "$SSH_CONNECTION" ]; then
+		host=$(hostname)
+		echo -en "WARNING: This appears to be an ssh connection.\nYou are connected to $host.\nPlease type this name to confirm: " >&2
+		read response
+		if [ "$response" != "$host" ]; then
+			return 1
+		fi
+	fi
+	"$@"
+}
+
 # list pacnew files present in /etc
 list_pacnew() {
 	find '/etc' \
@@ -133,7 +157,7 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias tree='tree -C'
 
-# Privilige aliases
+# Privilige aliases, check-ssh aliases
 alias user_pacman="`which pacman`" # unpriviliged pacman
 alias pacman='sudo pacman'
 alias pip='sudo pip2'
@@ -141,14 +165,15 @@ alias svim='sudo vim'
 alias scat='sudo cat'
 alias sumv='sudo mv'
 alias sucp='sudo cp'
-alias shutdown='sudo shutdown'
-alias reboot='sudo reboot'
-alias poweroff='sudo poweroff'
+alias shutdown='check-ssh sudo shutdown'
+alias reboot='check-ssh sudo reboot'
+alias poweroff='check-ssh sudo poweroff'
 alias systemctl='sudo systemctl'
 alias 'systemctl-user'="$(which systemctl) --user"
 alias ip='sudo ip'
 alias fuck='sudo $(history -p \!\!)'
 alias 'wifi-menu'='sudo wifi-menu'
+alias mplayer="check-ssh $(which mplayer)"
 
 # Other aliases
 alias commit='git commit -av'
@@ -164,7 +189,7 @@ alias diff='diff -u'
 alias ''='clear'
 alias ''='cd && clear'
 alias browser='spawn $BROWSER'
-alias mplayer-music='mplayer -vo null -softvol -volume 50'
+alias mplayer-music='mplayer -vo null'
 alias monstercat='twitch_play monstercat audio'
 alias xclip='xclip -selection clipboard'
 alias pass='DISPLAY= pass' # disable display so gpg doesn't make annoying popup prompt
