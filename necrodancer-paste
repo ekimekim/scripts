@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xdotool search --name --limit 1 'Crypt of the NecroDancer' type --window '%1' --delay 50 "$(xclip -selection clipboard -o)"
