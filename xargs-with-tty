@@ -1,0 +1,3 @@
+#!/bin/bash
+
+xargs -a /proc/self/fd/142 "$@" 142<&0 </dev/tty
