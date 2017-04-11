@@ -3,7 +3,7 @@ import XMonad.Util.EZConfig(additionalKeys)
 import XMonad.Hooks.EwmhDesktops
  
 main = do
-	xmonad $ defaultConfig
+	xmonad $ ewmh defaultConfig
 		{
 			terminal = "terminator",
 			modMask = myModMask,
