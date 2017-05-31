@@ -171,8 +171,13 @@ run_next() {
 	git bisect bad refs/fix-walk/top
 
 	echo "Bisecting from $(git rev-parse refs/fix-walk/fixing) to $(git rev-parse refs/fix-walk/top)"
-	git bisect run "${COMMAND[@]}" # bisect will leave us checked out to first bad commit
+	bisect_output=$(mktemp)
+	git bisect run "${COMMAND[@]}" | tee "$bisect_output"
+	# git bisect only leaves you at 'last tested', not 'first bad', so we have to parse the output
+	first_bad=$(egrep '^[0-9a-f]+ is the first bad commit$' "$bisect_output" | cut -d' ' -f1)
 
+	echo "Checking out $first_bad"
+	git checkout "$first_bad"
 	git update-ref refs/fix-walk/fixing HEAD
 
 	echo
@@ -184,13 +189,6 @@ commit_fixed() {
 
 	# check it's really fixed (worthwhile tradeoff to catch user error)
 	run_command || die 2 "This commit still has problems. Try again or run 'git fix-walk abort' to reset to your initial state."
-
-	# An optimization here: if the one we just fixed is the top, we don't need to do anything else.
-	# In particular, without this we would do another run_command check on the same commit for no reason.
-	if [ "$(git rev-parse refs/fix-walk/fixing)" = "$(git rev-parse refs/fix-walk/top)" ]; then
-		echo "Final commit fixed. We're done."
-		finish
-	fi
 
 	git update-ref refs/fix-walk/fixed HEAD
 
