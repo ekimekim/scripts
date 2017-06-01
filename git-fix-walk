@@ -87,13 +87,17 @@ save_command() {
 	local gitdir
 	gitdir=$(git rev-parse --git-dir)
 	COMMAND=("$@") # note: COMMAND is global
-	printf "%q " "${COMMAND[@]}" > "$gitdir/FIX-WALK-COMMAND"
+	# output one per line
+	printf "%s\n" "${COMMAND[@]}" > "$gitdir/FIX-WALK-COMMAND"
 }
 
 load_command() {
 	local gitdir
 	gitdir=$(git rev-parse --git-dir)
-	COMMAND=($(cat "$gitdir/FIX-WALK-COMMAND")) # declares COMMAND array as a global. Note intentional word splitting.
+	COMMAND=() # declares COMMAND array as a global
+	while read line; do
+		COMMAND+=("$line")
+	done <"$gitdir/FIX-WALK-COMMAND"
 }
 
 run_command() {
