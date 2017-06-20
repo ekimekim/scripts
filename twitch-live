@@ -5,12 +5,26 @@ gevent.monkey.patch_all()
 
 import os
 
+import argh
+
 import requests
 requests = requests.Session()
 requests.headers['Client-ID'] = 'jzkbprff40iqj646a697cyrvl0zt2m6'
 
 TWITCH = 'https://api.twitch.tv/kraken'
 USER = os.environ.get('TWITCH_USER', 'ekimekim3000')
+
+COLORS = {name: '\x1b[3{}m'.format(n) for n, name in enumerate([
+	'black',
+	'red',
+	'green',
+	'yellow',
+	'blue',
+	'purple',
+	'cyan',
+	'white',
+	'reset'
+])}
 
 def fetch(*parts, **data):
 	no_host = data.pop('no_host', False)
@@ -41,7 +55,8 @@ def is_live(name):
 def get_channel_info(name):
 	return is_live(name), fetch('channels', name)
 
-def main(*targets):
+@argh.arg('targets', nargs='*')
+def main(targets, colors=True, urls=False):
 	if not targets:
 		targets = (o['channel']['name']
 		           for o in fetch_all('follows', 'users', USER, 'follows', 'channels'))
@@ -50,9 +65,11 @@ def main(*targets):
 	for name, (live, channel) in results.items():
 		if not live:
 			continue
-		print u"https://twitch.tv/{name} playing {game}: {status}".format(**channel).encode('utf-8')
+		fmt_args = channel.copy()
+		fmt_args.update(COLORS)
+		fmt_args['url'] = "https://twitch.tv/" if urls else ""
+		print u"{black}{url}{green}{name}{black} playing {green}{game}{black}: {yellow}{status}{reset}".format(**fmt_args).encode('utf-8')
 
 
 if __name__ == '__main__':
-	import sys
-	main(*sys.argv[1:])
+	argh.dispatch_command(main)
