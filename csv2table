@@ -1,0 +1,24 @@
+#!/bin/env python2
+
+import csv
+import sys
+
+import argh
+
+
+def main(filename):
+	if filename == '-':
+		f = sys.stdin
+	else:
+		f = open(filename)
+
+	rows = list(csv.reader(f))
+	for i in range(max(len(row) for row in rows)):
+		print '\t'.join(
+			row[i] if len(row) >= i + 1 else ''
+			for row in rows
+		)
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
