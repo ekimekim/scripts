@@ -1,8 +1,8 @@
 #!/bin/bash
 
-main='DVI-I-1'
-side='DP-1'
-bedside='DVI-D-0'
+main='DVI-D-0'
+side='DP-2'
+bedside='DP-0'
 vive='HDMI-0'
 
 bedside_on_desk="true"
