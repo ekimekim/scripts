@@ -20,6 +20,11 @@ fetch_all() {
 	done
 }
 
+open_video() {
+	$BROWSER --app="https://player.twitch.tv/?channel=$1" <>/dev/null >&0 2>&0 &
+	disown
+}
+
 if [ -n "$1" ]; then
 	CHANNEL="$(tr A-Z a-z <<<"$1")"
 	shift
@@ -51,4 +56,5 @@ if [ -z "$CHANNEL" ]; then
 	exit 1
 fi
 
+[ -n "$BROWSER" ] && open_video "$CHANNEL"
 exec twitch-irc --channel=#"$CHANNEL" "$@"
