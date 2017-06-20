@@ -22,6 +22,8 @@ die() {
 original="$1"
 new="$2"
 
+original_mode=$(stat -c '%a' "$original")
+
 diff -u -U99999 "$original" "$new" >"$patch"
 code="$?"
 if [ "$code" -eq 0 ]; then
@@ -45,6 +47,7 @@ elif [ "$code" -eq 1 ]; then
 	done
 	echo "Replacing original file"
 	mv "$outfile" "$original" || die "$?" "Failed to replace original file with patched file"
+	chmod "$original_mode" "$original" || die "$?" "Failed to chmod back to original file mode"
 else
 	die "$code" "diff failed with status $code"
 fi
