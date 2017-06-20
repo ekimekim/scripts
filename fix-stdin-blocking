@@ -1,0 +1,17 @@
+#!/bin/env python2
+
+import fcntl
+import os
+
+import argh
+
+def main(fd=0):
+	flags = fcntl.fcntl(fd, fcntl.F_GETFL, 0)
+	if flags & os.O_NONBLOCK:
+		fcntl.fcntl(fd, fcntl.F_SETFL, flags & ~os.O_NONBLOCK)
+		print 'done'
+	else:
+		print "wasn't non-blocking"
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
