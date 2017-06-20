@@ -56,6 +56,9 @@
 	# bi GOODREF COMMAND {ARGS}: 'git bisect run COMMAND ARGS' from GOODREF(good) to HEAD(bad). Don't use relative ref paths.
 	bi = "!f(){ good=\"$1\"; shift; git bisect start && git bisect bad && git checkout \"$good\" && git bisect good && git bisect run \"$@\" ;}; f"
 
+	# toprun COMMAND {ARGS}: Run COMMAND ARGS in top-level directory of repo
+	toprun = "!f(){ topdir=$(git rev-parse --show-toplevel) && cd \"$topdir\" && \"$@\" ;}; f"
+
 	# mis-spellings that cause sl to run
 	lal = !sl
 
