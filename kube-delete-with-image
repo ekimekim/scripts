@@ -1,0 +1,30 @@
+#!/bin/bash
+
+USAGE="$0 IMAGE
+A utility for local dev, it will delete any pods that use the given image, allowing a new version of the image to be started.
+Use with caution!"
+
+if ! [ "$#" -eq 1 ]; then
+	echo "$USAGE" >&2
+	exit 255
+fi
+
+IMAGE="$1"
+
+if [ -z "$FORCE" ] && [ "$(kubectl config current-context)" == "prod" ]; then
+	echo "Current context is production! Refusing to run. Pass FORCE=true to run anyway." >&2
+	exit 1
+fi
+
+kubectl get pods --all-namespaces -o json |
+jq -r --arg image "$IMAGE" '
+.items[]|
+select(
+	.spec.containers | any(.image == $image)
+)|
+.metadata|
+"\(.namespace) \(.name)"
+' | while read namespace name; do
+	echo "Deleting $namespace/$name"
+	kubectl delete pod --namespace="$namespace" "$name"
+done
