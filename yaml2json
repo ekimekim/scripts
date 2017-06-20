@@ -1,0 +1,22 @@
+#!/bin/env python2
+
+import json
+import sys
+import yaml
+
+from argh import dispatch_command, arg
+
+
+@arg('filepath', help='File to read, or - (default) for stdin', nargs='?', default='-')
+def main(filepath, pretty=True):
+	if filepath == '-':
+		f = sys.stdin
+	else:
+		f = open(filepath)
+
+	data = yaml.load(f)
+	print json.dumps(data, indent=4 if pretty else None)
+
+
+if __name__ == '__main__':
+	dispatch_command(main)
