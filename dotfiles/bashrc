@@ -206,7 +206,7 @@ alias ''='clear'
 alias ''='cd && clear'
 alias browser='spawn $BROWSER'
 alias mplayer-music='mplayer -vo null'
-alias monstercat='twitch_play monstercat audio'
+alias monstercat='twitch_play monstercat audio_only'
 alias xclip='xclip -selection clipboard'
 alias pass='DISPLAY= pass' # disable display so gpg doesn't make annoying popup prompt
 alias kubectx='kubectl config use-context'
