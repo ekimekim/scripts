@@ -29,17 +29,6 @@ source "$HOME/bin/git-alias-completion.bash"
 source <(kubectl completion bash)
 source <(kubeenv complete)
 
-# Custom functions
-spawn() {
-	local USAGE="spawn PROGRAM {ARGS}\nSpawn a program and disown it, redirecting everything to /dev/null."
-	if [ "$#" -lt 1 ]; then echo -e "$USAGE"; return 1; fi
-	local PROGRAM=$1
-	shift
-	"$PROGRAM" "$@" </dev/null >/dev/null 2>/dev/null &
-	disown
-}
-complete -c spawn
-
 # Wrapper around xargs and sudo to expand aliases
 _maybe_expand_alias() {
 	local cmd="$(which "$1")"
@@ -208,3 +197,5 @@ export GOPATH="$HOME/.go"
 
 # Misc completions
 complete -c which
+complete -c spawn
+
