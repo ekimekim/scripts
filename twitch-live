@@ -3,9 +3,11 @@
 import gevent.monkey
 gevent.monkey.patch_all()
 
+import logging
 import os
 
 import argh
+import gtools
 
 import requests
 requests = requests.Session()
@@ -34,14 +36,14 @@ def fetch(*parts, **data):
 	resp.raise_for_status()
 	return resp.json()
 
-def fetch_all(key, *parts):
+def fetch_all(key, *parts, **data):
 	"""Fetch pages from path until exhausted.
 	key should be list of results to check in response.
 	Returns list of all results
 	"""
 	path = '/'.join((TWITCH,) + parts)
 	while True:
-		data = fetch(path, limit=100, no_host=True)
+		data = fetch(path, limit=100, no_host=True, **data)
 		results = data[key]
 		if not results:
 			return
@@ -49,26 +51,52 @@ def fetch_all(key, *parts):
 			yield result
 		path = data['_links']['next']
 
-def is_live(name):
-	return fetch('streams', name).get('stream', None) is not None
+def get_info(name):
+	stream = gevent.spawn(fetch, 'streams', name)
+	channel = gevent.spawn(fetch, 'channels', name)
+	return stream.get().get('stream'), channel.get()
 
-def get_channel_info(name):
-	return is_live(name), fetch('channels', name)
+def get_games(user):
+	return [o['name'] for o in
+		    fetch('https://api.twitch.tv/api', 'users', user, 'follows', 'games', no_host=True)['follows']]
 
 @argh.arg('targets', nargs='*')
-def main(targets, colors=True, urls=False):
-	if not targets:
-		targets = (o['channel']['name']
+def main(targets, colors=True, urls=False, games=True, debug=False):
+	if debug:
+		logging.basicConfig(level='DEBUG')
+	if targets:
+		targets = [('any', target) for target in targets]
+	else:
+		follows = (('any', o['channel']['name'])
 		           for o in fetch_all('follows', 'users', USER, 'follows', 'channels'))
-	results = {name: gevent.spawn(get_channel_info, name) for name in targets}
-	results = {name: g.get() for name, g in results.items()}
-	for name, (live, channel) in results.items():
-		if not live:
-			continue
+		if games:
+			games = ((game, o['channel']['name'])
+				for game in get_games(USER)
+				for o in fetch_all('streams', 'streams', game=game)
+			)
+		targets = gtools.merge_iters(follows, games)
+
+	channels = {}
+	for game, target in targets:
+		if target in channels:
+			channels[target][0] |= {game}
+		else:
+			channels[target] = [{game}, gevent.spawn(get_info, target)]
+	channels = [
+		(name, games) + g.get()
+		for name, (games, g) in channels.items()
+	]
+
+	for name, games, stream, channel in sorted(channels, key=lambda (n,p,s,c): (p,n)):
+		if stream is None:
+			continue # not live
+		if 'any' not in games and stream['game'] not in games:
+			continue # we searched this channel for a specific game, and they've since changed game
 		fmt_args = channel.copy()
 		fmt_args.update(COLORS)
 		fmt_args['url'] = "https://twitch.tv/" if urls else ""
-		print u"{black}{url}{green}{name}{black} playing {green}{game}{black}: {yellow}{status}{reset}".format(**fmt_args).encode('utf-8')
+		fmt_args['name_color'] = COLORS['yellow'] if 'any' in games else COLORS['green']
+		print u"{black}{url}{name_color}{name}{black} playing {green}{game}{black}: {yellow}{status}{reset}".format(**fmt_args).encode('utf-8')
 
 
 if __name__ == '__main__':
