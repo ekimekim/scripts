@@ -86,13 +86,14 @@ def main(targets, colors=True, urls=False, games=True, debug=False):
 		(name, games) + g.get()
 		for name, (games, g) in channels.items()
 	]
+	channels = filter(lambda (n,g,s,c): s is not None, channels) # filter out not-live
+	sort_key = lambda (n,g,s,c): ('' if 'any' in g else s['game'], n) # sort any-game targets first, then by game
 
-	for name, games, stream, channel in sorted(channels, key=lambda (n,p,s,c): (p,n)):
-		if stream is None:
-			continue # not live
+	for name, games, stream, channel in sorted(channels, key=sort_key):
 		if 'any' not in games and stream['game'] not in games:
 			continue # we searched this channel for a specific game, and they've since changed game
 		fmt_args = channel.copy()
+		fmt_args.update(stream)
 		fmt_args.update(COLORS)
 		fmt_args['url'] = "https://twitch.tv/" if urls else ""
 		fmt_args['name_color'] = COLORS['yellow'] if 'any' in games else COLORS['green']
