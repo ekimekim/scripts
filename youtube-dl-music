@@ -54,7 +54,7 @@ ls "${filepath}".* | while read line; do
 	echo "DELETING $line"
 	rm "$line"
 done
-logexec youtube-dl -x -- "$@" || exit 1
+logexec youtube-dl -x --add-metadata -- "$@" || exit 1
 filepath=$( ls "${filepath}".* )
 
 # TRIM: format "start:end", where either can be blank
