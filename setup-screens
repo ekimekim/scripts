@@ -2,24 +2,13 @@
 
 main='DVI-D-0'
 side='DP-2'
-bedside='DP-0'
 vive='HDMI-0'
 
-bedside_on_desk="true"
-if [ -n "$bedside_on_desk" ]; then
-	bedside_rot=normal
-else
-	bedside_rot=inverted
-fi
-
 xrandr --output "$main" --mode 1920x1080
-if [ -n "$X_ONE_SCREEN" ]; then
-	xrandr --output "$side" --off
-	xrandr --output "$vive" --off
-	xrandr --output "$bedside" --off
-else
-	xrandr --output "$main" --pos 0x420 # move main down so side can reach above its top
-	xrandr --output "$side" --mode 1920x1080 --rotate left --pos 1920x0
-	xrandr --output "$bedside" --mode 1920x1080 --left-of "$main" --rotate "$bedside_rot"
-	xrandr --output "$vive" --off
-fi
+xrandr --output "$side" --off
+xrandr --output "$vive" --off
+
+[ -n "$X_ONE_SCREEN" ] && exit
+
+xrandr --output "$side" --mode 1920x1080 --rotate left --pos 1920x0
+xrandr --output "$main" --pos 0x420 # move main down so side can reach above its top
