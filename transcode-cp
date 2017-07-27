@@ -5,17 +5,17 @@ gevent.monkey.patch_all()
 
 import os
 import re
+import traceback
+from multiprocessing import cpu_count
 
 from gevent.pool import Pool
 
 import argh
 from easycmd import cmd
+from misc import AtomicReplace
 
-pool = Pool(8)
 AUDIO_EXTS = ['flac', 'aac', 'm4a', 'wav', 'ogg', 'mp3', 'wma', 'opus', 'webm', 'mp4']
 DRY = False
-main_greenlet = gevent.getcurrent()
-EXT = os.environ.get('EXT', 'mp3')
 
 
 def do(i, n, fn, src, dest, *args):
@@ -26,46 +26,52 @@ def do(i, n, fn, src, dest, *args):
 			os.makedirs(dest_dir)
 		fn(src, dest, *args)
 		print "Done {}/{}".format(i, n)
-	except Exception as ex:
+		return True
+	except Exception:
 		print "Failed {}/{}".format(i, n)
-		main_greenlet.throw(ex)
+		traceback.print_exc()
+		return False
 
 def copy(src, dest):
 	if not DRY:
-		cmd(['cp', src, dest])
+		with AtomicReplace(dest) as tmp:
+			cmd(['cp', src, tmp])
 
 
 def convert(src, dest, ffargs):
 	if not DRY:
-		cmd(['ffmpeg', '-y', '-i', src] + ffargs + [dest])
+		with AtomicReplace(dest) as tmp:
+			cmd(['ffmpeg', '-i', src] + ffargs + [tmp])
 
 
 def make_safe(s):
 	return re.sub(r'[^a-zA-Z0-9/ .-]', '_', s)
 
 
-def get_dest(src_root, dest_root, src, safe=False):
+def get_dest(src_root, dest_root, src, safe=False, ext='mp3'):
 	rel_src_dir = os.path.relpath(os.path.dirname(src), src_root)
 	src_name = os.path.basename(src)
 	src_name, _ = os.path.splitext(src_name)
-	dest_name = "{}.{}".format(src_name, EXT)
+	dest_name = "{}.{}".format(src_name, ext)
 	if safe:
 		rel_src_dir = make_safe(rel_src_dir)
 		dest_name = make_safe(dest_name)
 	return os.path.join(dest_root, rel_src_dir, dest_name)
 
 
-def do_file(i, n, src, dest, ffargs, force=False):
+def do_file(pool, i, n, src, dest, ffargs, force=False):
 	if os.path.exists(dest) and not force:
 		print "Skipping {}/{}: already exists {}".format(i, n, dest)
 		return
-	if src.lower().endswith('.{}'.format(EXT)):
-		pool.spawn(do, i, n, copy, src, dest)
+	_, ext = os.path.splitext(dest)
+	ext = ext[1:]
+	if src.lower().endswith(ext):
+		return pool.spawn(do, i, n, copy, src, dest)
 	else:
-		pool.spawn(do, i, n, convert, src, dest, ffargs)
+		return pool.spawn(do, i, n, convert, src, dest, ffargs)
 
 
-def get_items(src_root, dest_root, stdin=False, safe=False):
+def get_items(src_root, dest_root, stdin=False, safe=False, ext='mp3'):
 	if stdin:
 		items = (os.path.split(filepath.rstrip('\n')) for filepath in sys.stdin)
 	else:
@@ -75,26 +81,30 @@ def get_items(src_root, dest_root, stdin=False, safe=False):
 			for filename in files
 		)
 	for path, filename in items:
-		if any(filename.lower().endswith(".{}".format(ext)) for ext in AUDIO_EXTS):
+		if any(filename.lower().endswith(".{}".format(audio_ext)) for audio_ext in AUDIO_EXTS):
 			src = os.path.join(path, filename)
-			dest = get_dest(src_root, dest_root, src, safe=safe)
+			dest = get_dest(src_root, dest_root, src, safe=safe, ext=ext)
 			yield src, dest
 
 
 @argh.arg('--stdin', default=False)
 @argh.arg('--force', default=False)
 @argh.arg('--safe', default=False)
+@argh.arg('--ext', default='mp3')
+@argh.arg('--concurrency', default=cpu_count())
 def main(src_root, dest_root, *ffargs, **kwargs):
-	force = kwargs['force']
-	stdin = kwargs['stdin']
-	safe = kwargs['safe']
-	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe))
+	force, stdin, safe, ext, concurrency = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency'))
+	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe, ext=ext))
 	n = len(items)
+	jobs = []
+	pool = Pool(concurrency)
 	try:
 		for i, (src, dest) in enumerate(items):
-			do_file(i, n, src, dest, list(ffargs), force)
+			jobs.append(do_file(pool, i, n, src, dest, list(ffargs), force))
 	finally:
 		pool.join()
+	if not all(job.get() for job in jobs):
+		raise Exception("One or more jobs failed")
 
 
 if __name__ == '__main__':
