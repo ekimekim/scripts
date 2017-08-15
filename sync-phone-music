@@ -13,8 +13,10 @@ PLAYLISTS=(
 	"$HOME/music/playlists/soft.awp soft-32 32"
 )
 
+# Format note: phone won't recognize .opus files, but they're the same container format as .ogg
+# so we create .ogg files that use the opus codec explicitly.
 awk -F'\t' '$1 >= 16 {print $3}' ~/main.awp |
-transcode-cp --stdin --safe ~/music/ /srv/btsync/music/ -- -b:a 64k
+transcode-cp --stdin --safe --ext=ogg ~/music/ /srv/btsync/music/ -- -map 0:a -b:a 64k -codec:a libopus
 
 for line in "${PLAYLISTS[@]}"; do
 	read path name scale filter <<<"$line"
