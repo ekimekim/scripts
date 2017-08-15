@@ -6,6 +6,8 @@ gevent.monkey.patch_all()
 import logging
 import os
 
+from gevent.lock import Semaphore
+
 import argh
 import gtools
 
@@ -28,11 +30,14 @@ COLORS = {name: '\x1b[3{}m'.format(n) for n, name in enumerate([
 	'reset'
 ])}
 
+REQUEST_LIMITER = Semaphore(16)
+
 def fetch(*parts, **data):
 	no_host = data.pop('no_host', False)
 	if not no_host:
 		parts = (TWITCH,) + parts
-	resp = requests.get('/'.join(parts), params=data)
+	with REQUEST_LIMITER:
+		resp = requests.get('/'.join(parts), params=data)
 	resp.raise_for_status()
 	return resp.json()
 
@@ -54,16 +59,21 @@ def fetch_all(key, *parts, **data):
 def get_info(name):
 	stream = gevent.spawn(fetch, 'streams', name)
 	channel = gevent.spawn(fetch, 'channels', name)
-	return stream.get().get('stream'), channel.get()
+	ret = stream.get().get('stream'), channel.get()
+	logging.debug("got info on {}".format(name))
+	return ret
 
 def get_games(user):
 	return [o['name'] for o in
 		    fetch('https://api.twitch.tv/api', 'users', user, 'follows', 'games', no_host=True)['follows']]
 
 @argh.arg('targets', nargs='*')
-def main(targets, colors=True, urls=False, games=True, debug=False):
+def main(targets, colors=True, urls=False, games=True, debug=0):
 	if debug:
 		logging.basicConfig(level='DEBUG')
+		gtools.backdoor(debug)
+	else:
+		logging.basicConfig(level='ERROR')
 	if targets:
 		targets = [('any', target) for target in targets]
 	else:
