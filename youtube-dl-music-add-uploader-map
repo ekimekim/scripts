@@ -1,0 +1,3 @@
+#!/bin/bash
+
+youtube-dl --dump-json -- "$1" | jq -r --arg path "$2" '"\(.uploader_id)\t\($path)"' >> /home/mike/.youtube-dl-music-autopath-uploader-map
