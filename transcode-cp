@@ -103,7 +103,7 @@ def main(src_root, dest_root, *ffargs, **kwargs):
 			jobs.append(do_file(pool, i, n, src, dest, list(ffargs), force))
 	finally:
 		pool.join()
-	if not all(job.get() for job in jobs):
+	if not all(job.get() for job in jobs if job):
 		raise Exception("One or more jobs failed")
 
 
