@@ -14,6 +14,11 @@ PATHS_BY_VALUE = {
 	}
 }
 
+UPLOADER_MAP = '/home/mike/.youtube-dl-music-autopath-uploader-map'
+PATHS_BY_VALUE.setdefault('uploader_id', {}).update(
+	dict(line.split('\t', 1) for line in open(UPLOADER_MAP).read().strip().split('\n'))
+)
+
 def main(video):
 	for key, lut in PATHS_BY_VALUE.items():
 		if key in video and video[key] in lut:
