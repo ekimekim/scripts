@@ -1,11 +1,14 @@
 #!/bin/bash
 
+set -o pipefail
+
 for f in "$@"; do
 	[ -f "$f" ] || {
 		echo "Not a file: $f"
 		continue
 	}
-	gofmt -s "$f" | diff -u "$f" -
-	read -p "Press enter to apply or ^C to abort"
+	if ! gofmt -s "$f" | diff -u "$f" -; then
+		read -p "Press enter to apply or ^C to abort"
+	fi
 	gofmt -s -w "$f"
 done
