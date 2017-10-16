@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if ! [ "$1" == 'show' ]; then
+	echo '--- ---' >>/tmp/upto
+	date >>/tmp/upto
+	cat >>/tmp/upto
+	clear
+fi
+
+awk -v RS='--- ---\n' '{last=$0} END {printf "%s", last}' /tmp/upto
