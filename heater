@@ -1,0 +1,10 @@
+#!/bin/bash
+
+pids=()
+trap 'kill ${pids[@]}' exit
+for x in $(seq $(nproc)); do
+	# chrt -i 0 means SCHED_IDLE
+	chrt -i 0 python -c 'while True: pass' &
+	pids+=("$!")
+done
+read -n 1

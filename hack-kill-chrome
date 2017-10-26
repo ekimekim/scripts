@@ -1,0 +1,10 @@
+#!/bin/bash
+
+while sleep 5; do
+	mem=$(free|awk '$1 ~ "Mem:" {print $7}')
+	echo "available mem: $mem"
+	if [ -z "$mem" ] || [ "$mem" -lt 512000 ]; then
+		pkill -9 chromium
+		echo "Killed chromium!"
+	fi
+done
