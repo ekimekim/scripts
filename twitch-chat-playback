@@ -151,6 +151,24 @@ def main(video_id, start_at, log='WARNING'):
 	finally:
 		group.kill() # then kill the rest
 
+"""temp
+notes on new api
+api.twitch.tv/v5/videos/VIDEO_ID/comments?cursor=<huge string>
+contains '_next' cursor value for next set of comments
+contains 'comments' list of comments (in order?)
+relevant comment fields:
+	content_offset_seconds: seconds into video
+	source: "chat" for normal chat, something else for comments added to vods later?
+	commenter:
+		display_name, name: as per display name and sender in IRC
+	message:
+		body: the message text
+		is_action: bool, whether it's a /me action
+		emoticons: list of emotes in the message {_id: emote id, begin: start index, end: end index inclusive}
+
+how to get initial cursor?
+
+"""
 
 def output_loop(timer, video_id, video_start_time, end_time, start_at):
 	poll_start_time = video_start_time + int(start_at / WINDOW) * WINDOW # truncate to previous window
