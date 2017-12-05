@@ -1,12 +1,10 @@
 #!/bin/env python2
 
-from calendar import timegm
 import argh
 import errno
 import logging
 import re
 import sys
-import time
 
 import gevent
 import gevent.event
@@ -23,9 +21,10 @@ requests = requests.Session()
 requests.headers['Client-ID'] = 'jzkbprff40iqj646a697cyrvl0zt2m6'
 
 TWITCH_API = 'https://api.twitch.tv/kraken'
-TWITCH_RECHAT = 'https://rechat.twitch.tv/rechat-messages'
+TWITCH_API_V5 = 'https://api.twitch.tv/v5'
 WINDOW = 30 # twitch messages are only available in chunks of 30s, relative to start of video
 SENDER_WIDTH = 11 # for display
+EMOTE_HIGHLIGHT = '36' # what SGR escape to use for emote text. 36 = forecolor cyan
 
 
 def fetch(*parts, **data):
@@ -34,17 +33,42 @@ def fetch(*parts, **data):
 	return resp.json()
 
 
+def get_chat(video_id, cursor=None):
+	params = {}
+	if cursor:
+		params['cursor'] = cursor
+	return fetch(TWITCH_API_V5, 'videos', video_id, 'comments', **params)
+
+
 def format_video_time(t):
 	t = int(t)
 	hours, mins, secs = t / 3600, (t / 60) % 60, t % 60
 	return '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
 
 
-def display(message, video_start_time):
-	print u'[{time}] {from:>{SENDER_WIDTH}}: {message}'.format(
+def display(message):
+	text = u''
+	emotes = message['message'].get('emoticons', [])
+	emote_begins = [e['begin'] for e in emotes]
+	emote_ends = [e['end'] + 1 for e in emotes]
+	for i, c in enumerate(message['message']['body']):
+		if i in emote_ends:
+			text += u'\x1b[m'
+		if i in emote_begins:
+			text += u'\x1b[{}m'.format(EMOTE_HIGHLIGHT)
+		text += c
+	text += u'\x1b[m'
+
+	print u'[{time}] {nick:>{SENDER_WIDTH}}{is_action} {text}'.format(
 		SENDER_WIDTH=SENDER_WIDTH,
-		time=format_video_time(message['attributes']['timestamp'] / 1000. - video_start_time),
-		**message['attributes']
+		time=format_video_time(message['content_offset_seconds']),
+		text=text,
+		is_action=(u'' if message['message']['is_action'] else u':'),
+		nick=(
+			u'{display_name}({name})'.format(**message['commenter'])
+			if message['commenter']['display_name'].lower() != message['commenter']['name'].lower()
+			else message['commenter']['display_name']
+		),
 	).encode('utf-8')
 
 
@@ -138,20 +162,17 @@ def main(video_id, start_at, log='WARNING'):
 
 	logging.info("Got video info: {}".format(video))
 
-	video_start_time = timegm(time.strptime(video['recorded_at'], '%Y-%m-%dT%H:%M:%SZ'))
-	end_time = video_start_time + video['length']
-	start_time = video_start_time + start_at
-	timer = Timer(start_time)
+	timer = Timer(start_at)
 
 	group = gevent.pool.Group()
-	group.spawn(output_loop, timer, video_id, video_start_time, end_time, start_at)
-	group.spawn(input_loop, timer, video_start_time)
+	group.spawn(output_loop, timer, video_id, video['length'], start_at)
+	group.spawn(input_loop, timer)
 	try:
 		gevent.wait(group, count=1) # wait for any one to finish
 	finally:
 		group.kill() # then kill the rest
 
-"""temp
+"""
 notes on new api
 api.twitch.tv/v5/videos/VIDEO_ID/comments?cursor=<huge string>
 contains '_next' cursor value for next set of comments
@@ -166,27 +187,29 @@ relevant comment fields:
 		is_action: bool, whether it's a /me action
 		emoticons: list of emotes in the message {_id: emote id, begin: start index, end: end index inclusive}
 
-how to get initial cursor?
-
+omit cursor to get beginning of video
 """
 
-def output_loop(timer, video_id, video_start_time, end_time, start_at):
-	poll_start_time = video_start_time + int(start_at / WINDOW) * WINDOW # truncate to previous window
-	for poll_time in xrange(poll_start_time, end_time, WINDOW):
-		timer.wait(poll_time)
-		# get messages for next POLL_INTERVAL seconds
-		messages = fetch(TWITCH_RECHAT, video_id=video_id, start=poll_time)['data']
+def output_loop(timer, video_id, length, start_at):
+	cursor = None
+	while True:
+		# get next group of messages
+		resp = get_chat(video_id, cursor=cursor)
+		messages = resp['comments']
+		cursor = resp['_next']
 		logging.debug("got {} messages".format(len(messages)))
 		# we assume the messages are already in display order
 		for message in messages:
-			logging.debug("waiting for message {}".format(message['id']))
-			timer.wait(message['attributes']['timestamp'] / 1000.)
-			logging.debug("displaying message {}".format(message['id']))
-			display(message, video_start_time)
+			if message['content_offset_seconds'] < start_at:
+				continue # skip ahead
+			logging.debug("waiting for message {}".format(message['_id']))
+			timer.wait(message['content_offset_seconds'])
+			logging.debug("displaying message {}".format(message['_id']))
+			display(message)
 	print 'Video is finished'
 
 
-def input_loop(timer, video_start_time):
+def input_loop(timer):
 	# we're not actually using lineedit, but we want the same termattrs
 	with lineedit.get_termattrs(), lineedit.HiddenCursor():
 		while True:
@@ -205,7 +228,7 @@ def input_loop(timer, video_start_time):
 					timer.unpause()
 				else:
 					timer.pause()
-					print 'Paused at {}'.format(format_video_time(timer.get() - video_start_time))
+					print 'Paused at {}'.format(format_video_time(timer.get()))
 			elif c == 'q':
 				print 'Quit'
 				return
