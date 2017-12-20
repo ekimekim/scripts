@@ -1,17 +1,8 @@
 #!/bin/bash
 
-main='DVI-D-0'
-right='DP-4'
-left='DP-2'
-top='DP-0'
+main='eDP-1'
+topright='HDMI-1-2'
+topleft='TODO'
 
-xrandr --output "$right" --off
-xrandr --output "$top" --off
-xrandr --output "$main" --off
-
-xrandr --output "$left" --mode 1920x1080 --pos 0x0
-xrandr --output "$main" --mode 1920x1080 --pos 1920x0
-xrandr --output "$right" --mode 1920x1080 --rotate left --pos 3840x0
-xrandr --output "$left" --mode 1920x1080 --pos 0x420
-xrandr --output "$main" --mode 1920x1080 --pos 1920x420
-xrandr --output "$top" --mode 1920x1080 --pos 960x-660
+xrandr --output "$main" --mode 1920x1080 --pos 0x1440
+xrandr --output "$topright" --mode 2560x1440 --pos 960x0
