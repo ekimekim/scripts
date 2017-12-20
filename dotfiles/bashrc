@@ -132,6 +132,18 @@ ndvlc() {
 	done
 }
 
+function aws-find () {
+	local pattern="$1"
+	shift 1
+	aws ec2 describe-instances \
+		--filters "Name=tag-value,Values=${pattern}" \
+		--query "Reservations[*].Instances[*].[{
+		         Name:Tags[?Key=='Name'].Value | [0],
+		         InstanceID:InstanceId,
+		         PrivateIP:NetworkInterfaces[0].PrivateIpAddresses[0].PrivateIpAddress}]" \
+		--output text
+}
+
 # wrap a command in a check to prompt confirmation if this appears to be an ssh session
 # useful for preventing accidential eg. poweroff to the wrong machine
 check-ssh() {
