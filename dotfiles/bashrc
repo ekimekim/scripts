@@ -41,7 +41,7 @@ source "/usr/share/git/completion/git-completion.bash"
 source "/usr/share/bash-completion/completions/pass"
 source "$HOME/bin/git-alias-completion.bash"
 source <(kubectl completion bash)
-source <(kubeenv complete)
+source "$HOME/bin/auto-alias-completions.bash"
 
 # Wrapper around xargs and sudo to expand aliases
 _maybe_expand_alias() {
@@ -200,8 +200,6 @@ alias fgrep='fgrep --color=auto'
 alias tree='tree -C'
 
 # Privilige aliases, check-ssh aliases
-alias user_pacman="`which pacman`" # unpriviliged pacman
-alias pacman='sudo pacman'
 alias pip='sudo pip2'
 alias svim='sudo vim'
 alias scat='sudo cat'
@@ -211,7 +209,6 @@ alias shutdown="check-ssh sudo $(which shutdown)"
 alias reboot="check-ssh sudo $(which reboot)"
 alias poweroff="check-ssh sudo $(which poweroff)"
 alias systemctl='sudo systemctl'
-alias 'systemctl-user'="$(which systemctl) --user"
 alias ip='sudo ip'
 alias fuck='sudo $(history -p \!\!)'
 alias 'wifi-menu'='sudo wifi-menu'
@@ -268,3 +265,15 @@ ADMIN='admin.us-east-2.aws.k8s'
 complete -c which
 complete -c spawn
 
+# These aliases need to not exist, see below
+unalias systemctl-user 2>/dev/null
+unalias pacman 2>/dev/null
+unalias user_pacman 2>/dev/null
+
+# Apply completions to aliases wherever possible, see ~/bin/auto-alias-completions.bash
+alias_completion
+
+# These aliases seem to cause issues with alias_completion and so must be defined afterwards to be excluded
+alias 'systemctl-user'="$(which systemctl) --user"
+alias pacman='sudo pacman'
+alias user_pacman="`which pacman`" # unpriviliged pacman
