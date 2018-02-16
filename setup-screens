@@ -2,7 +2,8 @@
 
 main='eDP-1'
 topright='HDMI-1-2'
-topleft='TODO'
+topleft='DP-1'
 
-xrandr --output "$main" --mode 1920x1080 --pos 0x1440
-xrandr --output "$topright" --mode 2560x1440 --pos 960x0
+xrandr --output "$topleft" --mode 2560x1440 --pos 0x0
+xrandr --output "$topright" --mode 2560x1440 --pos 2560x0
+xrandr --output "$main" --mode 1920x1080 --pos $((2560-1920/2))x1440
