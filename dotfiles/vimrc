@@ -13,11 +13,14 @@ hi Search term=reverse ctermfg=0 ctermbg=3 guibg=Gold2
 map  :let @/ = ""<CR>
 command Git /^[<>|=]\{7\}
 
-" Expand tabs only for these projects / under these directories:
-:autocmd BufRead,BufNewFile ~/src/postmates/* set expandtab
-
-" set noeol for this one project that doesn't like trailing newlines
-:autocmd BufRead,BufNewFile ~/src/txircd/* set noeol expandtab
+" Expand tabs except for these projects / under these directories:
+:autocmd BufRead,BufNewFile ~/src/* set expandtab
+:autocmd BufRead,BufNewFile ~/src/awp/* set noexpandtab
+:autocmd BufRead,BufNewFile ~/src/girc/* set noexpandtab
+:autocmd BufRead,BufNewFile ~/src/microlibs/* set noexpandtab
+:autocmd BufRead,BufNewFile ~/src/mikeirc/* set noexpandtab
+:autocmd BufRead,BufNewFile ~/src/pylibs/* set noexpandtab
+:autocmd BufRead,BufNewFile ~/src/scripts/* set noexpandtab
 
 " Settings for yaml files
 :autocmd BufRead,BufNewFile *.yaml set expandtab ts=2 sw=2
