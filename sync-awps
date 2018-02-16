@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -eu
+
+USAGE="$0 HOST
+Sync main.awp files between local and given host"
+
+HOST=${1:?$USAGE}
+ME=$(hostname)
+
+HOST_AWP="$HOME/music/playlists/main.$HOST.awp"
+ME_AWP="$HOME/music/playlists/main.$ME.awp"
+MERGED_AWP="$HOME/music/playlists/main.awp"
+
+scp "$HOST:main.awp" "$HOST_AWP"
+cp "$HOME/main.awp" "$ME_AWP"
+
+scp "$HOST_AWP" "$HOST:$HOST_AWP"
+scp "$ME_AWP" "$HOST:$ME_AWP"
+
+python -m awp.merge "$HOST_AWP" "$ME_AWP" > "$MERGED_AWP"
+
+cp "$MERGED_AWP" "$HOME/main.awp"
+scp "$MERGED_AWP" "$HOST:$HOME/main.awp"
+scp "$MERGED_AWP" "$HOST:$MERGED_AWP"
