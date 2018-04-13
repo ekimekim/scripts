@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# del-contains [BRANCH]: Delete all branches where BRANCH (default: master) contains all their commits
+# ie. del-merged but for flows where branches get rebased onto master instead of merged into
+
+target="${1:-master}"
+
+for b in $(git for-each-ref --format='%(refname)' refs/heads/); do
+	[ "$b" == "refs/heads/$target" ] && continue
+	git is-clean "$b" "$target"; [ $? -eq 2 ] && git update-ref -d "$b"
+done
