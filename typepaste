@@ -1,0 +1,5 @@
+#!/bin/bash
+
+WAIT=${1:-1}
+
+sleep "$WAIT" && xdotool type "$(xclip -selection clipboard -o)"
