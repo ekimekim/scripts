@@ -126,7 +126,7 @@ ndurl() {
 	echo "rtmp://rtmp.condorleague.tv/$1/live"
 }
 
-ndpair() {
+ndvlc() {
 	for name in "$@"; do
 		spawn vlc "$(ndurl "$name")"
 	done
