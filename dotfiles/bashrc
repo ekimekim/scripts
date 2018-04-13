@@ -247,6 +247,11 @@ export QUOTING_STYLE='literal'
 export GOPATH="$HOME/.go"
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets" # set sensitive env vars, eg. api secrets
 
+# Postmates-specific
+STAGE='stage.us-west-2.aws.k8s'
+PROD='prod.us-west-1.aws.k8s'
+ADMIN='admin.us-east-2.aws.k8s'
+
 # Misc completions
 complete -c which
 complete -c spawn
