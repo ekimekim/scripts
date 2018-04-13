@@ -87,7 +87,9 @@
 	chainreplyto = True
 
 [advice]
-	statusHints = False
+	statusHints = false
+	pushNonFFCurrent = false
+	detachedHead = false
 
 [color]
 	ui = auto
@@ -95,6 +97,14 @@
 [status]
 	# Don't collapse fully untracked folders down to just a folder name
 	showUntrackedFiles = all
+
+[commit]
+	# Always show diff in commit message editor
+	verbose = 1
+
+[pager]
+	# no pager for branch
+	branch = 0
 
 [http "https://gopkg.in"]
 	followRedirects = True
