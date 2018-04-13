@@ -1,7 +1,7 @@
 #!/bin/bash
 
 OLD_VOL=$(
-	amixer -M get PCM |
+	amixer -M get Master |
 	egrep '^  Front Left:' |
 	egrep -o '[0-9.]*%'
 )
@@ -12,9 +12,16 @@ if ! [ -n "$OLD_VOL" ]; then
 fi
 
 NEW_VOL="${1:-100}"
+shift
 
-amixer -qM set PCM "$NEW_VOL%"
-read -p "Press any key to return volume to $OLD_VOL
+amixer -qM set Master "$NEW_VOL%"
+
+if [ "$#" -lt 1 ]; then
+	read -p "Press any key to return volume to $OLD_VOL
 " -s -n1
-amixer -qM set PCM "$OLD_VOL"
+else
+	"$@"
+fi
+
+amixer -qM set Master "$OLD_VOL"
 

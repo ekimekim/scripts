@@ -3,5 +3,4 @@
 vol="${1:-65}"
 vol="${vol%%%}%" # normalize to xx% whether or not % is present
 
-amixer -M set Master 100%
-amixer -M set PCM "$vol"
+amixer -M set Master "$vol"
