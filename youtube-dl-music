@@ -11,7 +11,7 @@ AUTOPATH_SCRIPT=${AUTOPATH_SCRIPT:-~/.youtube-dl-music-autopath}
 if [ -z "$DEST" ] && [ -x "$AUTOPATH_SCRIPT" ]; then
 	echo "Attempting to autopath"
 	for x in `seq 3`; do
-		autopath_input="$(youtube-dl --dump-json  -- "$@")" && break
+		autopath_input="$(youtube-dl --dump-json  -- "$@" 2>/tmp/err)" && ! grep 'WARNING' /tmp/err && break
 	done
 	[ -n "$autopath_input" ] || echo "Failed to get info for autopath - trying anyway"
 	autopath_output="$($AUTOPATH_SCRIPT <<<"$autopath_input")"
@@ -57,10 +57,20 @@ done
 logexec youtube-dl -x --add-metadata -- "$@" || exit 1
 filepath=$( ls "${filepath}".* )
 
-# TRIM: format "start:end", where either can be blank
+parsetrim() {
+	python -c '
+import sys
+s = sys.argv[1]
+mins, secs = s.split("m") if "m" in s else (0, s)
+mins, secs = map(int, (mins, secs))
+print mins * 60 + secs
+' "$@"
+}
+
+# TRIM: format "start:end", where either can be blank, both in format "[MINSm]SECS"
 if [ -n "$TRIM" ]; then
-	start="${TRIM%%:*}"
-	end="${TRIM##*:}"
+	start=$(parsetrim "${TRIM%%:*}")
+	end=$(parsetrim "${TRIM##*:}")
 	newpath="${filepath%.*}.${start}:${end}.${filepath##*.}"
 	opts=()
 	[ -n "$start" ] && opts+=(-ss "$start")
