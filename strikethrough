@@ -1,0 +1,14 @@
+#!/bin/env python
+
+import sys
+
+if len(sys.argv) > 1:
+	text = ' '.join(sys.argv[1:])
+else:
+	text = sys.stdin.read()
+
+text = text.decode('utf-8')
+text = u''.join(u'{}\u0336'.format(c) for c in text)
+text = text.encode('utf-8')
+
+print text.rstrip('\n')
