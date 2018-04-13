@@ -43,7 +43,6 @@ else
 
 	# Startup applications
 	terminator &
-	chromium &
 
 	# Start X-based systemd user services
 	systemctl --user start x-started.target
