@@ -1,0 +1,30 @@
+#!/bin/bash
+
+die() {
+	local code="$1"
+	shift
+	echo "$*" >&2
+	exit "$code"
+}
+
+USAGE="$0 TEXT
+Search for a CK2 event with text matching given TEXT regex in the description"
+
+[ "$#" -eq 0 ] && die 255 "$USAGE"
+
+ck2="$HOME/steamapps/common/Crusader Kings II"
+text="$*"
+
+events=$(grep -ahri "$text" "$ck2/localisation"/*.csv | cut -d';' -f1) || die 2 "Grep failed"
+[ -n "$events" ] || die 1 "No matches"
+[ "$(wc -l <<<"$events")" -eq 1 ] || {
+	grep -ahri "$text" "$ck2/localisation"/*.csv | cut -d';' -f2
+	die 1 'Multiple matches'
+}
+
+matches=$(grep -Fn "$events" "$ck2/events"/*.txt)
+[ -n "$matches" ] || die 1 "Event id $events had no matches?"
+[ "$(wc -l <<<"$matches")" -eq 1 ] || die 0 "$matches"
+path=$(cut -d: -f1 <<<"$matches")
+line=$(cut -d: -f2 <<<"$matches")
+vim "$path" "+$line"
