@@ -19,7 +19,7 @@ if not password: # from pass(1)
 	except subprocess.CalledProcessError:
 		sys.stderr.write("Failed to get oauth token from pass(1)")
 
-nick = 'ekimekim3000'
+nick = 'ekimekim'
 nousers = True
 host = 'irc.twitch.tv'
 twitch = True

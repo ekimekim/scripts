@@ -16,7 +16,7 @@ requests = requests.Session()
 requests.headers['Client-ID'] = 'jzkbprff40iqj646a697cyrvl0zt2m6'
 
 TWITCH = 'https://api.twitch.tv/kraken'
-USER = os.environ.get('TWITCH_USER', 'ekimekim3000')
+USER = os.environ.get('TWITCH_USER', 'ekimekim')
 
 COLORS = {name: '\x1b[3{}m'.format(n) for n, name in enumerate([
 	'black',
