@@ -1,4 +1,18 @@
 
+# Fix path, which on some systems ends up with /usr/bin overriding /usr/local/bin
+PATH=$(/usr/bin/python2 -c '
+import sys
+path = sys.argv[1].split(":")
+dedup_path = []
+for p in path:
+	if p not in dedup_path:
+		dedup_path.append(p)
+if "/usr/bin" in dedup_path:
+	dedup_path.remove("/usr/bin")
+	dedup_path.append("/usr/bin")
+print ":".join(dedup_path)
+' "$PATH")
+
 # PS1 config
 PS1='[\t] \u@\h:\w\$ '
 source "$HOME/bin/alerts.ps1.bash"
