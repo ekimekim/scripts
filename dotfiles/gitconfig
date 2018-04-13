@@ -23,8 +23,8 @@
 	pr = !hub pull-request
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
-	herp = "!f(){ git commit -am \"herp: $*\" ;}; f"
-	derp = "!f(){ git commit -m \"herp: $*\" ;}; f"
+	herp = "!f(){ git commit -am \"fixup: $*\" ;}; f"
+	derp = "!f(){ git commit -m \"fixup: $*\" ;}; f"
 	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
 	wip = "!f(){ git commit -anm \"wip: $*\" ;}; f"
 	archive-branch = "!f(){ for b in \"$@\"; do git branch -m \"$b\" \"archive-$b\"; done ;}; f"
