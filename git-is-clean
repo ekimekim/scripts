@@ -32,6 +32,8 @@ BRANCH="$1"
 TARGET="${2:-master}"
 TEMP="temp/$progname/$1"
 
+[ "$BRANCH" == "$TARGET" ] && die 3 "Refusing to compare target to itself"
+
 git branch "$TEMP" "$BRANCH" || failed "$?" create temp branch
 
 current="$(git symbolic-ref HEAD)"
