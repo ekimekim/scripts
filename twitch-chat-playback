@@ -143,7 +143,7 @@ def main(video_id, start_at, log='WARNING'):
 	# parse video id from url
 	match = re.match(r"(https?://)?(www\.)?twitch.tv/.+/(?P<id>[^/]+)", video_id)
 	if match:
-		video_id = 'v{}'.format(match.group('id'))
+		video_id = '{}'.format(match.group('id'))
 
 	# parse start_at into int seconds
 	parts = start_at.split(':')
@@ -163,6 +163,7 @@ def main(video_id, start_at, log='WARNING'):
 	logging.info("Got video info: {}".format(video))
 
 	timer = Timer(start_at)
+	print "Started at {}".format(format_video_time(start_at))
 
 	group = gevent.pool.Group()
 	group.spawn(output_loop, timer, video_id, video['length'], start_at)
@@ -192,11 +193,12 @@ omit cursor to get beginning of video
 
 def output_loop(timer, video_id, length, start_at):
 	cursor = None
-	while True:
+	first = True
+	while first or cursor is not None:
 		# get next group of messages
 		resp = get_chat(video_id, cursor=cursor)
 		messages = resp['comments']
-		cursor = resp['_next']
+		cursor = resp.get('_next')
 		logging.debug("got {} messages".format(len(messages)))
 		# we assume the messages are already in display order
 		for message in messages:
