@@ -59,7 +59,7 @@ _maybe_expand_alias() {
 xargs() { _maybe_expand_alias xargs "$@"; }
 sudo() { _maybe_expand_alias sudo "$@"; }
 
-ytplay() {
+ytplay-nostream() {
 	# Credit to https://github.com/exogen/dotfiles
 	# Skip DASH manifest for speed purposes. This might actually disable
 	# being able to specify things like 'bestaudio' as the requested format,
@@ -70,6 +70,17 @@ ytplay() {
 	       --restrict-filenames \
 	       --format="bestaudio" \
 	       --exec='mplayer -vo null -softvol -volume 50' "$*"
+}
+
+ytplay() {
+	# As per ytplay-nostream but stream directly into mplayer. This disables seek.
+	mplayer -vo null <(
+		youtube-dl --default-search=ytsearch: \
+			--youtube-skip-dash-manifest \
+			--format="bestaudio" \
+			--no-progress \
+			-o- "$*"
+	)
 }
 
 twitch_play() {
