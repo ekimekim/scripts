@@ -9,7 +9,8 @@ main = do
 			modMask = myModMask,
 			handleEventHook = fullscreenEventHook
 		}`additionalKeys`[
-		((myModMask, xK_p), spawn "dmenu_run")
+		((myModMask, xK_p), spawn "dmenu_run"),
+		((myModMask, xK_e), spawn "dmenu-unicode")
 		]
 
 myModMask = mod4Mask

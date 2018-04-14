@@ -1,0 +1,20 @@
+#!/bin/env python
+
+"""A script that uses dmenu to let user choose any unicode char by name,
+and copies it to clipboard."""
+
+from uninames import UnicodeNames
+from easycmd import cmd
+
+DATA_PATH = "/home/mike/src/pylibs/libs/uninames.data"
+
+un = UnicodeNames(DATA_PATH)
+# present options for user to select
+name = cmd(["dmenu", "-i"], stdin='\n'.join(un.names())).strip()
+if name:
+	# look up chosen name
+	char = un.lookup(name)
+	# copy to clipboard
+	# Note xclip doesn't close stdout/err so communicate() hangs unless
+	# we set them to non-pipe.
+	cmd(["xclip", "-selection", "clipboard"], stdin=unichr(char), stdout=None, stderr=None)
