@@ -10,7 +10,6 @@
 	lg = log --graph --pretty=format:'%Cred%h%Creset - %Cgreen%an%Creset -%C(auto)%d%Creset %s %Cgreen(%ad)%Creset' --abbrev-commit --date=relative
 	log-diff = log --decorate=short --pretty=fuller -p
 	log-diff-upstream = !git log-diff ..@{u} --reverse --date=relative
-	br = branch -v --color --list
 	initial = commit --allow-empty -m 'Initial Commit'
 	all = !git lg --all
 	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
@@ -28,6 +27,7 @@
 	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
 	wip = "!f(){ git commit -anm \"wip: $*\" ;}; f"
 	archive-branch = "!f(){ for b in \"$@\"; do git branch -m \"$b\" \"archive-$b\"; done ;}; f"
+	br = "!f(){ git branch \"$@\" -v --color --list | grep -v '^  archive/' | sniplines ;}; f"
 
 	# display a diff consisting of all commits on $2 (default HEAD) but not $1 (default master)
 	diff-branch = "!f(){ base=\"${1:-master}\"; target=\"${2:-HEAD}\"; git diff $(git merge-base \"$base\" \"$target\") \"$target\"; }; f"

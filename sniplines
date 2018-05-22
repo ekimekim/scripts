@@ -1,0 +1,147 @@
+#!/bin/env python2
+
+import re
+import sys
+
+from termhelpers import termsize
+import argh
+
+ELLIPSIS = u"\u2026".encode('utf-8') # HORIZONTAL ELLIPSIS
+
+
+class MeasuredView(object):
+	"""Provides a view into slices of a string, where the slice indexes refer to
+	a "measured" version of the string's display length, which differs from the
+	actual character length."""
+	def __init__(self, line, tabstop, binary, escapes):
+		self.line = line
+		# break up line into parts where each part is either:
+		#	('clean', a part containing no special chars)
+		#	('tab', '\t')
+		#	('escape', a part which is a valid CGI escape sequence)
+		# first, split by tabs.
+		parts = []
+		remaining = line
+		while remaining:
+			if '\t' in remaining:
+				clean, tab, remaining = remaining.partition('\t')
+				parts.append(('clean', clean))
+				parts.append(('tab', tab))
+			else:
+				parts.append(('clean', remaining))
+				remaining = ''
+		# now look for escape sequences in the clean parts
+		if escapes:
+			parts, old_parts = [], parts
+			while old_parts:
+				type, content = old_parts.pop(0)
+				if type != 'clean':
+					parts.append((type, content))
+					continue
+				match = re.search('\x1b\\[[0-9;]*[A-Za-z]', content, flags=0 if binary else re.UNICODE)
+				if not match:
+					parts.append((type, content))
+					continue
+				# note this can result in some ('clean', '') entries but that's ok
+				parts.append(('clean', content[:match.start()]))
+				parts.append(('escape', match.group(0)))
+				# push back final part to be checked again
+				old_parts.insert(0, ('clean', content[match.end():]))
+
+		# now we count, taking into account the true lengths of the non-clean parts.
+		# this lets us build a map of (measured index, original string) where any indexes
+		# between ones that are in the map are assumed to map directly to original indexes.
+		length = 0
+		original = ''
+		no_escapes = ''
+		self.measures = [(0, '')]
+		for type, content in parts:
+			if type == 'escape':
+				# escapes are 0-length, they will be included for any index past their point
+				original += content
+			elif type == 'clean':
+				# clean parts map directly
+				length += len(content)
+				original += content
+				no_escapes += content
+				self.measures.append((length, original))
+			elif type == 'tab':
+				# first, how long is this tab? note we need to consider original with tabs
+				# but without escapes.
+				tablen = len((no_escapes + content).expandtabs(tabstop)) - len(no_escapes.expandtabs(tabstop))
+				# if we try to cut part-way through a tab, pad with spaces
+				for i in range(1, tablen):
+					self.measures.append((length + i, original + i * ' '))
+				length += tablen
+				original += content
+				no_escapes += content
+				self.measures.append((length, original))
+
+	def get_upto(self, index):
+		for length, original in self.measures:
+			if length < index:
+				continue
+			over = length - index
+			return original[:-over]
+		# if we got here, requested index was longer than full line
+		return self.line
+
+	def length(self):
+		return self.measures[-1][0]
+
+
+def main(width=None, suffix=ELLIPSIS, tabstop=8, binary=False, escapes=True):
+	"""
+	Cuts lines on stdin so they fit on the screen width, which is auto-detected by default.
+	Cut lines are given a suffix (ellipsis by default) to indicate they were cut.
+	Tab characters are considered with a tabstop of 8 by default.
+	ASCII control characters and all non-ascii unicode characters are assumed to be one character,
+	unless the input cannot be understood as unicode (or --binary is given), in which case each
+	byte is considered a character.
+	By default will try to parse and ignore terminal escape sequences.
+	"""
+	if width is not None:
+		width = int(width)
+	if not binary:
+		try:
+			suffix = suffix.decode('utf-8')
+		except UnicodeEncodeError:
+			binary = True
+			sys.stderr.write("Warning: Given suffix is not valid utf-8, switching to binary mode\n")
+			sys.stderr.flush()
+	no_eof = True
+	while no_eof:
+		line = sys.stdin.readline()
+		if not line:
+			break
+		no_eof = line.endswith('\n')
+		line = line.rstrip('\n')
+
+		if not binary:
+			try:
+				line = line.decode('utf-8')
+			except UnicodeDecodeError:
+				binary = True
+				suffix = suffix.encode('utf-8')
+				sys.stderr.write("Warning: Line is not valid utf-8, switching to binary mode\n")
+				sys.stderr.flush()
+
+		measured = MeasuredView(line, tabstop, binary, escapes)
+
+		# we check termsize each line in case its changed
+		if width is None:
+			threshold, _ = termsize()
+		else:
+			threshold = width
+
+		if measured.length() > threshold:
+			line = measured.get_upto(threshold - len(suffix)) + suffix
+		if not binary:
+			line = line.encode('utf-8')
+		print line
+
+if __name__ == '__main__':
+	try:
+		argh.dispatch_command(main)
+	except KeyboardInterrupt:
+		print
