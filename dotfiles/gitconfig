@@ -26,7 +26,8 @@
 	derp = "!f(){ git commit -m \"fixup: $*\" ;}; f"
 	todo = "!f(){ git commit --allow-empty -m \"TODO $*\" ;}; f"
 	wip = "!f(){ git commit -anm \"wip: $*\" ;}; f"
-	archive-branch = "!f(){ for b in \"$@\"; do git branch -m \"$b\" \"archive-$b\"; done ;}; f"
+	archive-branch = "!f(){ for b in \"$@\"; do git branch -m \"$b\" \"archive/$b\"; done ;}; f"
+	archive-wip = "!f(){ name=${1:?need branch name}; shift; git checkout -b \"archive/$name\" && git wip \"$@\" ;}; f"
 	br = "!f(){ git branch \"$@\" -v --color --list | grep -v '^  archive/' | sniplines ;}; f"
 
 	# display a diff consisting of all commits on $2 (default HEAD) but not $1 (default master)
