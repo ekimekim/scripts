@@ -2,7 +2,7 @@
 
 OLD_VOL=$(
 	amixer -M get Master |
-	egrep '^  Front Left:' |
+	egrep '^  (Front Left|Mono):' |
 	egrep -o '[0-9.]*%'
 )
 
