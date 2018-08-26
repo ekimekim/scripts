@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eu
+
+JOURNAL_DIR="$HOME/documents/journal"
+[ -d "$JOURNAL_DIR" ] || mkdir "$JOURNAL_DIR"
+vim "$JOURNAL_DIR/$(date +%F).txt"
