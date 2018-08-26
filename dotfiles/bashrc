@@ -144,6 +144,11 @@ function aws-find () {
 		--output text
 }
 
+kube-get-ips() {
+	kubectl get pods -o json "$@" | jq -r '.items[]|"\(.metadata.name)\t\(.status.podIP)"'
+}
+complete -o default -F __start_kubectl kube-get-ips
+
 # wrap a command in a check to prompt confirmation if this appears to be an ssh session
 # useful for preventing accidential eg. poweroff to the wrong machine
 check-ssh() {
