@@ -1,0 +1,16 @@
+#!/bin/bash
+
+write() {
+	sudo tee "/sys/devices/system/cpu/cpu$1/online" <<<"$2" >/dev/null
+}
+
+for cpu in "$@"; do
+	write "$cpu" 0
+done
+
+read -p "Press any key to re-enable cpus $*
+" -s -n1
+
+for cpu in "$@"; do
+	write "$cpu" 1
+done
