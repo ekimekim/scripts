@@ -1,8 +1,0 @@
-#!/bin/bash
-
-key=$(pass show "$1") || exit 1
-
-# WARNING: Passing key this way is insecure
-# Only reference to an upstream bug being tracked I could find is here:
-# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=839278
-oathtool --totp -b -d 6 "$key"
