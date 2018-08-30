@@ -87,14 +87,27 @@ def get_items(src_root, dest_root, stdin=False, safe=False, ext='mp3'):
 			yield src, dest
 
 
+def get_exists_in_dest(dest_root):
+	for path, _, files in os.walk(dest_root):
+		for filename in files:
+			if any(filename.lower().endswith(".{}".format(ext)) for ext in AUDIO_EXTS):
+				filepath = os.path.join(path, filename)
+				yield filepath
+
+
 @argh.arg('--stdin', default=False)
 @argh.arg('--force', default=False)
 @argh.arg('--safe', default=False)
 @argh.arg('--ext', default='mp3')
 @argh.arg('--concurrency', default=cpu_count())
+@argh.arg('--delete', default=False)
 def main(src_root, dest_root, *ffargs, **kwargs):
-	force, stdin, safe, ext, concurrency = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency'))
+	force, stdin, safe, ext, concurrency, delete = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency', 'delete'))
 	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe, ext=ext))
+	if delete:
+		exists = set(get_exists_in_dest(dest_root))
+		to_delete = exists - set(dest for src, dest in items)
+		print "Deleting {} existing items".format(len(to_delete))
 	n = len(items)
 	jobs = []
 	pool = Pool(concurrency)
