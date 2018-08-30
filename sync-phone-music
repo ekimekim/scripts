@@ -13,15 +13,34 @@ PLAYLISTS=(
 	"$HOME/music/playlists/soft.awp soft-32 32"
 )
 
+WHITELIST=(
+	'Game Music/Pokemon/Shinesparkers - Harmony of a Champion (Music from Pokémon Red and Green Versions)/'
+	'Musicals/Avenue Q Broadway Musical Soundtrack'
+	'Musicals/Guys and Dolls'
+	'Musicals/Hamilton'
+	'Musicals/Jesus Christ Superstar/1996 London Studio Cast/'
+	'Musicals/Les Miserables_25th Anniversary Concert_MP3'
+	'Musicals/Producers'
+	'Musicals/Rocky Horror Picture Show'
+	'Musicals/Urinetown - The Musical'
+	'Musicals/Wicked_ Original Broadway Cast'
+)
+
 # Format note: phone won't recognize .opus files, but they're the same container format as .ogg
 # so we create .ogg files that use the opus codec explicitly.
-awk -F'\t' '$1 >= 16 {print $3}' ~/main.awp |
-transcode-cp --stdin --safe --ext=ogg "$@" ~/music/ /srv/btsync/music/ -- -vn -b:a 64k -codec:a libopus
+(
+	awk -F'\t' '$1 >= 16 {print $3}' ~/main.awp
+	awk -F'\t' '$1 >= 32 {print $3}' ~/music.playlists/soft.awp
+	for prefix in "${WHITELIST[@]}"; do
+		grep "^/home/mike/music/$prefix" ~/main.awp | awk -F'\t' '{print $3}'
+	done
+) | sort -u |
+transcode-cp --stdin --safe --ext=ogg "$@" ~/music/ /srv/phone/music/ -- -vn -b:a 64k -codec:a libopus
 
 for line in "${PLAYLISTS[@]}"; do
 	read path name scale filter <<<"$line"
 	[ -n "$filter" ] || filter=cat
 	python -m awp.to_m3u "$path" ~/music/ . --scale="$scale" |
 	$filter | sed 's/\.[^.]\+$/.ogg/' |
-	LC_ALL=C sed -e 's|[^a-zA-Z0-9/ .-]|_|g' -e 's|^file_//|file://|' >"/srv/btsync/music/$name.m3u"
+	LC_ALL=C sed -e 's|[^a-zA-Z0-9/ .-]|_|g' -e 's|^file_//|file://|' >"/srv/phone/music/$name.m3u"
 done
