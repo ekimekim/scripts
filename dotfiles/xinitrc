@@ -47,6 +47,9 @@ else
 	# Start X-based systemd user services
 	systemctl --user start x-started.target
 
+	# xmonad binary doesn't work after an upgrade, force it to recompile
+	rm .xmonad/xmonad-x86_64-linux
+
 	exec xmonad
 
 fi
