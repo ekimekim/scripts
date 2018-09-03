@@ -108,6 +108,8 @@ def main(src_root, dest_root, *ffargs, **kwargs):
 		exists = set(get_exists_in_dest(dest_root))
 		to_delete = exists - set(dest for src, dest in items)
 		print "Deleting {} existing items".format(len(to_delete))
+		for path in to_delete:
+			os.remove(path)
 	n = len(items)
 	jobs = []
 	pool = Pool(concurrency)
