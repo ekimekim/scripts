@@ -212,7 +212,6 @@ alias fgrep='fgrep --color=auto'
 alias tree='tree -C'
 
 # Privilige aliases, check-ssh aliases
-alias pip='sudo pip2'
 alias svim='sudo vim'
 alias scat='sudo cat'
 alias sumv='sudo mv'
@@ -245,7 +244,6 @@ alias monstercat='twitch_play monstercat audio_only'
 alias xclip='xclip -selection clipboard'
 alias kubectx='kubectl config use-context'
 alias pclip='pass show -c'
-alias 'pip-upgrade'='pip install -U --no-deps'
 # ^X: cd to `pwd` - this "refreshes" the fd if the dir has been destroyed/recreated (eg. in a git rebase)
 alias ''='cd ~+'
 # ^X^X: cd to top of git repo
@@ -281,6 +279,8 @@ complete -c spawn
 unalias systemctl-user 2>/dev/null
 unalias pacman 2>/dev/null
 unalias user_pacman 2>/dev/null
+unalias pip 2>/dev/null
+unalias pip-upgrade 2>/dev/null
 
 # Apply completions to aliases wherever possible, see ~/bin/auto-alias-completions.bash
 alias_completion
@@ -289,3 +289,5 @@ alias_completion
 alias 'systemctl-user'="$(which systemctl) --user"
 alias pacman='sudo pacman'
 alias user_pacman="`which pacman`" # unpriviliged pacman
+alias pip='sudo pip2'
+alias 'pip-upgrade'='pip install -U --no-deps'
