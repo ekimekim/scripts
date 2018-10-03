@@ -211,27 +211,22 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias tree='tree -C'
 
-# Privilige aliases, check-ssh aliases
+# Priveilge aliases
+alias fuck='sudo $(history -p \!\!)'
 alias svim='sudo vim'
 alias scat='sudo cat'
 alias sumv='sudo mv'
 alias sucp='sudo cp'
-alias shutdown="check-ssh sudo $(which shutdown)"
-alias reboot="check-ssh sudo $(which reboot)"
-alias poweroff="check-ssh sudo $(which poweroff)"
-alias systemctl='sudo systemctl'
-alias ip='sudo ip'
-alias fuck='sudo $(history -p \!\!)'
-alias 'wifi-menu'='sudo wifi-menu'
-alias mplayer="check-ssh $(which mplayer)"
 
 # Other aliases
+alias 'pip-upgrade'='sudo pip2 install -U --no-deps'
 alias commit='git commit -av'
 alias status='git status -sb'
 alias clock-small='watch -n1 date'
 alias pso='ps -o pid,start,command'
-alias rflakes='find -name "*.py" -exec pyflakes {} +'
-alias rflakes-watch='watch -pn.2 "find -name \\*.py -exec pyflakes {} +"'
+alias rflakes='pyflakes .'
+alias rflakes-watch='watch -pn.2 "pyflakes ."'
+alias pyflakes-watch='watch -pn.2 pyflakes'
 alias ':q'='sl'
 alias vun='sl'
 alias ks='sl'
@@ -276,11 +271,9 @@ complete -c which
 complete -c spawn
 
 # These aliases need to not exist, see below
-unalias systemctl-user 2>/dev/null
-unalias pacman 2>/dev/null
-unalias user_pacman 2>/dev/null
-unalias pip 2>/dev/null
-unalias pip-upgrade 2>/dev/null
+for a in systemctl-user pacman user_pacman pip shutdown reboot poweroff systemctl ip wifi-menu mplayer; do
+	unalias "$a" 2>/dev/null
+done
 
 # Apply completions to aliases wherever possible, see ~/bin/auto-alias-completions.bash
 alias_completion
@@ -290,4 +283,10 @@ alias 'systemctl-user'="$(which systemctl) --user"
 alias pacman='sudo pacman'
 alias user_pacman="`which pacman`" # unpriviliged pacman
 alias pip='sudo pip2'
-alias 'pip-upgrade'='pip install -U --no-deps'
+alias shutdown="check-ssh sudo $(which shutdown)"
+alias reboot="check-ssh sudo $(which reboot)"
+alias poweroff="check-ssh sudo $(which poweroff)"
+alias systemctl='sudo systemctl'
+alias ip='sudo ip'
+alias 'wifi-menu'='sudo wifi-menu'
+alias mplayer="check-ssh $(which mplayer)"
