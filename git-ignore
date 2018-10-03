@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -eu
+
+# Add $@ to per-repo, non-checked-in ignore list, if not already present.
+
+BASE=$(git rev-parse --show-toplevel)
+GITDIR=$(git rev-parse --absolute-git-dir)
+EXCLUDE="$GITDIR/info/exclude"
+
+for arg in "$@"; do
+	rel=$(realpath --relative-to "$BASE" "$arg")
+	if grep -E '^\.\./' <<<"$rel"; then
+		echo "Path not in repo: $rel"
+		exit 1
+	fi
+	if grep -E '[][*?]' <<<"$rel"; then # note: confusing escaping, matches literal [, ], *, or ?
+		echo "WARNING: Path contains glob meta-characters, this may not do what you expect: $rel"
+	fi
+	grep -F "$rel" "$EXCLUDE" ||
+		echo "/$rel" >> "$EXCLUDE"
+done
