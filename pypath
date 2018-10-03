@@ -3,17 +3,26 @@
 from sys import argv, exit
 import os
  
-if len(argv) < 2:
-	print 'USAGE: {0} MODULE\nPrint filepath of module'.format(*argv)
+args = list(argv[1:])
+
+dir = False
+if args and args[0] == '--dir':
+	args = args[1:]
+	dir = True
+
+if not args:
+	print 'USAGE: {0} [--dir] MODULE\nPrint filepath of module, or containing directory if --dir'.format(*argv)
 	exit(1)
  
-module = argv[1]
+module = args[0]
 exec 'import %s as subject' % module
 
 orig_path = subject.__file__
 path, ext = os.path.splitext(orig_path)
 py_path = path + '.py'
 if os.path.exists(py_path):
+	if dir:
+		py_path = os.path.dirname(py_path)
 	print py_path
 else:
 	print orig_path
