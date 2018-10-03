@@ -1,0 +1,6 @@
+#!/bin/bash
+
+n="$1"
+l="$2"
+shift 2
+watch kubectl get pods --namespace "'$n'" -l "'$l'" "$@"
