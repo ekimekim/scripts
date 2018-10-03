@@ -20,6 +20,7 @@
 	rim = rebase -i master
 	b = rev-parse --symbolic-full-name HEAD
 	pr = !hub pull-request
+	por = !git pushorigin && git pr
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
 	herp = "!f(){ git commit -am \"fixup: $*\" ;}; f"
