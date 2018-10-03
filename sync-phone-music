@@ -4,12 +4,10 @@ set -e
 
 PLAYLISTS=(
 	# FILEPATH NAME SCALE {FILTER}
-#	"playlist 8"
 	"$HOME/main.awp list-64 64"
 	"$HOME/main.awp list-32 32"
 	"$HOME/main.awp list-64u 64 uniq"
 	"$HOME/main.awp list-128u 128 uniq"
-	"$HOME/main.awp list-16 16"
 	"$HOME/music/playlists/soft.awp soft-32 32"
 )
 
@@ -29,7 +27,7 @@ WHITELIST=(
 # Format note: phone won't recognize .opus files, but they're the same container format as .ogg
 # so we create .ogg files that use the opus codec explicitly.
 (
-	awk -F'\t' '$1 >= 16 {print $3}' ~/main.awp
+	awk -F'\t' '$1 >= 32 {print $3}' ~/main.awp
 	awk -F'\t' '$1 >= 32 {print $3}' ~/music/playlists/soft.awp
 	for prefix in "${WHITELIST[@]}"; do
 		grep "^/home/mike/music/$prefix" ~/main.awp | awk -F'\t' '{print $3}'
