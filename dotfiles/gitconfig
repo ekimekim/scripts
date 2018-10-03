@@ -104,6 +104,9 @@
 	# Always show diff in commit message editor
 	verbose = 1
 
+[submodule]
+	recurse = true
+
 [pager]
 	# no pager for branch
 	branch = 0
