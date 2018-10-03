@@ -30,7 +30,7 @@ WHITELIST=(
 	awk -F'\t' '$1 >= 32 {print $3}' ~/main.awp
 	awk -F'\t' '$1 >= 32 {print $3}' ~/music/playlists/soft.awp
 	for prefix in "${WHITELIST[@]}"; do
-		grep "^/home/mike/music/$prefix" ~/main.awp | awk -F'\t' '{print $3}'
+		awk -F'\t' -v"prefix=^/home/mike/music/$prefix" '$3 ~ prefix {print $3}' ~/main.awp
 	done
 ) | sort -u |
 transcode-cp --stdin --safe --delete --ext=ogg "$@" ~/music/ /srv/phone/music/ -- -vn -b:a 64k -codec:a libopus
