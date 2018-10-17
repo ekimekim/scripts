@@ -1,0 +1,29 @@
+#!/bin/bash
+
+USAGE="$0 CHANNEL DIRECTORY [SINCE]
+Download (with confirmation) all youtube videos for CHANNEL to DIRECTORY
+that have been uploaded since the timestamp in DIRECTORY/.youtube-dl-new.timestamp,
+or SINCE if given, or all videos if neither exist."
+
+if [ "$#" -lt 2 ]; then
+	echo "$USAGE" >&2
+	exit 255
+fi
+
+CHANNEL="$1"
+DIRECTORY="$2"
+
+SINCE_FILE="$DIRECTORY/.youtube-dl-new.timestamp"
+
+if [ "$#" -gt 2 ]; then
+	SINCE="$(date -d "$3" +%Y%m%d)"
+elif [ -f "$SINCE_FILE" ]
+	SINCE="$(cat "$SINCE_FILE")"
+else
+	SINCE="19700101"
+fi
+
+echo "Fetching list (this may take a while)..."
+youtube-dl -j --dateafter "$SINCE" "$CHANNEL" | while read line; do
+	read 
+done
