@@ -12,6 +12,9 @@ PLAYLISTS=(
 )
 
 WHITELIST=(
+	'Artists/Neil Cicierega/Mouth Sounds'
+	'Artists/Neil Cicierega/Mouth Silence'
+	'Artists/Neil Cicierega/Mouth Moods'
 	'Game Music/Pokemon/Shinesparkers - Harmony of a Champion (Music from Pokémon Red and Green Versions)/'
 	'Musicals/Avenue Q Broadway Musical Soundtrack'
 	'Musicals/Guys and Dolls'
