@@ -1,5 +1,7 @@
 
 if [ `tty` == "/dev/tty1" ]; then
+	# xmonad fails to start after some updates; deleting this binary before running seems to fix it.
+	rm "$HOME/.xmonad/xmonad-x86_64-linux"
 	source "$HOME/bin/setup-keychain.bash"
 	exec startx
 fi
