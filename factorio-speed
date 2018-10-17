@@ -1,0 +1,5 @@
+#!/bin/bash
+
+speed=${1:-1} # default 1
+
+sudo su factorio -c "/srv/factorio/factorio-init/factorio cmd '/c game.speed=$speed'"
