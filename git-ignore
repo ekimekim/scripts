@@ -9,7 +9,7 @@ GITDIR=$(git rev-parse --absolute-git-dir)
 EXCLUDE="$GITDIR/info/exclude"
 
 for arg in "$@"; do
-	rel=$(realpath --relative-to "$BASE" "$arg")
+	rel=$(realpath --no-symlinks --relative-to "$BASE" "$arg")
 	if grep -E '^\.\./' <<<"$rel"; then
 		echo "Path not in repo: $rel"
 		exit 1
@@ -17,6 +17,6 @@ for arg in "$@"; do
 	if grep -E '[][*?]' <<<"$rel"; then # note: confusing escaping, matches literal [, ], *, or ?
 		echo "WARNING: Path contains glob meta-characters, this may not do what you expect: $rel"
 	fi
-	grep -F "$rel" "$EXCLUDE" ||
+	grep -qF "$rel" "$EXCLUDE" ||
 		echo "/$rel" >> "$EXCLUDE"
 done
