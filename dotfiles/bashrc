@@ -256,6 +256,7 @@ export GOPATH="$HOME/.go"
 
 # Postmates-specific
 STAGE='stage.us-west-2.aws.k8s'
+GKE_STAGE='gke_gke-stage-51680_us-west1_gke-stage'
 PROD='prod.us-west-1.aws.k8s'
 ADMIN='admin.us-east-2.aws.k8s'
 
