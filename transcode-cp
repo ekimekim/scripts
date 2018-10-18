@@ -51,8 +51,8 @@ def make_safe(s):
 def get_dest(src_root, dest_root, src, safe=False, ext='mp3'):
 	rel_src_dir = os.path.relpath(os.path.dirname(src), src_root)
 	src_name = os.path.basename(src)
-	src_name, _ = os.path.splitext(src_name)
-	dest_name = "{}.{}".format(src_name, ext)
+	src_name, src_ext = os.path.splitext(src_name)
+	dest_name = "{}.{}".format(src_name, ext or src_ext[1:])
 	if safe:
 		rel_src_dir = make_safe(rel_src_dir)
 		dest_name = make_safe(dest_name)
@@ -65,13 +65,13 @@ def do_file(pool, i, n, src, dest, ffargs, force=False):
 		return
 	_, ext = os.path.splitext(dest)
 	ext = ext[1:]
-	if src.lower().endswith(ext):
+	if src.lower().endswith(ext) or not is_audio(src):
 		return pool.spawn(do, i, n, copy, src, dest)
 	else:
 		return pool.spawn(do, i, n, convert, src, dest, ffargs)
 
 
-def get_items(src_root, dest_root, stdin=False, safe=False, ext='mp3'):
+def get_items(src_root, dest_root, stdin=False, safe=False, ext='mp3', non_audio=False):
 	if stdin:
 		items = (os.path.split(filepath.rstrip('\n')) for filepath in sys.stdin)
 	else:
@@ -81,10 +81,14 @@ def get_items(src_root, dest_root, stdin=False, safe=False, ext='mp3'):
 			for filename in files
 		)
 	for path, filename in items:
-		if any(filename.lower().endswith(".{}".format(audio_ext)) for audio_ext in AUDIO_EXTS):
+		if non_audio or is_audio(path):
 			src = os.path.join(path, filename)
-			dest = get_dest(src_root, dest_root, src, safe=safe, ext=ext)
+			dest = get_dest(src_root, dest_root, src, safe=safe, ext=ext if is_audio(path) else None)
 			yield src, dest
+
+
+def is_audio(path):
+	return any(path.lower().endswith(".{}".format(audio_ext)) for audio_ext in AUDIO_EXTS)
 
 
 def get_exists_in_dest(dest_root):
@@ -101,9 +105,10 @@ def get_exists_in_dest(dest_root):
 @argh.arg('--ext', default='mp3')
 @argh.arg('--concurrency', default=cpu_count())
 @argh.arg('--delete', default=False)
+@argh.arg('--non-audio', default=False)
 def main(src_root, dest_root, *ffargs, **kwargs):
-	force, stdin, safe, ext, concurrency, delete = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency', 'delete'))
-	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe, ext=ext))
+	force, stdin, safe, ext, concurrency, delete, non_audio = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency', 'delete', 'non_audio'))
+	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe, ext=ext, non_audio=non_audio))
 	if delete:
 		exists = set(get_exists_in_dest(dest_root))
 		to_delete = exists - set(dest for src, dest in items)
