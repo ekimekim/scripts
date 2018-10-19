@@ -1,0 +1,33 @@
+#!/usr/bin/python2
+
+import math
+import os
+
+import argh
+
+PATH = '/sys/class/backlight/intel_backlight'
+
+def read(name):
+	with open(os.path.join(PATH, name)) as f:
+		return int(f.read())
+
+def write(name, value):
+	with open(os.path.join(PATH, name), 'w') as f:
+		f.write('{}\n'.format(value))
+
+@argh.arg('percent')
+def main(percent):
+	try:
+		percent = float(percent)
+	except ValueError:
+		percent = None
+	maxval = read('max_brightness')
+	if percent is None:
+		value = read('brightness')
+		print "{:.2}% ({}/{})".format(100. * value / maxval, value, maxval)
+	else:
+		value = int(math.ceil(maxval * percent / 100.))
+		write('brightness', value)
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
