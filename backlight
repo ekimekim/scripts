@@ -17,6 +17,13 @@ def write(name, value):
 
 @argh.arg('percent')
 def main(percent):
+	"""Set or get backlight brightness.
+	Give a percentage to set, or #N to set to an explicit integer N.
+	Give anything else to query.
+	"""
+	if percent.startswith('#'):
+		write('brightness', int(percent[1:]))
+		return
 	try:
 		percent = float(percent)
 	except ValueError:
