@@ -81,9 +81,9 @@ def get_items(src_root, dest_root, stdin=False, safe=False, ext='mp3', non_audio
 			for filename in files
 		)
 	for path, filename in items:
-		if non_audio or is_audio(path):
+		if non_audio or is_audio(filename):
 			src = os.path.join(path, filename)
-			dest = get_dest(src_root, dest_root, src, safe=safe, ext=ext if is_audio(path) else None)
+			dest = get_dest(src_root, dest_root, src, safe=safe, ext=ext if is_audio(filename) else None)
 			yield src, dest
 
 
