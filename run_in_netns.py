@@ -132,6 +132,8 @@ def setup(conf):
 	# to allow DNAT to localhost addresses.
 	if conf.forwards:
 		sudo('tee', '/proc/sys/net/ipv4/conf/{}/route_localnet'.format(conf.bridge), stdin="1")
+		# and also on the other end for the return path
+		ns_exec(conf.netns, 'tee', '/proc/sys/net/ipv4/conf/{}/route_localnet'.format(conf.veths.inner), stdin="1")
 	# Finally, set the default route
 	ns_exec(conf.netns, 'ip', 'route', 'add', 'default', 'via', conf.addrs.outer)
 
