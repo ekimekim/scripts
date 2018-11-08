@@ -23,6 +23,11 @@ for file in *; do
 		dest="$HOME/.$file"
 	fi
 
+	if [ -e "$dest" ]; then
+		echo "Ignoring $file -> $dest: Already exists"
+		continue
+	fi
+
 	log_and_run ln -s ~+/"$file" "$dest"
 
 done

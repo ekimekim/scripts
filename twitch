@@ -21,8 +21,7 @@ fetch_all() {
 }
 
 open_video() {
-	$BROWSER --app="https://player.twitch.tv/?channel=$1" <>/dev/null >&0 2>&0 &
-	disown
+	spawn firefox-app-mode "https://player.twitch.tv/?channel=$1"
 }
 
 if [ -n "$1" ]; then
