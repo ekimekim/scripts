@@ -2,26 +2,39 @@
 
 set -e
 
-USAGE="git splay BASE PREFIX
+USAGE="git splay BASE PREFIX {CMD}
 
-For each commit in BASE..HEAD, create a new branch PREFIX/N which is that commit, rebased onto BASE."
+For each commit in BASE..HEAD, create a new branch PREFIX/N which is that commit, rebased onto BASE.
+If PREFIX is '-', prompts for each name.
+If CMD is given, runs that CMD for each branch thus created.
+Example: Create branches and push them:
+  git splay master changes git push
+"
 
-if [ "$#" -ne 2 ]; then
+if [ "$#" -lt 2 ]; then
 	echo "$USAGE" >&2
 	exit 1
 fi
 
 BASE="$1"
 PREFIX="$2"
+shift 2
 
 COMMITS=($(git log --format=%H "$BASE..")) # split on whitespace and make array
 
 n=0
 for commit in "${COMMITS[@]}"; do
-	branch="$PREFIX/$((n++))"
+	if [ "$PREFIX" == "-" ]; then
+		git --no-pager show --quiet "$commit"
+		echo
+		read -p "Branch name? " branch
+	else
+		branch="$PREFIX/$((n++))"
+	fi
 	git branch "$branch" "$BASE"
 	git checkout "$branch"
 	git cherry-pick "$commit"
+	[ "$#" -gt 0 ] && "$@"
 done
 
 # This seems as sane a choice as any to leave the state in
