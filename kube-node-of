@@ -1,0 +1,4 @@
+#!/bin/bash
+
+node=$(kubectl get pods -o jsonpath='{.spec.nodeName}' "$@")
+[ -n "$node" ] && kubectl describe node "$node"
