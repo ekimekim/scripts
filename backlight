@@ -31,7 +31,7 @@ def main(percent):
 	maxval = read('max_brightness')
 	if percent is None:
 		value = read('brightness')
-		print "{:.2}% ({}/{})".format(100. * value / maxval, value, maxval)
+		print "{:.2f}% ({}/{})".format(100. * value / maxval, value, maxval)
 	else:
 		value = int(math.ceil(maxval * percent / 100.))
 		write('brightness', value)
