@@ -15,24 +15,21 @@ def write(name, value):
 	with open(os.path.join(PATH, name), 'w') as f:
 		f.write('{}\n'.format(value))
 
-@argh.arg('percent')
+@argh.arg('percent', nargs='?', default=None)
 def main(percent):
 	"""Set or get backlight brightness.
 	Give a percentage to set, or #N to set to an explicit integer N.
-	Give anything else to query.
+	Give no args to query.
 	"""
-	if percent.startswith('#'):
+	if percent and percent.startswith('#'):
 		write('brightness', int(percent[1:]))
 		return
-	try:
-		percent = float(percent)
-	except ValueError:
-		percent = None
 	maxval = read('max_brightness')
 	if percent is None:
 		value = read('brightness')
 		print "{:.2f}% ({}/{})".format(100. * value / maxval, value, maxval)
 	else:
+		percent = float(percent)
 		value = int(math.ceil(maxval * percent / 100.))
 		write('brightness', value)
 
