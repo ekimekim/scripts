@@ -24,3 +24,4 @@ command Git /^[<>|=]\{7\}
 :autocmd BufRead,BufNewFile *.yml set expandtab ts=2 sw=2
 :autocmd BufRead,BufNewFile *.*sonnet set expandtab ts=2 sw=2
 :autocmd BufRead,BufNewFile *.tf set expandtab ts=2 sw=2
+:autocmd BufRead,BufNewFile Makefile set noexpandtab
