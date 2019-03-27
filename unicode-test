@@ -7,7 +7,7 @@ lines = sys.argv[1:] or sys.stdin
 for line in lines:
 	line = line.rstrip('\n')
 	print "Results for {!r}:".format(line)
-	for encoding in ('latin1', 'utf-8', 'utf-16'):
+	for encoding in ('latin1', 'utf-8', 'utf-16le', 'utf-16be', 'utf-32'):
 		try:
 			result = line.decode(encoding)
 		except UnicodeDecodeError:
