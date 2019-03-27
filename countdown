@@ -32,9 +32,16 @@ while (( diff > 0 )); do
 	diff=$(( duration - ($(now) - start) ))
 	m=$((diff/60))
 	s=$((diff-m*60))
+	h=$((m/60))
+	if [ "$h" -gt 0 ]; then
+		m=$((m-h*60))
+		out=$(printf "%d:%02d:%02d" "$h" "$m" "$s")
+	else
+		out=$(printf "%02d:%02d" "$m" "$s")
+	fi
 	clear
 	echo
-	$BANNER "$(printf "%02d:%02d" "$m" "$s")"
+	$BANNER "$out"
 	sleep 1
 done
 clear
