@@ -1,8 +1,8 @@
 #!/bin/bash
 
 main='eDP-1'
-topright='HDMI-1-2'
-topleft='DP-1'
+topleft='HDMI-1-2'
+topright='DP-1'
 
 xrandr --output "$topleft" --mode 2560x1440 --pos 0x0
 xrandr --output "$topright" --mode 2560x1440 --pos 2560x0
