@@ -1,0 +1,15 @@
+#!/bin/env python
+
+
+import itertools
+import time
+
+
+def main():
+	for item in itertools.cycle(["videos", "poster", "stats", "milestones", "gifs"]):
+		time.sleep(30*60)
+		print item
+
+
+if __name__ == '__main__':
+	main()

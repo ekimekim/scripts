@@ -1,0 +1,15 @@
+#!/home/mike/bin/mikeirc
+
+import os
+import sys
+import subprocess
+
+with open(os.path.expanduser("~/.twitch-videostriketeam-irc.oauth")) as f:
+	password = f.read().strip()
+
+channel = '#desertbus'
+nick = 'DBVideoStrikeTeam'
+nousers = True
+host = 'irc.twitch.tv'
+twitch = True
+
