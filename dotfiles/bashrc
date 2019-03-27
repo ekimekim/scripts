@@ -203,6 +203,11 @@ check_kernel_version() {
 	[ -d "/usr/lib/modules/$(uname -r)" ]
 }
 
+# Warn if we are in a git repo and have an active stash ref
+check_git_stash() {
+	! git show-ref --verify refs/stash >/dev/null 2>&1
+}
+
 # Colour aliases
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
@@ -244,7 +249,7 @@ alias ''='cd ~+'
 alias ''='cd "$(git rev-parse --show-toplevel)"'
 
 # PS1 alerts (see alerts.ps1.bash)
-ALERTS=(check_bashrc check_pacnew check_kernel_version check_vpn)
+ALERTS=(check_bashrc check_pacnew check_kernel_version check_vpn check_git_stash)
 
 # Env vars
 HISTFILESIZE=$(( 1024 * 1024 ))
