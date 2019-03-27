@@ -278,7 +278,7 @@ ADMIN='admin.us-east-2.aws.k8s'
 
 pmk() {
 	if [ "$1" == "login" ]; then
-		"$(which pmk)" "$@" --noswitch_context
+		"$(which pmk)" "$@" --no-switch-context
 	else
 		"$(which pmk)" "$@"
 	fi
