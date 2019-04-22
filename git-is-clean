@@ -43,12 +43,12 @@ git checkout "$TEMP"
 git rebase "$TARGET"
 status="$?"
 
-if [ "$status" -eq 128 ]; then
+if [ "$status" -ne 0 ]; then
 	git rebase --abort || failed $? abort after conflicting rebase
 	git checkout "$current"
 	git branch -d -f "$TEMP"
 	die 1 "Branch $BRANCH does not rebase cleanly onto $TARGET"
-elif [ "$status" -eq 0 ]; then
+else
 	git checkout "$current"
 	if [ "$(git rev-parse "$TARGET")" == "$(git rev-parse "$TEMP")" ]; then
 		git branch -d -f "$TEMP"
@@ -57,6 +57,4 @@ elif [ "$status" -eq 0 ]; then
 		git branch -d -f "$TEMP"
 		die 0 "Branch $BRANCH cleanly rebases onto $TARGET"
 	fi
-else
-	failed "$status" rebase onto target
 fi
