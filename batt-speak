@@ -1,0 +1,22 @@
+#!/bin/env python
+
+import os
+import time
+import subprocess
+
+def get_info(key):
+	batteries = [x for x in os.listdir("/sys/class/power_supply/") if x.startswith('BAT')]
+	if len(batteries) > 1:
+		print "Warning: Multiple batteries detected. Using first."
+	battery = batteries[0]
+	with open("/sys/class/power_supply/{}/{}".format(battery, key)) as f:
+		return int(f.read().strip())
+
+last_full = get_info('energy_full')
+
+while True:
+	charge = get_info('energy_now')
+	level = float(charge) / last_full
+	if level < 0.1:
+		subprocess.check_call(['espeak', '{} percent battery'.format(int(100*level))])
+	time.sleep(10)
