@@ -34,7 +34,6 @@ exec >"$HOME/.xmonad/xmonad.log" 2>&1
 
 # Startup applications
 terminator &
-chromium &
 
 # Start X-based systemd user services
 systemctl --user start x-started.target
