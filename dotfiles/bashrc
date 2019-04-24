@@ -41,7 +41,6 @@ source "/usr/share/git/completion/git-completion.bash"
 source "/usr/share/bash-completion/completions/pass"
 source "$HOME/bin/git-alias-completion.bash"
 source <(kubectl completion bash)
-source <(pmk completion --shell=bash)
 source "$HOME/bin/auto-alias-completions.bash"
 
 # Wrapper around xargs and sudo to expand aliases
@@ -181,11 +180,6 @@ diff_pacnew() {
 	done
 }
 
-# check if any ipsec associations exist to verify vpn connection
-check_vpn() {
-	sudo ipsec status|grep -Fq 'Security Associations (1 up,'
-}
-
 # exit success if bashrc has not changed since executing (matches saved hash of bashrc)
 # 
 # note: vulnerable to a race if edited while executing, causing a false success,
@@ -258,7 +252,7 @@ alias ldapsearch='ldapsearch -D michael.lang@AD.OFFICE -W -h REDACTED'
 alias ldapmodify='ldapmodify -D michael.lang@AD.OFFICE -W -h REDACTED'
 
 # PS1 alerts (see alerts.ps1.bash)
-ALERTS=(check_bashrc check_pacnew check_kernel_version check_vpn check_git_stash)
+ALERTS=(check_bashrc check_pacnew check_kernel_version check_git_stash)
 
 # Env vars
 HISTFILESIZE=$(( 1024 * 1024 ))
@@ -279,14 +273,6 @@ STAGE='stage.us-west-2.aws.k8s'
 GKE_STAGE='gke_gke-stage-51680_us-west1_gke-stage'
 PROD='prod.us-west-1.aws.k8s'
 ADMIN='admin.us-east-2.aws.k8s'
-
-pmk() {
-	if [ "$1" == "login" ]; then
-		"$(which pmk)" "$@" --no-switch-context
-	else
-		"$(which pmk)" "$@"
-	fi
-}
 
 # Misc completions
 complete -c which
