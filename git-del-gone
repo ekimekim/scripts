@@ -1,0 +1,9 @@
+#!/bin/bash
+
+git for-each-ref refs/heads/ --format '%(if)%(upstream)%(then)%(refname:lstrip=2) %(upstream)%(end)' |
+grep -v '^$' |
+grep -v '^refs/heads/archive/' |
+while read ref upstream; do
+	git show-ref --quiet --verify "$upstream" ||
+	git branch --delete --force "$ref"
+done
