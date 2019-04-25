@@ -223,7 +223,7 @@ alias sumv='sudo mv'
 alias sucp='sudo cp'
 
 # Other aliases
-alias 'pip-upgrade'='sudo pip2 install -U --no-deps'
+alias 'pip-upgrade'='sudo PYTHONWARNINGS=ignore pip2 install -U --no-deps'
 alias commit='git commit -av'
 alias status='git status -sb'
 alias clock-small='watch -n1 date'
@@ -272,6 +272,7 @@ export BANNER='banner-stripped -c# -f2'
 export PYTHONSTARTUP="$HOME/.pythonrc"
 export QUOTING_STYLE='literal'
 export GOPATH="$HOME/.go"
+export PYTHONWARNINGS=ignore # heavy-handed but i can't work out how to make pip shut up otherwise
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets" # set sensitive env vars, eg. api secrets
 
 # Postmates-specific
@@ -304,7 +305,7 @@ alias_completion
 alias 'systemctl-user'="$(which systemctl) --user"
 alias pacman='sudo pacman'
 alias user_pacman="`which pacman`" # unpriviliged pacman
-alias pip='sudo pip2'
+alias pip='sudo PYTHONWARNINGS=ignore pip2'
 alias shutdown="check-ssh sudo $(which shutdown)"
 alias reboot="check-ssh sudo $(which reboot)"
 alias poweroff="check-ssh sudo $(which poweroff)"
