@@ -99,8 +99,17 @@ def cleanup(conf):
 
 
 def setup(conf):
-	# Create the netns
+	# Create the netns.
+	# NOTE that we do not bring up the loopback interface inside the netns.
+	# This matters because if the loopback interface gets address 127.0.0.1, then any outgoing
+	# packets to 127.0.0.1 will have source 127.0.0.1 as well, which means they can't be
+	# routed back. By not giving any of the interfaces inside the netns the 127.0.0.0/8 range,
+	# it treats this range just like any other and uses its bridge ip as source ip.
+	# However, this means that we could talk to 127.0.0.1 on any port and it would work,
+	# so we need to add a reject rule to iptables filter.OUTPUT inside the netns.
+	# This applies after any forwards in the nat.OUTPUT chain, so fowards still work.
 	ip('netns', 'add', conf.netns)
+	ns_exec(conf.netns, 'iptables', '-A', 'OUTPUT', '-d', '127.0.0.1/8', '-j', 'REJECT')
 	# Create the veths, and put the inner one inside the netns
 	ip('link', 'add', conf.veths.outer, 'type', 'veth', 'peer', 'name', conf.veths.inner)
 	ip('link', 'set', conf.veths.inner, 'netns', conf.netns)
