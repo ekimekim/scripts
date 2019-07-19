@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -eu
+
+USAGE="$0 {FILES}
+Make files available on local http by copying to /srv/http.
+Prints the URL."
+
+if [ "$#" -lt 1 ]; then
+	echo "$USAGE" >&2
+	exit 255
+fi
+
+IP=$(curl -sS ip-api.com/json | jq -r .query)
+
+for path in "$@"; do
+	uuid=$(uuidgen)
+	outfile="$uuid.${path##*.}"
+	cp "$path" "/srv/http/$outfile"
+	echo "http://$IP:20080/$outfile"
+done
