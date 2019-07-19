@@ -1,0 +1,16 @@
+#!/bin/bash
+
+USAGE="$0 PLAYLIST {FILEPATH}
+Add or double weight of given tracks of given playlist"
+
+if [ $# -lt 1 ]; then
+	echo "$USAGE" >&2
+	exit 255
+fi
+
+playlist="$1"
+shift
+
+for path in "$@"; do
+	awk -i inplace -F'\t' -v 'OFS=\t' -v"path=$path" '{if ($3 == path) {print $1 * 2, $2, $3; found=1} else {print $0}}; END {if (!found) {print 16, 0.5, path}}' "$playlist"
+done
