@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python -um awp --lastfm-creds="$HOME/src/awp/lastfm.json" "$@"
+python -um awp "$@"
