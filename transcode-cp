@@ -3,6 +3,7 @@
 import gevent.monkey
 gevent.monkey.patch_all()
 
+import logging
 import os
 import re
 import traceback
@@ -83,6 +84,9 @@ def get_items(src_root, dest_root, stdin=False, safe=False, ext='mp3', non_audio
 	for path, filename in items:
 		if non_audio or is_audio(filename):
 			src = os.path.join(path, filename)
+			if not os.path.exists(src):
+				logging.warning("Path {!r} does not exist, skipping".format(src))
+				continue
 			dest = get_dest(src_root, dest_root, src, safe=safe, ext=ext if is_audio(filename) else None)
 			yield src, dest
 
