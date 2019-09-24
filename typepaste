@@ -1,5 +1,6 @@
 #!/bin/bash
 
 WAIT=${1:-1}
+TYPEDELAY=${2:-20} # ms
 
-sleep "$WAIT" && xdotool type "$(xclip -selection clipboard -o)"
+sleep "$WAIT" && xdotool type --delay "$TYPEDELAY" "$(xclip -selection clipboard -o)"
