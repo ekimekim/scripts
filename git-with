@@ -15,7 +15,7 @@ fi
 
 git checkout $subject || exit 1
 if [ $# -lt 1 ]; then
-	bash
+	GIT_WITH_NESTING_LEVEL=$((GIT_WITH_NESTING_LEVEL + 1)) bash
 else
 	"$@"
 fi
