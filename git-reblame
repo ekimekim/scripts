@@ -1,0 +1,299 @@
+#!/bin/bash
+
+# Repeatedly calls git-blame to see full history of whatever you ask of git-blame
+# Copyright (C) 2019  Jorge Luis Martinez Gomez
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+set -e
+
+version=1.0.0
+args_for_blame=()
+add_spaces=1
+add_headers=1
+
+usage() {
+  cat <<EOF
+usage: $0 [-h|--help] [-v|--version] [--no-spaces] [--no-headers] [--diagnostics] {<git-blame-options-and-argument> ...}
+
+description:
+  Repeatedly calls git-blame with whatever options you provide, with
+  exception of --help and --version. Each time, the commit (optionally)
+  passed to git-blame will be replaced with the latest one from the output
+  of the previous invocation. This goes on until git-blame fails. The point
+  is to see the complete history of whatever you ask of git-blame.
+
+  By default, the output of each git-blame invocation is prefixed with
+  spacing and a header line saying "from commit: <commit>". The spacing and
+  headers can be disabled with --no-spaces and --no-headers, repectively.
+  That might be useful if you want to process the output in a script, for
+  example, to print the names of every author involved in the writing of a
+  function.
+
+option descriptions:
+  -h, --help
+    Show this help.
+
+  -v, --version
+    Show the version of this script.
+
+  --diagnostics
+    I guess I could have also called it "verbosity", but it's meant for
+    debugging of the script. Maybe this should be for internal use only...
+
+  --no-headers
+    Disable the headers and the blank line printed after each one. This
+    might be useful when processing the output with another program.
+
+  --no-spaces
+    Disable the blank lines used to separate the output of each invocation
+    and the headers. This might be useful when processing the output with
+    another program.
+EOF
+}
+
+info() {
+  if [[ $diagnostics ]]; then
+    printf "$@" | awk 1 >&2
+  fi
+}
+
+# We want to transparently passthrough the options of git-blame. Because we
+# need to change the commit refered to in the command line, we need to find
+# where in the options they put the commit, if they did at all. The
+# possible argument configurations are:
+#
+#   git blame [options] $file
+#   git blame [options] $commit $file
+#   git blame [options] $commit -- $file
+
+i=0
+while (( $# )); do
+  case "$1" in
+    --)
+      args_for_blame+=("$1")
+      reached_end_of_options=1
+      if [[ "$may_be_commit" ]]; then
+        # git blame [options] $commit_or_file ...
+        #
+        # turns into
+        #
+        # git blame [options] $commit -- $file
+        from_commit="$may_be_commit"
+        from_commit_position="$may_be_commit_position"
+        info "found from_commit_position to be %s when checking %s at\n" "$from_commit_position" "$1" "$i"
+      elif [[ ! "$from_commit" ]]; then
+        # git blame [options] -- $file
+        #
+        # We'll have to insert the commit, since there's no place for it yet.
+        insert_commit=1
+        from_commit_position="$i"
+        info "found from_commit_position to be %s when checking %s\n" "$i" "$1"
+      fi
+    ;;
+
+    # NOTE: When adding options specific to this script, they should go
+    # here, in between `--` and `-*`. Remember to subtract from $i as
+    # that's supposed to be tracking the placement in $args_for_blame.
+    # Also, remember that you might want to add them to $next_args so they
+    # passthrough to the next invocation.
+
+    # This is for *INTERNAL USE ONLY*. It's so we know we're in a recursive
+    # call and so some useful output has been given to the user. We'll use
+    # this to know if we should suppress git-blame errors.
+    --called-by-ourselves)
+      called_by_ourselves=1
+      (( i-- )) || true
+    ;;
+
+    --diagnostics)
+      diagnostics=1
+      (( i-- )) || true
+    ;;
+
+    # Option names are based on what's default, but I don't want double
+    # negatives in my conditions, so that's why the discrepancy in names.
+
+    --no-spaces)
+      add_spaces=
+      (( i-- )) || true
+    ;;
+
+    --no-headers)
+      add_headers=
+      (( i-- )) || true
+    ;;
+
+    --help)
+      usage
+      exit
+      (( i-- )) || true # Why? Because I like consistency.
+    ;;
+
+    --version)
+      printf "%s\n" "$version"
+      exit
+      (( i-- )) || true # I really do.
+    ;;
+
+    -*)
+      args_for_blame+=("$1")
+      # Take the options from the manpage and generate regex patterns to
+      # check for them.
+      blame_option_patterns="$(man git-blame | sed -nr '
+        /^OPTIONS/,/^\S/ {
+          /^ {7}-/ {
+            s/^\s*//
+            s/\[/(/g
+            s/\]/)?/g
+            s/\./\\./g
+            s/<[^>]*>/.*/g
+            s/, /\n/g
+            p
+          }
+        }
+      ')"
+      # If option necessitates arg.
+      option="$1"
+      if [[ $option != --* ]]; then
+        option="-$(grep -o '.$' <<< "$option")"
+      fi
+      if grep -Fxqf <(sed -n '/ .*/{s///;p}' <<< "$blame_option_patterns") <<< "$option"; then
+        args_for_blame+=("$2")
+        (( i++ )) || true
+        shift
+      fi
+    ;;
+
+    *)
+      args_for_blame+=("$1")
+      if [[ ! $reached_end_of_options ]]; then
+        # git blame [options] $commit_or_file ...
+        #
+        # We don't know if a "--" follows yet, so this might ambiguously be
+        # either a file or a commit. In case it's ambiguous, we'll say we
+        # *may* have the commit and position.
+        if git ls-files | grep -Fxq "$1"; then
+          may_be_commit="$1"
+          may_be_commit_position="$i"
+        else
+          from_commit="$1"
+          info "found from_commit_position to be %s when checking %s\n" "$i" "$1"
+          from_commit_position="$i"
+        fi
+      fi
+    ;;
+  esac
+  (( i++ )) || true
+  shift
+done
+
+# git blame [options] $file
+#
+# The last case left. We'll need to insert before $file, so record the
+# position as that of $file (one before the end).
+if [[ ! "$from_commit_position" ]]; then
+  from_commit_position="$(( i - 1 ))"
+  info "found from_commit_position to be %s when checking %s\n" "$from_commit_position" "$1"
+  insert_commit=1
+fi
+
+if [[ $add_headers ]]; then
+  info "adding headers"
+  # We might find out this commit doesn't include what we're searching for.
+  # In other words, we might exit right after, so hold off on outputting
+  # this until git-blame exits successfully.
+  if [[ ! $from_commit ]]; then
+    from_commit="HEAD"
+  fi
+  out="from commit: $from_commit"$'\n'
+
+  if [[ $add_spaces ]]; then
+    out+=$'\n'
+  fi
+fi
+
+# `2>&1` and `|| exit 0` are to avoid always seeing a git-blame error at
+# the end (its failure is the only successful exit condition of this
+# script).
+#
+# FIXME: We're really only interested in blocking one case of the error. As
+# this blocks all git-blame errors from being informed to the user, we
+# might want to reconsider. Maybe we can add an option specific to this
+# script to allow the showing of these errors.
+#
+# For a default behaviour, we show the error if this is the first iteration
+# of this script. In other words, if the user hasn't been given any useful
+# output, then probably the error is more interesting than ususal.
+#
+# XXX: The other issue with this is that we're moving stderr stuff to
+# stdout. Maybe we should use temporary files to keep them separate and
+# still hold them from being shown to the user.
+info "calling %s\n" "git blame ${args_for_blame[*]}"
+if [[ "$called_by_ourselves" ]]; then
+  blame_out="$(git blame "${args_for_blame[@]}" 2>&1)" || exit 0
+else
+  blame_out="$(git blame "${args_for_blame[@]}")"
+fi
+
+# We're alive! So output your stuff.
+cat <<< "$out$blame_out"
+
+if [[ $add_spaces ]]; then
+  echo
+fi
+
+latest_commit="$(
+  <<< "$blame_out" \
+  sed 's/ .*//' \
+  | sort \
+  | uniq \
+  | xargs -r git show -s --format='%cI %h' \
+  | sort -k1 \
+  | tail -1 \
+  | cut -d' ' -f2
+)"
+
+next_args=("--called-by-ourselves")
+if [[ $diagnostics ]]; then
+  next_args+=(--diagnostics)
+fi
+
+if [[ ! $add_headers ]]; then
+  next_args+=(--no-headers)
+fi
+
+if [[ ! $add_spaces ]]; then
+  next_args+=(--no-spaces)
+fi
+
+info "from_commit_position is: %s\n" "$from_commit_position"
+
+info "next_args prefix from args for git-blame: %s\n" "${args_for_blame[*]:0:$((from_commit_position))}"
+next_args+=(
+  "${args_for_blame[@]:0:$((from_commit_position))}"
+  "$latest_commit~"
+)
+
+if [[ $insert_commit ]]; then
+  info "next_args suffix from args for git-blame: %s\n" "${args_for_blame[@]:$from_commit_position}"
+  next_args+=("${args_for_blame[@]:$from_commit_position}")
+else
+  info "next_args suffix from args for git-blame: %s\n" "${args_for_blame[@]:$((from_commit_position + 1))}"
+  next_args+=("${args_for_blame[@]:$((from_commit_position + 1))}")
+fi
+
+# exec for tail-call optimization
+info "calling %s\n" "$0 ${next_args[*]}"
+exec "$0" "${next_args[@]}"
