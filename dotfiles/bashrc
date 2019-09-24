@@ -150,7 +150,7 @@ function aws-find () {
 }
 
 kube-get-ips() {
-	kubectl get pods -o json "$@" | jq -r '.items[]|"\(.metadata.name)\t\(.status.podIP)"'
+	kubectl get pods -o json "$@" | jq -r '(if .kind == "List" then .items[] else . end)|"\(.metadata.name)\t\(.status.podIP)"'
 }
 complete -o default -F __start_kubectl kube-get-ips
 
