@@ -13,6 +13,10 @@ hi Search term=reverse ctermfg=0 ctermbg=3 guibg=Gold2
 map  :let @/ = ""<CR>
 command Git /^[<>|=]\{7\}
 
+" Nuclear option to ensure syntax highlighting stays correct
+map  :syntax sync fromstart<CR>
+command Sync :autocmd CursorMoved * :syntax sync fromstart | :autocmd CursorMovedI * :syntax sync fromstart
+
 " Expand tabs only for these projects / under these directories:
 :autocmd BufRead,BufNewFile ~/src/postmates/* set expandtab
 
