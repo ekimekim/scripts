@@ -30,7 +30,7 @@ WHITELIST=(
 # Format note: phone won't recognize .opus files, but they're the same container format as .ogg
 # so we create .ogg files that use the opus codec explicitly.
 (
-	awk -F'\t' '$1 >= 32 {print $3}' ~/main.awp
+	awk -F'\t' '$1 >= 16 {print $3}' ~/main.awp
 	awk -F'\t' '$1 >= 32 {print $3}' ~/music/playlists/soft.awp
 	for prefix in "${WHITELIST[@]}"; do
 		awk -F'\t' -v"prefix=^/home/mike/music/$prefix" '$3 ~ prefix {print $3}' ~/main.awp
@@ -41,7 +41,7 @@ transcode-cp --stdin --safe --delete --ext=ogg "$@" ~/music/ /srv/phone/music/ -
 for line in "${PLAYLISTS[@]}"; do
 	read path name scale filter <<<"$line"
 	[ -n "$filter" ] || filter=cat
-	python -m awp.to_m3u "$path" ~/music/ . --scale="$scale" |
+	python2 -m awp.to_m3u "$path" ~/music/ . --scale="$scale" |
 	$filter | sed 's/\.[^.]\+$/.ogg/' |
 	LC_ALL=C sed -e 's|[^a-zA-Z0-9/ .-]|_|g' -e 's|^file_//|file://|' >"/srv/phone/music/$name.m3u"
 done
