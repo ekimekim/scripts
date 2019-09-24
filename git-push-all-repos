@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# for each arg (or ./* if none given), if it's a git repo and has an upstream "github:ekimekim",
+# then push all branches.
+
+if [ "$#" -lt 1 ]; then
+ ds=(*)
+else
+ ds=("$@")
+fi
+
+for d in "${ds[@]}"; do
+ echo "$d";
+ (
+  cd "$d" && {
+   if git remote -v | grep 'github:ekimekim'; then
+    git branch --format '%(refname) %(upstream)' | while read name upstream; do
+     if [ -n "$upstream" ]; then
+      remote=$(cut -d / -f 3 <<<"$upstream")
+      upstreamname=$(cut -d / -f 4- <<< "$upstream")
+      echo "Pushing $name -> $remote / $upstreamname"
+      git push "$remote" "$name:$upstreamname"
+     else
+      echo "Not pushing $name: no upstream"
+     fi
+    done
+   else
+    echo "Skipping $d: No github:ekimekim"
+   fi
+  }
+ )
+done
