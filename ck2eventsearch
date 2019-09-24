@@ -12,7 +12,7 @@ Search for a CK2 event with text matching given TEXT regex in the description"
 
 [ "$#" -eq 0 ] && die 255 "$USAGE"
 
-ck2="$HOME/steamapps/common/Crusader Kings II"
+ck2="$HOME/steamapps/ssd_raid0/steamapps/common/Crusader Kings II/"
 text="$*"
 
 events=$(grep -ahri "$text" "$ck2/localisation"/*.csv | cut -d';' -f1) || die 2 "Grep failed"
