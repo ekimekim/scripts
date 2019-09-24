@@ -21,6 +21,10 @@ source "$HOME/bin/gitcolours.ps1.bash"
 # Put readline into vi mode
 set -o vi
 
+# Don't munge ! characters in commands, they're super annoying to properly escape.
+# This disables history expansion like 'sudo !!', but I don't use those anyway.
+set +o histexpand
+
 # This sets env vars and sets up keychain if needed, without locking the agent
 source "$HOME/bin/setup-keychain.bash" -Q
 
