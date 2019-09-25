@@ -6,9 +6,11 @@ PLAYLISTS=(
 	# FILEPATH NAME SCALE {FILTER}
 	"$HOME/main.awp list-64 64"
 	"$HOME/main.awp list-32 32"
+	"$HOME/main.awp list-16 16"
 	"$HOME/main.awp list-64u 64 uniq"
 	"$HOME/main.awp list-128u 128 uniq"
 	"$HOME/music/playlists/soft.awp soft-32 32"
+	"$HOME/music/playlists/thinking.awp thinking-32 32"
 )
 
 WHITELIST=(
