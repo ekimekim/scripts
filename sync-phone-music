@@ -38,7 +38,7 @@ WHITELIST=(
 		awk -F'\t' -v"prefix=^/home/mike/music/$prefix" '$3 ~ prefix {print $3}' ~/main.awp
 	done
 ) | sort -u |
-transcode-cp --stdin --safe --delete --ext=ogg "$@" ~/music/ /srv/phone/music/ -- -vn -b:a 64k -codec:a libopus
+transcode-cp --stdin --safe --delete --ext=ogg --always-transcode "$@" ~/music/ /srv/phone/music/ -- -vn -b:a 64k -codec:a libopus
 
 for line in "${PLAYLISTS[@]}"; do
 	read path name scale filter <<<"$line"

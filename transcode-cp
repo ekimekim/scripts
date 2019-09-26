@@ -60,13 +60,13 @@ def get_dest(src_root, dest_root, src, safe=False, ext='mp3'):
 	return os.path.join(dest_root, rel_src_dir, dest_name)
 
 
-def do_file(pool, i, n, src, dest, ffargs, force=False):
+def do_file(pool, i, n, src, dest, ffargs, force=False, always_transcode=False):
 	if os.path.exists(dest) and not force:
 		print "Skipping {}/{}: already exists {}".format(i, n, dest)
 		return
 	_, ext = os.path.splitext(dest)
 	ext = ext[1:]
-	if src.lower().endswith(ext) or not is_audio(src):
+	if (src.lower().endswith(ext) and not always_transcode) or not is_audio(src):
 		return pool.spawn(do, i, n, copy, src, dest)
 	else:
 		return pool.spawn(do, i, n, convert, src, dest, ffargs)
@@ -110,8 +110,9 @@ def get_exists_in_dest(dest_root):
 @argh.arg('--concurrency', default=cpu_count())
 @argh.arg('--delete', default=False)
 @argh.arg('--non-audio', default=False)
+@argh.arg('--always-transcode', default=False)
 def main(src_root, dest_root, *ffargs, **kwargs):
-	force, stdin, safe, ext, concurrency, delete, non_audio = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency', 'delete', 'non_audio'))
+	force, stdin, safe, ext, concurrency, delete, non_audio, always_transcode = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency', 'delete', 'non_audio', 'always_transcode'))
 	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe, ext=ext, non_audio=non_audio))
 	if delete:
 		exists = set(get_exists_in_dest(dest_root))
@@ -124,7 +125,7 @@ def main(src_root, dest_root, *ffargs, **kwargs):
 	pool = Pool(concurrency)
 	try:
 		for i, (src, dest) in enumerate(items):
-			jobs.append(do_file(pool, i, n, src, dest, list(ffargs), force))
+			jobs.append(do_file(pool, i, n, src, dest, list(ffargs), force, always_transcode))
 	finally:
 		pool.join()
 	if not all(job.get() for job in jobs if job):
