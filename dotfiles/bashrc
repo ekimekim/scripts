@@ -122,8 +122,10 @@ docker() {
 screenshot() {
 	local filepath="${1:-/tmp/screenshot.png}"
 	shift
+	# If path already exists, scrot won't overwrite but will append a number to filename
+	rm "$filepath"
 	echo "Select a screen region..."
-	scrot "$@" -s "$filepath" &&
+	scrot "$@" -zs "$filepath" &&
 		echo "Saved to $filepath"
 }
 
