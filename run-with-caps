@@ -1,0 +1,23 @@
+#!/bin/bash
+
+USAGE="$0 USER CAPS COMMAND {ARGS}
+Run COMMAND as given user, with given capabilities (comma-seperated).
+Must be run as root (or with caps cap_setuid,cap_setgid,cap_setpcap, plus all given CAPS)"
+
+if [ "$#" -lt 3 ]; then
+	echo "$USAGE" >&2
+	exit 255
+fi
+
+user="$1"
+caps="$2"
+shift 2
+
+# Args apply in order:
+# 1. Change user, but don't drop caps (we are now the target user, but have all our original caps)
+# 2. Add target caps to inheritable set. This allows step 3 to work.
+# 3. Add target caps to ambient set, so they aren't dropped over an execve()
+# 4. Set caps to target caps. We had to do this last or previous steps wouldn't have been allowed.
+# 5. capsh will exec bash with given args. We tell bash to in turn exec its args.
+#    Ideally we would just exec our command directly but capsh doesn't support that.
+exec capsh --keep=1 --user="$user" --inh="$caps" --addamb="$caps" --caps="$caps+eip" -- -c 'exec "$@"' -- "$@"
