@@ -1,0 +1,16 @@
+#!/bin/bash
+
+(
+	# wait for user to step away, then off screens
+	sleep 5
+	xset dpms force off
+
+	# re-off screens regularly in case the mouse moves accidentially
+	while sleep 15; do
+		xset dpms force off
+	done
+) &
+pid="$!"
+
+trap 'kill "$pid"; echo' exit
+read -s -N1 -p'Press any key to exit '

@@ -273,8 +273,6 @@ alias qr='qrencode -t ANSIUTF8 -o-'
 alias ''='cd ~+'
 # ^X^X: cd to top of git repo
 alias ''='cd "$(git rev-parse --show-toplevel)"'
-# Turn screens off (as though for inactivity) immediately
-alias off-screens='check-ssh xset dpms force off && slock'
 
 # Postmates-specific aliases
 alias ldapsearch='ldapsearch -D michael.lang@AD.OFFICE -W -h REDACTED'
@@ -336,3 +334,4 @@ alias systemctl='sudo systemctl'
 alias ip='sudo ip'
 alias 'wifi-menu'='sudo wifi-menu'
 alias mplayer="check-ssh $(which mplayer)"
+alias off-screens="check-ssh $(which off-screens)"
