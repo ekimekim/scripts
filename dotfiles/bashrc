@@ -170,6 +170,17 @@ check-ssh() {
 	"$@"
 }
 
+confirm() {
+	local confirm_word="$1"
+	shift
+	echo -en "Please confirm by typing $confirm_word:"
+	read response
+	if [ "$response" != "$confirm_word" ]; then
+		return 1
+	fi
+	"$@"
+}
+
 # list pacnew files present in /etc
 list_pacnew() {
 	find '/etc' \
@@ -317,9 +328,9 @@ alias 'systemctl-user'="$(which systemctl) --user"
 alias pacman='sudo pacman'
 alias user_pacman="`which pacman`" # unpriviliged pacman
 alias pip='sudo PYTHONWARNINGS=ignore pip2'
-alias shutdown="check-ssh sudo $(which shutdown)"
-alias reboot="check-ssh sudo $(which reboot)"
-alias poweroff="check-ssh sudo $(which poweroff)"
+alias shutdown="check-ssh confirm boot sudo $(which shutdown)"
+alias reboot="check-ssh confirm boot sudo $(which reboot)"
+alias poweroff="check-ssh confirm boot sudo $(which poweroff)"
 alias systemctl='sudo systemctl'
 alias ip='sudo ip'
 alias 'wifi-menu'='sudo wifi-menu'
