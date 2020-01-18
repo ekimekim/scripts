@@ -17,7 +17,7 @@ backspace=BackSpace
 
 if [ "$#" -lt 1 ]; then
 	echo "USAGE: $0 NAME" >&2
-	echo "Writes key sequence to set necrodancer control set of given name"
+	echo "Writes key sequence to set necrodancer control set of given name. Must start from the controls screen."
 fi
 
 if [ "$1" == "diamond" ]; then
