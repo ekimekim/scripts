@@ -1,6 +1,10 @@
 
 PATH="/home/mike/bin:$PATH"
 
+# xmonad doesn't re-parent (wrap top-level X windows with another window for borders, title bar, etc),
+# java needs to know this to work around some bad behaviour.
+export _JAVA_AWT_WM_NONREPARENTING=1
+
 # Set cursor
 xsetroot -cursor_name left_ptr
 
