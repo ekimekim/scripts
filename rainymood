@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rainfile="/home/mike/music/sounds/Rainymood/RainyMood.m4a"
+rainfile="/home/mike/music/sounds/Rainymood/RainyMood.opus"
 
 duration="$(
 	ffprobe "$rainfile" -show_format -of json 2>/dev/null |
