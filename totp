@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Shortcut to ykman oath.
+# With a recognised subcommand, passes it through
+# With any other args or no args, runs ykman oath code.
+# In the latter case, if the result is a single value, puts it on clipboard.
+
+set -e
+
+case "$1" in
+	add|code|delete|info|list|remember-password|reset|set-password|uri)
+		ykman oath "$@"
+		;;
+	*)
+		result=$(ykman oath code "$*")
+		echo "$result"
+		if [ "$(wc -l <<<"$result")" -eq 1 ]; then
+			code=$(grep -Eo '[0-9]+$' <<<"$result")
+			xclip -selection clipboard <<<"$code"
+			echo "Copied to clipboard: $code" >&2
+		fi
+		;;
+esac

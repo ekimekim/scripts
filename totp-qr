@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+path="/tmp/totp-qr-$(uuidgen).png"
+echo "Select a screen region containing QR code"
+trap 'rm -f "$path"' exit
+scrot -zs "$path"
+uri=$(qrdecode "$path")
+echo "Adding from URI: $uri"
+ykman oath uri -t "$uri"
