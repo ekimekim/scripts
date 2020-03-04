@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+	echo "USAGE: $0 URL" >&2
+	exit 255
+fi
+
+curl -sS "$1" | qrdecode -

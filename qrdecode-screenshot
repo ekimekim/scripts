@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+path="/tmp/qrdecode-screenshot-$(uuidgen).png"
+echo "Select a screen region containing QR code"
+trap 'rm -f "$path"' exit
+scrot -zs "$path"
+qrdecode "$path"
