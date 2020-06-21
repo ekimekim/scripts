@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ONI_PATH='/home/mike/steamapps/ssd_raid0/steamapps/common/OxygenNotIncluded/OxygenNotIncluded_Data'
+touch "$ONI_PATH/debug_enable.txt"
+read -p "Press enter to exit debug"
+rm "$ONI_PATH/debug_enable.txt"
