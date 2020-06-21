@@ -17,5 +17,5 @@ for path in "$@"; do
 	uuid=$(uuidgen)
 	outfile="$uuid.${path##*.}"
 	cp "$path" "/srv/http/$outfile"
-	echo "http://$IP:20080/$outfile"
+	echo "http://$IP/$outfile"
 done
