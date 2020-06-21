@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -eu
+
+VERSION=${1?version}
+
+cd /tmp
+curl "https://releases.hashicorp.com/terraform/$VERSION/terraform_${VERSION}_linux_amd64.zip" >tf.zip
+unzip tf.zip
+mv terraform ~/bin/terraform-$VERSION
+ln -sf ~/bin/terraform-$VERSION ~/bin/terraform
