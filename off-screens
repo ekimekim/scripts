@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# start folding since we're not being used otherwise
+fahctl unpause
+
 (
 	# wait for user to step away, then off screens
 	sleep 5
@@ -12,5 +15,5 @@
 ) &
 pid="$!"
 
-trap 'kill "$pid"; echo' exit
+trap 'kill "$pid"; fahctl pause; echo' exit
 read -s -N1 -p'Press any key to exit '
