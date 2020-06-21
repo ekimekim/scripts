@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 SRC DEST" >&2
+	echo "Copy folder contents of SRC to DEST, and add all music files in DEST to playlist" >&2
+	exit 255
+fi
+
+src="$1"
+dest="$2"
+
+cp -r "$src" "$dest"
+cp ~/main.awp ~/.main.backup.awp
+python -m awp.missing ~/main.awp "$dest" --nomagic | awp-format >> ~/main.awp
