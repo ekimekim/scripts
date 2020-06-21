@@ -135,6 +135,16 @@ screenshot() {
 		echo "Saved to $filepath"
 }
 
+screenshot-window() {
+	local delay="${1:-3}"
+	shift
+	# If path already exists, scrot won't overwrite but will append a number to filename
+	rm "$filepath"
+	echo "Will screenshot focussed window in $delay seconds"
+	scrot "$@" -zucd "$delay" "$filepath" &&
+		echo "Saved to $filepath"
+}
+
 ndurl() {
 	echo "rtmp://rtmp.condorleague.tv/$1/live"
 }
