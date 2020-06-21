@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec awk '!d[$0]; {d[$0] = 1}'
