@@ -1,0 +1,17 @@
+#!/bin/env python2
+
+import socket
+
+import argh
+
+
+@argh.arg('command', nargs='*')
+def main(command, host='localhost', port=36330):
+	s = socket.socket()
+	s.connect((host, port))
+	s.sendall(' '.join(command) + '\n')
+	s.close()
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
