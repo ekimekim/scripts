@@ -2,10 +2,11 @@
 
 if [ "$#" -lt 1 ]; then
 	echo "USAGE: $0 FIELD [START LINE] {AWK FLAGS}" 2>&1
+	exit 255
 fi
 
 FIELD="$1"
 START="${2:-0}"
-shift 2
+shift && shift # shift 2 will fail if there's only 1 arg
 
 awk -v"FIELD=$FIELD" -v"START=$START" "$@" 'NR > START {print $FIELD}'
