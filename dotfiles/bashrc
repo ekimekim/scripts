@@ -7,9 +7,10 @@ dedup_path = []
 for p in path:
 	if p not in dedup_path:
 		dedup_path.append(p)
-if "/usr/bin" in dedup_path:
-	dedup_path.remove("/usr/bin")
-	dedup_path.append("/usr/bin")
+for goes_last in ["/usr/bin", "/home/mike/.local/bin"]:
+	if goes_last in dedup_path:
+		dedup_path.remove(goes_last)
+		dedup_path.append(goes_last)
 print ":".join(dedup_path)
 ' "$PATH")
 
@@ -39,6 +40,8 @@ done
 PATH="$HOME/.go/bin:$PATH"
 # Add ~/bin to PATH, allowing user-specific scripts to be called anywhere
 PATH="$HOME/bin:$PATH"
+# Add py3 binaries to PATH, but only as a last resort to prevent it overriding py2 bins
+PATH="$PATH:$HOME/.local/bin"
 
 # source auto-complete scripts
 source "/usr/share/git/completion/git-completion.bash"
