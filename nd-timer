@@ -1,0 +1,19 @@
+#!/bin/bash
+
+while true; do
+	echo '00:00' >/tmp/timer
+	read -rp 'Press enter to start timer '
+	(
+		start=$(date +%s)
+		while sleep 0.1; do
+			elapsed=$(($(date +%s) - start))
+			mins=$((elapsed / 60))
+			secs=$((elapsed % 60))
+			printf "%02d:%02d" "$mins" "$secs" >/tmp/timer
+		done
+	) &
+	pid=$!
+	read -rp 'Press enter to stop timer '
+	kill "$pid"
+	read -rp 'Press enter to reset timer '
+done
