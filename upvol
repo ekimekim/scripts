@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# What's upvol?
+# Increases volume by N% (default 5).
+# Then lowers it slowly over at most next S seconds (default 120)
+# Idea is to provide a psycological boost to volume but then boil the frog it back down
+# without noticing.
+
+BASE=$(
+	amixer -M get Master |
+	egrep '^  (Front Left|Mono):' |
+	egrep -o '[0-9.]*%' | head -c-2
+)
+
+echo $BASE
+
+if [ -z "$BASE" ]; then
+	echo "Could not determine current volume" >&2
+	exit 1
+fi
+
+INCREASE=${1:-5}
+DURATION=${2:-120}
+INTERVAL=$((DURATION / INCREASE))
+
+vol() {
+	amixer -qM set Master "$1%"
+}
+
+trap 'vol "$BASE"' exit
+
+echo "Raising by $INCREASE then lowering by 1 every ${INTERVAL}s back to $BASE%"
+echo "Or press ^C to return to $BASE% now"
+
+for ((n=INCREASE; n; n--)); do
+	vol "$((BASE + n))"
+	sleep "$INTERVAL"
+done
+
+vol "$BASE"
