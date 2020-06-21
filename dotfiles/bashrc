@@ -26,6 +26,9 @@ set -o vi
 # This disables history expansion like 'sudo !!', but I don't use those anyway.
 set +o histexpand
 
+# Keep all history from multiple windows
+shopt -s histappend
+
 # This sets env vars and sets up keychain if needed, without locking the agent
 source "$HOME/bin/setup-keychain.bash" -Q
 
