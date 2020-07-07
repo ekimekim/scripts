@@ -152,21 +152,11 @@ def main(video_id, start_at, log='WARNING'):
 	parts = map(int, parts)[::-1] # parts is now eg. (seconds, minutes, hours)
 	start_at = sum(value * 60**n for n, value in enumerate(parts))
 
-	# get details on video
-	try:
-		video = fetch(TWITCH_API, 'videos', video_id)
-	except HTTPError as e:
-		if e.response.status_code in (400, 404):
-			raise ValueError("Bad or non-existent video id")
-		raise
-
-	logging.info("Got video info: {}".format(video))
-
 	timer = Timer(start_at)
 	print "Started at {}".format(format_video_time(start_at))
 
 	group = gevent.pool.Group()
-	group.spawn(output_loop, timer, video_id, video['length'], start_at)
+	group.spawn(output_loop, timer, video_id, start_at)
 	group.spawn(input_loop, timer)
 	try:
 		gevent.wait(group, count=1) # wait for any one to finish
@@ -191,7 +181,7 @@ relevant comment fields:
 omit cursor to get beginning of video
 """
 
-def output_loop(timer, video_id, length, start_at):
+def output_loop(timer, video_id, start_at):
 	cursor = None
 	first = True
 	while first or cursor is not None:
