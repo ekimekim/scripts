@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+ask() {
+	while true; do
+		read -p "$1 " resp
+		grep -qi ^y <<<"$resp" && return 0
+		if grep -qi ^n <<<"$resp"; then
+			echo "That's probably it then."
+			return 1
+		fi
+		echo "Answer the question."
+	done
+}
+
+ask 'Have you eaten recently?'
+ask 'Was it a proper meal (not empty snacks)?'
+ask 'Have you been drinking enough water?'
+ask 'Did you get plenty of sleep?'
+ask 'Have you had any caffiene in the last 24 hours?'
+ask "Was it only a few hours ago and now you're coming down?"
+echo "Beats me then."
