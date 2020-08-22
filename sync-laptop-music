@@ -1,0 +1,3 @@
+#!/bin/bash
+
+transcode-cp ~/music /srv/laptop/music --ext opus --non-audio --delete
