@@ -1,0 +1,5 @@
+#!/bin/bash
+
+tz=${1?Timezone?}
+shift
+TZ="$tz" date "$@"
