@@ -71,6 +71,9 @@
 	conflictstyle = diff3
 	defaultToUpstream = True
 
+[pull]
+	ff = only
+
 [push]
 	default = upstream
 
