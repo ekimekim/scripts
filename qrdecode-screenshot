@@ -3,7 +3,7 @@
 set -e
 
 path="/tmp/qrdecode-screenshot-$(uuidgen).png"
-echo "Select a screen region containing QR code"
+echo "Select a screen region containing QR code" >&2
 trap 'rm -f "$path"' exit
 scrot -zs "$path"
 qrdecode "$path"
