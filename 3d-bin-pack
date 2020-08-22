@@ -1,0 +1,85 @@
+#!/bin/env python2
+
+__requires__ = ['argh', 'py3dbp']
+
+import sys
+
+import argh
+from py3dbp import Packer, Bin, Item
+
+
+def parse_size(s):
+	"""Parses a size like A x B x C and returns a tuple of (A, B, C) as float"""
+	parts = s.split('x')
+	if len(parts) != 3:
+		raise ValueError('Size {!r} must specify 3 dimensions in form "A x B x C"'.format(s))
+	return map(float, parts)
+
+
+def parse_item(s, num):
+	if ':' in s:
+		name, size = s.rsplit(':', 1)
+	else:
+		name = 'Item {}'.format(num)
+		size = s
+	size = parse_size(size)
+	return Item(name, *size, weight=1)
+
+
+@argh.arg('bin_size', type=parse_size)
+@argh.arg('items', metavar='[NAME:]SIZE')
+def main(bin_size, *items):
+	"""Takes a list of items and tries to fit them into a box of given size.
+	First arg is box size.
+	Subsequent args are items of form [NAME:]SIZE.
+	Size args are of form AxBxC where A, B, C are floats. Whitespace is ignored.
+	No units are given, all measurements must be in the same units.
+	"""
+	items = [
+		parse_item(item, num)
+		for num, item in enumerate(items)
+	]
+
+	# we have to provide a max weight, so use number of items as max weight
+	# and have each item weigh 1.
+	bin = Bin('bin', *bin_size, max_weight=len(items))
+
+	packer = Packer()
+	packer.add_bin(bin)
+	for item in items:
+		packer.add_item(item)
+
+	print "Total volume to pack is {}% of bin".format(int(
+		100 * sum(item.get_volume() for item in items) / bin.get_volume()
+	))
+
+	packer.pack()
+
+	def format_triple(triple):
+		return ' x '.join([str(float(x)) for x in triple])
+
+	for item in bin.items:
+		size = [item.width, item.height, item.depth]
+		if size != item.get_dimension():
+			# non-trivial rotation
+			rotate_str = ' rotated to being {}'.format(format_triple(item.get_dimension()))
+		else:
+			rotate_str = ''
+		print "{name} ({size}) placed at {pos}{rotate_str}".format(
+			name=item.name,
+			size=format_triple(size),
+			pos=format_triple(item.position),
+			rotate_str=rotate_str,
+		)
+
+	print "Bin is {}% full".format(int(
+		100 * sum(item.get_volume() for item in bin.items) / bin.get_volume()
+	))
+
+	if bin.unfitted_items:
+		print "Unable to fit items: {}".format(", ".join(i.name for i in bin.unfitted_items))
+		sys.exit(1)
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
