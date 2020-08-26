@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# start folding since we're not being used otherwise
-fahctl unpause
-
 (
 	# wait for user to step away, then off screens
 	sleep 5
