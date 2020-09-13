@@ -319,7 +319,7 @@ ALERTS=(
 	check_git_stash
 	check_git_with_nesting
 	check_vpn
-	check_proton_mount
+	#check_proton_mount disabled until proton arrives
 	check_journal
 	check_file_alerts
 )
