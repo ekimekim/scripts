@@ -7,7 +7,7 @@ from random import SystemRandom
 import argh
 
 
-def main(n=1, words='/usr/share/dict/words'):
+def main(n=1, words='/usr/share/dict/cracklib-small'):
 	"""Generate a 'correct horse battery staple'-style password using /dev/urandom"""
 	logging.basicConfig(level=logging.INFO)
 	rng = SystemRandom()
