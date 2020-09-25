@@ -358,6 +358,7 @@ pmk() {
 # Misc completions
 complete -c which
 complete -c spawn
+complete -F _pass pcard
 
 # These aliases need to not exist, see below
 for a in systemctl-user pacman user_pacman pip shutdown reboot poweroff systemctl ip wifi-menu mplayer; do

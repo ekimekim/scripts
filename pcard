@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -ne 1 ]; then
+	echo "$0 PATH" >&2
+	echo "Get details for credit/debit card info stored in password manager at PATH" >&2
+	exit 1
+fi
+
+BASE="$1"
+
+pass show -c "$BASE/number"
+echo "Copied number to clipboard."
+echo "Expiry: $(pass show "$BASE/expiry")"
+echo "CSC: $(pass show "$BASE/CSC")"
