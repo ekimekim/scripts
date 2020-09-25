@@ -6,9 +6,11 @@ USAGE="$0 [FORMAT]"
 FORMAT="${1:-%T}"
 BANNER="${BANNER:-banner}"
 ADD_UTC=true
+ADD_OTHER=America/Los_Angeles
 
 while sleep 1; do
 	clear
 	$BANNER "$(date "+$FORMAT")"
 	[ -n "$ADD_UTC" ] && echo -en "\e[s\e[H\e[35m$(date -u +%H)\e[m\e[u"
+	[ -n "$ADD_OTHER" ] && echo -en "\e[s\e[2;1H\e[36m$(TZ="$ADD_OTHER" date +%H)\e[m\e[u"
 done
