@@ -310,6 +310,7 @@ alias qr='qrencode -t ANSIUTF8 -o-'
 alias ''='cd ~+'
 # ^X^X: cd to top of git repo
 alias ''='cd "$(git rev-parse --show-toplevel)"'
+alias rerc='source "$HOME/.bashrc"'
 
 # PS1 alerts (see alerts.ps1.bash)
 ALERTS=(
