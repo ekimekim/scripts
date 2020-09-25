@@ -119,7 +119,3 @@
 
 [github]
 	user = ekimekim
-
-# Avoid using https for github
-[url "git@github.com:postmates/"]
-	insteadOf = https://github.com/postmates/

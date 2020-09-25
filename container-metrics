@@ -1,7 +1,0 @@
-#!/bin/bash
-
-NAMESPACE=${1:-All}
-REGEX=${2:-.*}
-CONTAINER=${3:-All}
-
-xdg-open "https://grafana.prod.us-west-1.postmates.com/d/000000007/container-metrics?orgId=1&var-datasource=default&var-node=All&var-namespace=$NAMESPACE&var-pod_regex=$REGEX&var-pod=All&var-container=$CONTAINER"

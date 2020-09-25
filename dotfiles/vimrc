@@ -18,7 +18,6 @@ map  :syntax sync fromstart<CR>
 command Sync :autocmd CursorMoved * :syntax sync fromstart | :autocmd CursorMovedI * :syntax sync fromstart
 
 " Expand tabs only for these projects / under these directories:
-:autocmd BufRead,BufNewFile ~/src/postmates/* set expandtab
 :autocmd BufRead,BufNewFile ~/src/argh/* set expandtab
 :autocmd BufRead,BufNewFile ~/src/DesertBot/* set expandtab
 
