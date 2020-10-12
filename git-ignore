@@ -5,7 +5,7 @@ set -eu
 # Add $@ to per-repo, non-checked-in ignore list, if not already present.
 
 BASE=$(git rev-parse --show-toplevel)
-GITDIR=$(git rev-parse --absolute-git-dir)
+GITDIR=$(git rev-parse --git-common-dir)
 EXCLUDE="$GITDIR/info/exclude"
 
 for arg in "$@"; do
