@@ -46,4 +46,6 @@ while (( diff > 0 )); do
 done
 clear
 
-[ "$#" -gt 0 ] && "$@"
+if [ "$#" -gt 0 ]; then
+	"$@"
+fi
