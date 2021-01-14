@@ -1,0 +1,129 @@
+#!/bin/env python2
+
+import json
+import os
+import sys
+
+import argcomplete
+import argh
+
+from termhelpers import termsize
+from easycmd import cmd
+
+"""Expects openapi swagger.json to be available at ~/.k8s-api-spec.json.
+You can download this via:
+	curl https://raw.githubusercontent.com/kubernetes/kubernetes/$VERSION/api/openapi-spec/swagger.json > ~/.k8s-api-spec.json
+"""
+
+with open(os.path.expanduser("~/.k8s-api-spec.json")) as f:
+	TYPES = {
+		'.'.join(k.split('.')[::-1]): v
+		for k, v in json.load(f)["definitions"].items()
+	}
+
+cli = argh.EntryPoint()
+
+@cli
+@argh.named('list')
+def list_types():
+	print "\n".join(TYPES.keys())
+
+
+@cli
+@argh.arg("type", completer=lambda **k: TYPES.keys())
+@argh.arg("--format", choices=["json", "plain", "auto", "color"])
+def show(type, format='auto', indent="    ", pager=os.environ.get('PAGER', '')):
+	if format == "json":
+		print json.dumps(TYPES[type])
+		return
+
+	try:
+		width, _ = termsize()
+	except IOError:
+		color = False
+		try:
+			width = int(os.environ.get('COLUMNS'))
+		except (ValueError, TypeError):
+			width = 80
+	else:
+		color = True
+
+	if format == 'plain':
+		color = False
+	elif format == 'color':
+		color = True
+
+	output = "\n".join(rich_format(type, width, indent=indent, color=color))
+	if pager:
+		cmd(pager, stdin=output, stdout=sys.stdout)
+	else:
+		print output
+
+
+def rich_format(type, width, indent, color, description=True):
+	obj = TYPES[type]
+	# first the main description
+	lines = []
+	if description:
+		lines += list(wrap_text(obj['description'], width))
+	# then for each field
+	for field, field_obj in sorted(obj.get('properties', {}).items()):
+		field_type = get_type(field_obj)
+		# FIELD: TYPE
+		lines.append("{field}: {field_type}".format(
+			field=colorise(color, '6', field),
+			field_type=colorise(color, '5', field_type),
+		))
+		# indented, the field description
+		lines += indented(indent, wrap_text(field_obj['description'], width - len(indent)))
+		# recurse at the new indentation level, if the field is a complex type
+		if field_type in TYPES:
+			lines += indented(indent, rich_format(field_type, width - len(indent), indent=indent, color=color, description=False))
+	return lines
+
+
+def get_type(field_obj):
+	if "$ref" in field_obj:
+		return '.'.join(field_obj["$ref"].split('/')[-1].split('.')[::-1])
+	if field_obj['type'] == "array":
+		return "{}[]".format(get_type(field_obj['items']))
+	return field_obj['type']
+
+
+def indented(indent, lines):
+	return [indent + line for line in lines]
+
+
+def colorise(enabled, color, text):
+	return "\x1b[3{color}m{text}\x1b[m".format(color=color, text=text) if enabled else text
+
+
+def wrap_text(text, width):
+	"""Attempt to wrap text to a max width of WIDTH,
+	without splitting words if possible."""
+	line = ''
+	for word in text.split():
+		if line:
+			# add to current line if it fits
+			if len(line) + 1 + len(word) <= width:
+				line += ' ' + word
+				continue
+			# emit line and reset if it doesn't
+			yield line
+		line = word
+		# check if word is already too long for one line.
+		# if so, split it over multiple lines with a hyphen.
+		while len(line) > width:
+			yield line[:width - 1] + '-'
+			line = line[width - 1:]
+	# emit the final line
+	yield line
+
+
+@cli
+def completion():
+	print argcomplete.shellcode(sys.argv[0], shell="bash")
+
+
+if __name__ == '__main__':
+	cli()
