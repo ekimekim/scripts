@@ -56,7 +56,7 @@ function alias_completion {
                         (( COMP_POINT -= \${#COMP_LINE} ))
                         COMP_LINE=\${COMP_LINE/$alias_name/$alias_cmd $alias_args}
                         (( COMP_POINT += \${#COMP_LINE} ))
-                        $compl_func
+                        $compl_func \"\${COMP_WORDS[0]}\" \"\${COMP_WORDS[COMP_CWORD]}\" \"\${COMP_WORDS[COMP_CWORD-1]}\"
                     }" >> "$tmp_file"
                     new_completion="${new_completion/ -F $compl_func / -F $compl_wrapper }"
             fi
