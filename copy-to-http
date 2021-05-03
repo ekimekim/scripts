@@ -11,11 +11,9 @@ if [ "$#" -lt 1 ]; then
 	exit 255
 fi
 
-IP=$(curl -sS ip-api.com/json | jq -r .query)
-
 for path in "$@"; do
 	uuid=$(uuidgen)
 	outfile="$uuid.${path##*.}"
 	cp "$path" "/srv/http/$outfile"
-	echo "http://$IP/$outfile"
+	echo "http://ekime.kim/$outfile"
 done
