@@ -1,0 +1,8 @@
+#!/bin/bash
+
+sudo dmesg -w | while read -r line; do
+	grep -F 'ERROR Transfer event TRB DMA ptr not part of current TD' <<<"$line" || continue
+	now=$(date +%s)
+	[ "$((now - last))" -lt 3 ] || espeak 'cam'
+	last="$now"
+done
