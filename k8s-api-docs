@@ -55,7 +55,7 @@ def show(type, format='auto', indent="    ", pager=os.environ.get('PAGER', '')):
 
 	output = "\n".join(rich_format(type, width, indent=indent, color=color))
 	if pager:
-		cmd(pager, stdin=output, stdout=sys.stdout)
+		cmd(pager, stdin=output, stdout=sys.stdout, stderr=sys.stderr)
 	else:
 		print output
 
@@ -68,14 +68,16 @@ def rich_format(type, width, indent, color, description=True):
 		lines += list(wrap_text(obj['description'], width))
 	# then for each field
 	for field, field_obj in sorted(obj.get('properties', {}).items()):
-		field_type = get_type(field_obj)
+		field_type, field_type_str = get_type(field_obj)
 		# FIELD: TYPE
 		lines.append("{field}: {field_type}".format(
 			field=colorise(color, '6', field),
-			field_type=colorise(color, '5', field_type),
+			field_type=colorise(color, '5', field_type_str),
 		))
 		# indented, the field description
-		lines += indented(indent, wrap_text(field_obj['description'], width - len(indent)))
+		lines += indented(indent, wrap_text(
+			field_obj.get('description', "<no description>"),
+		width - len(indent)))
 		# recurse at the new indentation level, if the field is a complex type
 		if field_type in TYPES:
 			lines += indented(indent, rich_format(field_type, width - len(indent), indent=indent, color=color, description=False))
@@ -84,10 +86,12 @@ def rich_format(type, width, indent, color, description=True):
 
 def get_type(field_obj):
 	if "$ref" in field_obj:
-		return '.'.join(field_obj["$ref"].split('/')[-1].split('.')[::-1])
+		type = '.'.join(field_obj["$ref"].split('/')[-1].split('.')[::-1])
+		return type, type
 	if field_obj['type'] == "array":
-		return "{}[]".format(get_type(field_obj['items']))
-	return field_obj['type']
+		type, type_str = get_type(field_obj['items'])
+		return type, "{}[]".format(type_str)
+	return field_obj['type'], field_obj['type']
 
 
 def indented(indent, lines):
@@ -122,7 +126,7 @@ def wrap_text(text, width):
 
 @cli
 def completion():
-	print argcomplete.shellcode(sys.argv[0], shell="bash")
+	print argcomplete.shellcode(os.path.basename(sys.argv[0]), shell="bash")
 
 
 if __name__ == '__main__':
