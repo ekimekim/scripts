@@ -17,6 +17,6 @@ for arg in "$@"; do
 	if grep -E '[][*?]' <<<"$rel"; then # note: confusing escaping, matches literal [, ], *, or ?
 		echo "WARNING: Path contains glob meta-characters, this may not do what you expect: $rel"
 	fi
-	grep -qF "$rel" "$EXCLUDE" ||
+	grep -qFx "/$rel" "$EXCLUDE" ||
 		echo "/$rel" >> "$EXCLUDE"
 done
