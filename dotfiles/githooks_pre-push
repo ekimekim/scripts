@@ -7,14 +7,16 @@ if [ "$PUSH_MASTER" == 'true' ] || [ "$PUSH_MASTER" == "$REPO_NAME" ]; then
 	exit 0
 fi
 
-if ! git rev-parse --absolute-git-dir | grep -q "^$HOME/src/postmates/"; then
-	# Ignore non-postmates
+if ! git rev-parse --absolute-git-dir | grep -q "^$HOME/src/glide/"; then
+	# Ignore non-glide
 	exit 0
 fi
 
 while read local_ref local_sha remote_ref remote_sha; do
-	if [ "$remote_ref" == "refs/heads/master" ]; then
-		echo "Refusing to push to master. If you really want to do this, set PUSH_MASTER=true or PUSH_MASTER=$REPO_NAME" >&2
-		exit 1
-	fi
+	for branch in refs/heads/prod refs/heads/staging refs/heads/dev; do
+		if [ "$remote_ref" == "$branch" ]; then
+			echo "Refusing to push to $branch. If you really want to do this, set PUSH_MASTER=true or PUSH_MASTER=$REPO_NAME" >&2
+			exit 1
+		fi
+	done
 done

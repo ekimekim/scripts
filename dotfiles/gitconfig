@@ -17,7 +17,9 @@
 	fpush = push --force-with-lease
 	co = checkout
 	master = checkout master
+	dev = checkout dev
 	rim = rebase -i master
+	rid = rebase -i dev
 	b = rev-parse --symbolic-full-name HEAD
 	pr = !hub pull-request
 	por = !git pushorigin && git pr

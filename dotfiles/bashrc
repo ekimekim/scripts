@@ -48,6 +48,9 @@ PATH="$HOME/bin:$PATH"
 # Add py3 binaries to PATH, but only as a last resort to prevent it overriding py2 bins
 PATH="$PATH:$HOME/.local/bin"
 
+# nvm manages node.js versions by manipulating $PATH
+source "/usr/share/nvm/init-nvm.sh"
+
 # source auto-complete scripts
 source "/usr/share/git/completion/git-completion.bash"
 source "/usr/share/bash-completion/completions/pass"
@@ -274,6 +277,10 @@ alias svim='sudo vim'
 alias scat='sudo cat'
 alias sumv='sudo mv'
 alias sucp='sudo cp'
+
+# Glide aliases
+alias gcloud-prod='gcloud --project=glide-prod'
+alias gcloud-sandbox='gcloud --project=glide-sandbox-301022'
 
 # Other aliases
 alias 'pip-upgrade'='sudo PYTHONWARNINGS=ignore pip2 install -U --no-deps'

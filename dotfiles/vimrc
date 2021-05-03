@@ -20,6 +20,8 @@ command Sync :autocmd CursorMoved * :syntax sync fromstart | :autocmd CursorMove
 " Expand tabs only for these projects / under these directories:
 :autocmd BufRead,BufNewFile ~/src/argh/* set expandtab
 :autocmd BufRead,BufNewFile ~/src/DesertBot/* set expandtab
+:autocmd BufRead,BufNewFile ~/src/glide/* set expandtab
+
 
 " set noeol for this one project that doesn't like trailing newlines
 :autocmd BufRead,BufNewFile ~/src/txircd/* set noeol expandtab
