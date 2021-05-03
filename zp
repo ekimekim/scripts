@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec zoom-link-paste type

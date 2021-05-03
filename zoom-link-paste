@@ -1,0 +1,28 @@
+#!/bin/env python2
+
+import sys
+from urlparse import urlparse, parse_qs
+
+from easycmd import cmd
+
+import clipboard
+
+
+def main(mode='clipboard'):
+	"""Reads a zoom url from clipboard and replaces it with the password field"""
+	url = clipboard.paste()
+	password = parse_qs(urlparse(url).query)['pwd'][0]
+	if mode == 'clipboard':
+		clipboard.copy(password)
+		try:
+			raw_input("Press enter when done")
+		except KeyboardInterrupt:
+			pass
+	elif mode == 'type':
+		cmd(['xdotool', 'type', '--delay', '50', password])
+	else:
+		assert False
+
+
+if __name__ == '__main__':
+	main(*sys.argv[1:])
