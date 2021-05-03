@@ -1,0 +1,25 @@
+#!/bin/env python
+
+import subprocess
+
+import argh
+
+
+def main(output, *files):
+	filter_in = "".join("[{n}:v:0][{n}:a:0]".format(n=n) for n in range(len(files)))
+	filter = "{fin}concat=n={n}:v=1:a=1[outv][outa]".format(fin=filter_in, n=len(files))
+	input_args = sum([
+		["-i", file]
+		for file in files
+	], [])
+	args = ["ffmpeg"] + input_args + [
+		"-filter_complex", filter,
+		"-map", "[outv]", "-map", "[outa]",
+		"-y", output,
+	]
+	print "Running: {}".format(args)
+	subprocess.check_call(args, stdin=open('/dev/null'))
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
