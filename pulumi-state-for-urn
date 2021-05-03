@@ -1,0 +1,5 @@
+#!/bin/bash
+
+URN=${1:?urn required}
+
+pulumi stack export | jq --arg urn "$URN" '.deployment.resources[]|select(.urn == $urn)'
