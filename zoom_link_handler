@@ -1,0 +1,45 @@
+#!/bin/env python2
+
+import urlparse
+import logging
+
+import argh
+
+from easycmd import cmd
+
+
+def main(log_level='INFO'):
+	logging.basicConfig(level=log_level)
+
+	url = cmd(['xclip', '-selection', 'clipboard', '-o'])
+	print "Got URL:", url
+
+	parts = urlparse.urlsplit(url)
+
+	# Unwrap google-ified links
+	if (parts.netloc, parts.path) == ("www.google.com", "/url"):
+		print "Unwrapping google link"
+		params = urlparse.parse_qs(parts.query)
+		url, = params['q']
+		print "Got URL:", url
+		parts = urlparse.urlsplit(url)
+
+	# Check the url looks correct
+	if "zoom.us" not in parts.netloc or not parts.path.startswith('/j/'):
+		print "Not a zoom url"
+		return
+
+	meeting_id = parts.path.split('/')[2]
+	params = urlparse.parse_qs(parts.query)
+	pastes = [meeting_id]
+	if 'pwd' in params:
+		password, = params['pwd']
+		pastes.append(password)
+
+	for paste in pastes:
+		print "Putting", paste, "on clipboard"
+		cmd(['xclip', '-i', '-selection', 'clipboard' '-quiet', '-loops', '1'], stdin=paste)
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
