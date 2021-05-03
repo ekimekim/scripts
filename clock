@@ -7,10 +7,25 @@ FORMAT="${1:-%T}"
 BANNER="${BANNER:-banner}"
 ADD_UTC=true
 ADD_OTHER=America/Los_Angeles
+ADD_28HR="America/Los_Angeles 13" # base time zone, start hour offset
+ADD_CUSTOM=
+
+# Bustime
+#ADD_CUSTOM='echo $(( ($(date +%s)-1605290400) / 3600 ))' # DB2020
+
+# Translate 28hr arg
+if [ -n "$ADD_28HR" ]; then
+	read TZ_28 OFFSET_28 <<<"$ADD_28HR"
+	hour28() {
+		printf '%02d' $(( ($(TZ="$TZ_28" date +%s) / 3600 - OFFSET_28) % 28 ))
+	}
+fi
 
 while sleep 1; do
 	clear
 	$BANNER "$(date "+$FORMAT")"
 	[ -n "$ADD_UTC" ] && echo -en "\e[s\e[H\e[35m$(date -u +%H)\e[m\e[u"
 	[ -n "$ADD_OTHER" ] && echo -en "\e[s\e[2;1H\e[36m$(TZ="$ADD_OTHER" date +%H)\e[m\e[u"
+	[ -n "$ADD_CUSTOM" ] && echo -en "\e[s\e[6;1H\e[36;1m$(bash -c "$ADD_CUSTOM")\e[m\e[u"
+	[ -n "$ADD_28HR" ] && echo -en "\e[s\e[6;999H\e[D\e[33m$(hour28)\e[m\e[u"
 done
