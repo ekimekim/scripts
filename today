@@ -1,0 +1,79 @@
+#!/usr/bin/python2
+
+from collections import namedtuple
+import sys
+import os
+import time
+
+import argh
+import argcomplete
+
+from misc import AtomicReplace
+
+cli = argh.EntryPoint()
+Action = namedtuple('Action', ['name', 'future_tense', 'interval', 'last'])
+STATE_FILE = os.path.expanduser("~/.today")
+
+
+def load():
+	data = []
+	with open(STATE_FILE) as file:
+		for line in file:
+			line = line.strip()
+			if not line:
+				continue
+			parts = line.split()
+			parts = [f(v) for f, v in zip((str, str, int, int), parts)]
+			data.append(Action(*parts))
+	return data
+
+def write(actions):
+	with AtomicReplace(STATE_FILE) as tmp:
+		with open(tmp, 'w') as f:
+			for action in actions:
+				f.write(" ".join(map(str, action)) + "\n")
+
+actions = load()
+names = [action.name for action in actions]
+
+@cli
+@argh.arg('action', choices=names + ['should'])
+def i(action):
+	today = (int(time.time() / 3600) - 12) / 28
+
+	if action == 'should':
+		for action in actions:
+			overdue = today - (action.last + action.interval)
+			if overdue >= 0:
+				print "Today you should {} (overdue by {} days)".format(action.future_tense, overdue)
+		return
+
+	for i, a in enumerate(actions):
+		if a.name == action:
+			actions[i] = a._replace(last=today)
+
+	write(actions)
+
+
+@cli
+def report():
+	today = (int(time.time() / 3600) - 12) / 28
+	for action in actions:
+		overdue = today - (action.last + action.interval)
+		if overdue > 0:
+			next_text = 'overdue by {} days'.format(overdue)
+		elif overdue < 0:
+			next_text = 'next in {} days'.format(-overdue)
+		else:
+			next_text = 'due today'
+		print "Every {a.interval} days, you should {a.future_tense}. You last {a.name} {ago} days ago ({next_text})".format(
+			a=action, ago=today - action.last, next_text=next_text,
+		)
+
+@cli
+def completion():
+	print argcomplete.shellcode(os.path.basename(sys.argv[0]), shell="bash")
+
+
+if __name__ == '__main__':
+	cli()
