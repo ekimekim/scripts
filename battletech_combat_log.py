@@ -1,0 +1,172 @@
+
+import os
+import re
+import time
+
+import argh
+
+
+PATTERNS = {
+	# Hard code Player 1 here to ignore uselss matches like "World"
+	r"MORALE: team Player 1 has current (\d+) morale; adding (\d+) new morale":
+		"{cyan}Morale increased: {1} + {2} -> `{1}+{2}`",
+
+	r"=== Phase (\d) Begin! ===":
+		"{white}Round phase `6 - {1}` begins",
+
+	# disabled: Reveals number and phase of hidden enemies
+	#r"Team (.*) becoming active":
+	#	"{white}{1}'s turn",
+
+	r"Mech ([^(])(?: \(.*\))? gains (\d+) heat from (.*)":
+		"{yellow}{1} {3} produced {2} heat",
+	r"Mech (.*) sinks (\d+) points of heat; result heat = ([0-9-]+)":
+		"{yellow}{1} sinks heat: `{3}+{2}` - {2} = `max(0,{3})`",
+
+	r"Unit Firing: (.*) \| Weapon: (.*) \| Shots: (\d+)":
+		"`save.attacker(g1) + save.weapon(g2) + save.shots(g3)`",
+	r"MODIFIERS: .* FINAL: \[\[ ([0-9-]+) \]\]":
+		"`save.mod(-({1}))`",
+	r"Gunnery Result: ([0-9.]+)":
+		"`save.gunnery({1})`",
+	r"HIT CHANCE: \[\[ ([0-9.]+) % \]\]":
+		"{purple}{attacker} shooting {shots}x {weapon}: `100*{gunnery}`% base {mod:+d} = `int({1})`%",
+
+	# Obselete: Better reporting below
+	#r"WEAP:\d+ SHOT:(\d+) (Hit|Initial clustered hit|Clustered hit)! Location: (.*)":
+	#	"{red}Shot {1} hit location {3}",
+	#r"WEAP:\d+ SHOT:(\d+) Miss!":
+	#	"{red}Shot {1} misses",
+
+	r"\[OnAttackSequenceBegin\].*ID \d+. (.*) \(.*\) attacking (.*) \(.*\)":
+		"{white}{1} is attacking {2}",
+	r"WeaponName (.*), MeleeType .*, HitLocation (.*)":
+		"`save.weapon(g1) + save.location(g2)`",
+	# HitLocation 65535 and 0 are both observed for misses?
+	r"WeaponName (.*), MeleeType .*, HitLocation (65536|0)":
+		"{red}{1} misses",
+	r"WEAP:\d+.*Base Damage: (\d+)":
+		"`save.base(int(g1))`",
+	r"WEAP:\d+(?: HITLOC: \d+ \((.*)\))? (Armor|Structure) damage: ([1-9]\d*)":
+		"{red}{weapon} hits location `g1 or location` for {3} {2} damage`' (carryover %d)' % (base - int(g3)) if base - int(g3) > 1 else ''``save.base(base - int(g3))`",
+
+	r"Actor .* - (.*) \(.*\) FLAGGED FOR DEATH! Reason: (.*)":
+		"{bold}{white}{1} destroyed due to: {2}",
+	r"Actor .* - (.*) \(.*\) FLAGGED FOR KNOCKDOWN!":
+		"{white}{1} knocked down",
+
+	r"\[LOG\] (.*) gains effect SENSOR LOCK from (.*)":
+		"{blue}{2} sensor locks {1}",
+
+	r"V\^V\^V\^V\^V (.*) takes Stability Damage \(Absolute\) from Attack: ([1-9]\d*|\d+\.\d+) / Current Instability: (\d+) / Max Instability: (\d+)":
+		"{green}{1} took {2} stability damage, now at {3}/{4}",
+
+	r"WEAP:\d+ Loc:(.*) Critical: (.*) new damage state: (.*)":
+		"{blue}Critical hit in {1}: {2} {3}",
+
+	r"==== Location Destroyed: (.*)":
+		"{white}{1} destroyed",
+	r"HITLOC: \d+ \((.*)\) Passing ([0-9.]+) damage through to (.*)":
+		"{red}{2} damage on destroyed {1} carries over to {3}",
+
+	r": (.*) Injured! ///// Cause: (.*) ///// Injuries: (\d+)":
+		"{white}{1} injured due to {2} (now at {3} injuries)"
+}
+
+
+PATTERNS = {(pattern, re.compile(pattern)): template for pattern, template in PATTERNS.items()}
+
+FORMATTING = {
+	'bold': '\x1b[1m',
+	'reset': '\x1b[m',
+}
+FORMATTING.update({
+	color: '\x1b[3{}m'.format(i)
+	for i, color in enumerate(['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white'])
+})
+
+# saved values carry over from command to command and are included in interpolation vars
+saved = {}
+
+class Save(object):
+	def __getattr__(self, key):
+		def saver(value):
+			saved[key] = value
+			return ''
+		return saver
+save = Save()
+
+# Eval code within `...`, after format interpolation.
+# example: "first group doubled: `{1}*2`"
+# Available in namespace:
+#	save(key, value): command for carryover of info from line to line.
+#	All kwargs as per format interpolation
+#	Positional groups as g0, g1, etc
+EVAL_RE = re.compile(r"`([^`]+)`")
+def eval_repl(args, kwargs):
+	namespace = dict(save=save, **kwargs)
+	namespace.update({
+		"g{}".format(i): arg
+		for i, arg in enumerate(args)
+	})
+	def _repl(eval_match):
+		return str(eval(eval_match.group(1), namespace))
+	return _repl
+
+
+def process(line, debug=False):
+	for (pattern_str, pattern), template in PATTERNS.items():
+		match = pattern.search(line)
+		if debug:
+			if match:
+				print "Got match {!r} for {!r}: {!r}".format(pattern_str, line, match.group(0))
+			else:
+				print "No match {!r} for {!r}".format(pattern_str, line)
+		if match:
+			args = [match.group(0)] + list(match.groups())
+			kwargs = FORMATTING.copy()
+			kwargs.update(saved)
+			kwargs.update(match.groupdict())
+			try:
+				interpolated = template.format(*args, **kwargs)
+				evaluated = EVAL_RE.sub(eval_repl(args, kwargs), interpolated)
+			except Exception as e:
+				evaluated = "\x1b[31;1mERROR: Format failure for {!r}: {}".format(match.group(0), e)
+			if evaluated:
+				output = evaluated + FORMATTING['reset']
+				print output
+			elif debug:
+				print "Skipping blank output from template {!r}".format(template)
+
+
+@argh.arg('log_path', nargs='?')
+def main(log_path, interval=0.1, seek=False, debug=False):
+	if not log_path:
+		dump_dir = '/home/mike/steamapps/ssd_raid0/steamapps/common/BATTLETECH/DumpBox'
+		last = sorted(os.listdir(dump_dir))[-1]
+		log_dir = os.path.join(dump_dir, last)
+		log_paths = [os.path.join(log_dir, name) for name in os.listdir(log_dir) if name.endswith('CombatLog.txt')]
+		if not log_paths:
+			raise argh.CommandError("No combat log found in {}".format(log_dir))
+		log_path, = log_paths
+		print "Found path:", log_path
+	with open(log_path) as log:
+		if seek:
+			old_data = log.read()
+			_, buf = old_data.split('\n')
+		else:
+			buf = ''
+		while True:
+			new = log.read(4096)
+			if not new:
+				time.sleep(interval)
+				continue
+			buf += new
+			lines = buf.split('\n')
+			buf = lines.pop()
+			for line in lines:
+				process(line, debug)
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
