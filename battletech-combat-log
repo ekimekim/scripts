@@ -1,3 +1,4 @@
+#!/bin/env python2
 
 import os
 import re
@@ -85,13 +86,13 @@ FORMATTING.update({
 	for i, color in enumerate(['black', 'red', 'green', 'yellow', 'blue', 'purple', 'cyan', 'white'])
 })
 
-# saved values carry over from command to command and are included in interpolation vars
-saved = {}
-
 class Save(object):
+	def __init__(self):
+		self._values = {}
+
 	def __getattr__(self, key):
 		def saver(value):
-			saved[key] = value
+			self._values[key] = value
 			return ''
 		return saver
 save = Save()
@@ -99,7 +100,7 @@ save = Save()
 # Eval code within `...`, after format interpolation.
 # example: "first group doubled: `{1}*2`"
 # Available in namespace:
-#	save(key, value): command for carryover of info from line to line.
+#	save.key(value): command for carryover of info from line to line (returns '')
 #	All kwargs as per format interpolation
 #	Positional groups as g0, g1, etc
 EVAL_RE = re.compile(r"`([^`]+)`")
@@ -125,7 +126,7 @@ def process(line, debug=False):
 		if match:
 			args = [match.group(0)] + list(match.groups())
 			kwargs = FORMATTING.copy()
-			kwargs.update(saved)
+			kwargs.update(save._values)
 			kwargs.update(match.groupdict())
 			try:
 				interpolated = template.format(*args, **kwargs)
