@@ -1,32 +1,73 @@
 #!/bin/env python2
 
 import math
+import os
 import subprocess
+from uuid import uuid4
 
 import argh
 
 
 @argh.arg('videos', nargs='+')
-def main(output_file, videos, cols=4, size='1920x1080', dryrun=False):
+def main(output_file, videos, cols=4, size='1920x1080', spool_dir=None):
 	full_size = [int(part) for part in size.split('x')]
 	rows = int(math.ceil(len(videos) / float(cols)))
 	assert rows * cols >= len(videos)
 	video_size = [part / count for part, count in zip(full_size, (cols, rows))]
 	print "Putting {} videos into a {}x{} grid at {}x{} each".format(len(videos), cols, rows, *video_size)
 
-	args = ['ffmpeg', '-hide_banner']
-	for video in videos:
-		args += ['-i', video]
+	if spool_dir is not None:
+		row_paths = []
+		try:
+			for row in range(rows):
+				row_videos = videos[row * cols : (row+1) * cols]
+				row_path = os.path.join(spool_dir, "row-{}.mp4".format(uuid4()))
+				stack(row_path, 'hstack', row_videos, video_size)
+				row_paths.append(row_path)
+			stack(output_file, 'vstack', row_paths)
+		finally:
+			for path in row_paths:
+				os.remove(path)
+	else:
+		all_in_one(output_file, videos, video_size, rows, cols)
 
+
+def all_in_one(output_file, videos, video_size, rows, cols):
 	filters = []
+
 	for i in range(len(videos)):
 		filters.append('[{i}:v] setpts=PTS-STARTPTS, scale={size[0]}x{size[1]} [scaled{i}]'.format(i=i, size=video_size))
+
 	for row in range(rows):
 		inputs = ''.join('[scaled{}]'.format(i) for i in range(row * cols, (row + 1) * cols))
 		filters.append('{} hstack=inputs={} [row{}]'.format(inputs, cols, row))
+
 	inputs = ''.join('[row{}]'.format(row) for row in range(rows))
 	filters.append('{} vstack=inputs={}'.format(inputs, rows))
 
+	ffmpeg(output_file, videos, filters)
+
+
+def stack(output_file, kind, videos, video_size=None):
+	filters = []
+
+	if video_size is not None:
+		for i in range(len(videos)):
+			filters.append('[{i}:v] setpts=PTS-STARTPTS, scale={size[0]}x{size[1]} [scaled{i}]'.format(i=i, size=video_size))
+
+	inputs = ''.join(
+		('[scaled{}]' if video_size is not None else '[{}:v]').format(i)
+		for i in range(len(videos))
+	)
+	filters.append('{} {}=inputs={}'.format(inputs, kind, len(videos)))
+
+	ffmpeg(output_file, videos, filters)
+
+
+def ffmpeg(output_file, input_files, filters):
+	args = ['ffmpeg', '-hide_banner']
+	for input_file in input_files:
+		args += ['-i', input_file]
 	args += [
 		'-filter_complex', ';\n'.join(filters),
 		'-an', # no audio
@@ -40,8 +81,7 @@ def main(output_file, videos, cols=4, size='1920x1080', dryrun=False):
 	print "Calling ffmpeg with args:"
 	print ' '.join(args)
 
-	if not dryrun:
-		subprocess.check_call(args)
+	subprocess.check_call(args)
 
 
 if __name__ == '__main__':
