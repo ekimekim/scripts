@@ -7,7 +7,7 @@
 
 .tab-icon-overlay:is([soundplaying], [muted]):not([crashed]) {
   stroke: var(--tab-icon-overlay-stroke, black);
-  color: var(--tab-icon-overlay-fill, white);
+  color: var(--tab-icon-overlay-fill, black);
 }
 
 .tab-icon-overlay:not([crashed]):is([soundplaying], [muted]) {

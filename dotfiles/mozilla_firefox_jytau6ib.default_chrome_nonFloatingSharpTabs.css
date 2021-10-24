@@ -11,7 +11,7 @@ See the above repository for updates as well as full license text. */
   --tabs-shadow-size: 1px !important;
   
   /* Remove next line if you want selected tab to have color other than toolbar background - then it follows your theme color  */
-  --lwt-selected-tab-background-color: var(--toolbar-bgcolor) !important; 
+  --lwt-selected-tab-background-color: var(--toolbar-bgcolor) !important;
 }
 
 /* Uncomment next line to force specific color for tab top line */
@@ -24,8 +24,8 @@ See the above repository for updates as well as full license text. */
   box-shadow: 0 calc(-1 * var(--tabs-navbar-shadow-size)) 0 var(--tabs-border-color) !important;
 }
 .tab-background[selected]{
-  /*border-inline: 1px solid color-mix(in srgb, currentcolor 30%, transparent) !important;*/
-  border-inline: none !important;
+  border-inline: 1px solid color-mix(in srgb, currentcolor 30%, transparent) !important;*/
+  /*border-inline: none !important;*/
 }
 
 #TabsToolbar{
