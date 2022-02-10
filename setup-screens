@@ -1,22 +1,3 @@
 #!/bin/bash
 
-main='DVI-D-0'
-right='DP-0'
-top='HDMI-0'
-left='DP-2'
-
-# right offset upwards from main
-RY=600
-# top offset upwards from right so it fits above main
-TY=$((1080-RY))
-
-xrandr --output "$right" --off
-xrandr --output "$top" --off
-xrandr --output "$main" --off
-
-xrandr --output "$left" --mode 1920x1080 --pos 0x0
-xrandr --output "$main" --mode 1920x1080 --pos 1920x0
-xrandr --output "$right" --mode 1920x1080 --rotate right --pos 3840x0
-xrandr --output "$left" --mode 1920x1080 --pos "0x$RY"
-xrandr --output "$main" --mode 1920x1080 --pos "1920x$RY"
-xrandr --output "$top" --mode 1920x1080 --pos "1080x-$TY"
+xrandr --output HDMI-2 --mode 1920x1080 --same-as eDP-1

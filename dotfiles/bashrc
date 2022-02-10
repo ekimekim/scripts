@@ -328,7 +328,6 @@ ALERTS=(
 	check_kernel_version
 	check_git_stash
 	check_git_with_nesting
-	check_proton_mount
 	check_file_alerts
 )
 
