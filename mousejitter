@@ -5,9 +5,8 @@ export INTERVAL=${INTERVAL:-60}
 exec 2>/dev/null
 
 (while sleep "$INTERVAL"; do
-	eval $(xdotool getmouselocation --shell)
 	RAND=$((RANDOM % 8))
-	swarp $((X+RAND-4)) $Y
+	xdotool mousemove_relative $((RAND-4)) 0
 done) &
 pid="$!"
 
