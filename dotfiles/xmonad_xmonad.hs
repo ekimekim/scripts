@@ -24,7 +24,8 @@ main = do
 myKeys =
 	[
 	((myModMask, xK_p), spawn "dmenu_run"),
-	((myModMask, xK_e), spawn "dmenu-unicode")
+	((myModMask, xK_e), spawn "dmenu-unicode"),
+	((myModMask, xK_s), spawn "setup-screens")
 	] ++ [
 		-- switch to extra workspaces
 		((myModMask, key), (windows $ W.greedyView ws))
