@@ -1,12 +1,23 @@
 #!/bin/bash
 
+START_AT="$1"
+
 while true; do
-	echo '00:00' >/tmp/timer
+	if [ -n "$START_AT" ]; then
+		mins=$((START_AT / 60))
+		secs=$((START_AT % 60))
+		printf "%02d:%02d" "$mins" "$secs" >/tmp/timer
+	else
+		echo '00:00' >/tmp/timer
+	fi
 	read -rp 'Press enter to start timer '
 	(
 		start=$(date +%s)
 		while sleep 0.1; do
 			elapsed=$(($(date +%s) - start))
+			if [ -n "$START_AT" ]; then
+				elapsed=$((START_AT - elapsed))
+			fi
 			mins=$((elapsed / 60))
 			secs=$((elapsed % 60))
 			printf "%02d:%02d" "$mins" "$secs" >/tmp/timer

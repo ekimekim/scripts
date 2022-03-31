@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 1 ]; then
+	echo "git merge-theirs BRANCH" >&2
+	echo "Merge BRANCH into current branch, forcibly adopting the tree of the other branch."
+	exit 255
+fi
+
+TARGET="$1"
+OUR_NAME=$(git rev-parse --symbolic-full-name HEAD)
+
+TREE=$(git rev-parse "${TARGET}^{tree}")
+COMMIT=$(git commit-tree -p HEAD -p "$TARGET" -m "Merge branch '$TARGET' into $OUR_NAME" "$TREE")
+git reset --hard "$COMMIT"

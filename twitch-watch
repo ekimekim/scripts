@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if grep -q '/' <<<"$1"; then
+	url="$1"
+else
+	url="https://twitch.tv/$1"
+fi
+shift
+
+exec streamlink "$url" best \
+	--twitch-low-latency --twitch-disable-ads --hls-live-edge 1 \
+	-p mpv --player-args "--profile=low-latency $*"

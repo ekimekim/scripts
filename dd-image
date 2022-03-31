@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$#" -lt 2 ]; then
+	echo "USAGE: $0 SRC DEST {FLAGS}" >&2
+	exit 255
+fi
+
+SRC="$1"
+DEST="$2"
+shift 2
+
+exec dd if="$SRC" of="$DEST" oflag=direct bs=1M status=progress "$@"

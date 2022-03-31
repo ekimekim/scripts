@@ -4,4 +4,4 @@ set -e
 
 uri=$(qrdecode-screenshot)
 echo "Adding from URI: $uri"
-ykman oath uri -t "$uri"
+ykman oath accounts uri -t "$uri"

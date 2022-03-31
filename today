@@ -22,6 +22,8 @@ def load():
 			line = line.strip()
 			if not line:
 				continue
+			if line.startswith('#'):
+				continue
 			parts = line.split()
 			parts = [f(v) for f, v in zip((str, str, int, int), parts)]
 			data.append(Action(*parts))
@@ -33,28 +35,31 @@ def write(actions):
 			for action in actions:
 				f.write(" ".join(map(str, action)) + "\n")
 
-actions = load()
-names = [action.name for action in actions]
+action_info = load()
+names = [action.name for action in action_info]
 
 @cli
-@argh.arg('action', choices=names + ['should'])
-def i(action, yesterday=False):
+@argh.arg('actions', metavar='ACTION', choices=names + ['should'], nargs='+')
+def i(actions, yesterday=False):
+
 	today = (int(time.time() / 3600) - 12) / 28
 	if yesterday:
 		today -= 1
 
-	if action == 'should':
-		for action in actions:
+	if 'should' in actions:
+		if actions != ['should']:
+			raise argh.CommandError("Cannot combine 'should' with other actions")
+		for action in action_info:
 			overdue = today - (action.last + action.interval)
 			if overdue >= 0:
 				print "Today you should {} (overdue by {} days)".format(action.future_tense, overdue)
 		return
 
-	for i, a in enumerate(actions):
-		if a.name == action:
-			actions[i] = a._replace(last=today)
+	for i, a in enumerate(action_info):
+		if a.name in actions:
+			action_info[i] = a._replace(last=today)
 
-	write(actions)
+	write(action_info)
 
 
 @cli

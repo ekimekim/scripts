@@ -7,11 +7,14 @@ FORMAT="${1:-%T}"
 BANNER="${BANNER:-banner}"
 ADD_UTC=true
 ADD_OTHER=America/Los_Angeles
-ADD_28HR="America/Los_Angeles 13" # base time zone, start hour offset
+ADD_28HR="America/Los_Angeles 14" # base time zone, start hour offset
 ADD_CUSTOM=
 
 # Bustime
-#ADD_CUSTOM='echo $(( ($(date +%s)-1605290400) / 3600 ))' # DB2020
+#ADD_CUSTOM='echo $(( ($(date +%s)-1636768800) / 3600 ))' # DB2021
+
+# CPU temp
+ADD_CUSTOM="echo -en '\e[31m'; sensors | awk '\$1 == \"Tctl:\" {printf \"%d°\", \$2}'"
 
 # Translate 28hr arg
 if [ -n "$ADD_28HR" ]; then
@@ -22,10 +25,11 @@ if [ -n "$ADD_28HR" ]; then
 fi
 
 while sleep 1; do
+	[ -n "$ADD_CUSTOM" ] && CUSTOM=$(bash -c "$ADD_CUSTOM")
 	clear
 	$BANNER "$(date "+$FORMAT")"
 	[ -n "$ADD_UTC" ] && echo -en "\e[s\e[H\e[35m$(date -u +%H)\e[m\e[u"
 	[ -n "$ADD_OTHER" ] && echo -en "\e[s\e[2;1H\e[36m$(TZ="$ADD_OTHER" date +%H)\e[m\e[u"
-	[ -n "$ADD_CUSTOM" ] && echo -en "\e[s\e[6;1H\e[36;1m$(bash -c "$ADD_CUSTOM")\e[m\e[u"
+	[ -n "$ADD_CUSTOM" ] && echo -en "\e[s\e[6;1H\e[36;1m$CUSTOM\e[m\e[u"
 	[ -n "$ADD_28HR" ] && echo -en "\e[s\e[6;999H\e[D\e[33m$(hour28)\e[m\e[u"
 done

@@ -3,8 +3,7 @@
 from sys import argv, exit
  
 if len(argv) < 2:
-	print('USAGE: %s MODULE [SYMBOL]\nOpen help() for given module, or given symbol from module.') % \
-		argv[0]
+	print('USAGE: {} MODULE [SYMBOL]\nOpen help() for given module, or given symbol from module.'.format(argv[0]))
 	exit(1)
  
 module = argv[1]

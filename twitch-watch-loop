@@ -1,0 +1,5 @@
+#!/bin/bash
+
+while sleep 2; do
+	twitch-watch "$@" && break
+done

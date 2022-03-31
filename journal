@@ -2,6 +2,15 @@
 
 set -eu
 
+TZ_28="America/Los_Angeles"
+OFFSET_28=13
+day28() {
+	echo $(( ($(TZ="$TZ_28" date +%s) / 3600 - OFFSET_28) / 28 ))
+}
+
 JOURNAL_DIR="$HOME/documents/journal"
 [ -d "$JOURNAL_DIR" ] || mkdir "$JOURNAL_DIR"
-vim "$JOURNAL_DIR/$(date +%F).txt"
+JOURNAL_PATH="$JOURNAL_DIR/$(day28).txt"
+vim "$JOURNAL_PATH"
+
+[ -z "$(cat "$JOURNAL_PATH")" ] || today i journaled

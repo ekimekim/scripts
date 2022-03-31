@@ -23,7 +23,7 @@ fileloop () {
 ask () {
 	# $1: target file/directory
 	if [ -d "$1" ]; then
-		echo -n "$1 (y/n/r) >" >&2
+		echo -n "$1 (y/n/r) > " >&2
 		read -n 1 answer #reads one character
 		echo >&2
 		case "$answer" in

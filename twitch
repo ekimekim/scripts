@@ -1,54 +1,33 @@
 #!/bin/bash
 
-TWITCH_USER='ekimekim3000'
-
-_curl() {
-	curl "$@" -H 'Client-ID:jzkbprff40iqj646a697cyrvl0zt2m6'
-}
-
-fetch_all() {
-	endpoint="$1"
-	key="$2"
-	# fetches endpoint from twitch from successive pages until exhausted
-	# and outputs key from endpoint response. exhaused := key is empty
-	url="https://api.twitch.tv/kraken/$endpoint?limit=100"
-	while true; do
-		data=$(_curl -sS "$url")
-		[ "$(jq -r ".$key|length" <<<"$data")" -eq 0 ] && break
-		jq ".$key[]" <<<"$data"
-		url=$(jq -r '._links.next' <<<"$data")
-	done
-}
-
-if [ -n "$1" ]; then
-	CHANNEL="$(tr A-Z a-z <<<"$1")"
+if [ "$1" == "-c" ] | [ "$1" == "--chat-only" ]; then
+	CHAT_ONLY=true
 	shift
 fi
-if [ -z "$CHANNEL" ]; then
-	echo "Getting followed channels"
-	# present a list of live followed channels to the user
-	follows=$(fetch_all "users/$TWITCH_USER/follows/channels" "follows" | jq -r '.channel.name')
-	echo "Following $(wc -l <<<"$follows") channels..."
-	live=$(
-		for channel in $follows; do
-			(
-				stream=$(_curl -Ss "https://api.twitch.tv/kraken/streams/$channel" | jq -r '.stream')
-				[ "$stream" != "null" ] && echo "$channel"
-			)&
-		done
-		wait
-	)
-	echo "$(wc -l <<<"$live") channels live"
-	echo "Please select a channel below by number, or enter an alternate channel."
-	select channel in $live; do
-		[ -z "$channel" ] && channel="$REPLY"
-		break
-	done
-	CHANNEL="$channel"
-fi
-if [ -z "$CHANNEL" ]; then
-	echo "No channel given" >&2
-	exit 1
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 [-c|--chat-only] CHANNEL" >&2
+	exit 255
 fi
 
-exec twitch-irc --channel=#"$CHANNEL" "$@"
+CHANNEL="$(tr A-Z a-z <<<"$1")"
+
+if ! [ -n "$CHAT_ONLY" ]; then
+	# Use a sleep process as a waitable signal
+	sleep infinity &
+	WAITER="$!"
+
+	twitch-watch "$CHANNEL" | (
+		# Copy lines to stdout until we see player starting, then redirect to /dev/null
+		while read -r line; do
+			echo "$line"
+			grep -q "Starting player" <<<"$line" && break
+		done
+		kill "$WAITER" # wake waiter by killing the process
+		cat >/dev/null
+	) &
+	VIDEO_PID="$!"
+	wait "$WAITER"
+fi
+
+twitch-irc --channel=#"$CHANNEL" "$@"

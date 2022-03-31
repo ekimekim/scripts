@@ -137,7 +137,8 @@ class Timer(object):
 
 @argh.arg('video_id', help='Video ID or playback URL')
 @argh.arg('start_at', help='start time within the video, as integer seconds or [hh:]mm:ss', default='0', nargs='?')
-def main(video_id, start_at, log='WARNING'):
+@argh.arg('--instant', help='Fetch the entire chat playback as fast as possible, instead of in time to a video')
+def main(video_id, start_at, log='WARNING', instant=False):
 	logging.basicConfig(level=log)
 
 	# parse video id from url
@@ -151,6 +152,10 @@ def main(video_id, start_at, log='WARNING'):
 		raise ValueError("Bad start time")
 	parts = map(int, parts)[::-1] # parts is now eg. (seconds, minutes, hours)
 	start_at = sum(value * 60**n for n, value in enumerate(parts))
+
+	if instant:
+		output_loop(None, video_id, start_at)
+		return
 
 	timer = Timer(start_at)
 	print "Started at {}".format(format_video_time(start_at))
@@ -185,17 +190,19 @@ def output_loop(timer, video_id, start_at):
 	cursor = None
 	first = True
 	while first or cursor is not None:
+		first = False
 		# get next group of messages
 		resp = get_chat(video_id, cursor=cursor)
 		messages = resp['comments']
 		cursor = resp.get('_next')
-		logging.debug("got {} messages".format(len(messages)))
+		logging.debug("got {} messages, new cursor {}".format(len(messages), cursor))
 		# we assume the messages are already in display order
 		for message in messages:
 			if message['content_offset_seconds'] < start_at:
 				continue # skip ahead
 			logging.debug("waiting for message {}".format(message['_id']))
-			timer.wait(message['content_offset_seconds'])
+			if timer:
+				timer.wait(message['content_offset_seconds'])
 			logging.debug("displaying message {}".format(message['_id']))
 			display(message)
 	print 'Video is finished'

@@ -8,11 +8,14 @@
 set -e
 
 case "$1" in
-	add|code|delete|info|list|remember-password|reset|set-password|uri)
+	info|access|reset|accounts)
 		ykman oath "$@"
 		;;
+	add|code|delete|list|rename|uri)
+		ykman oath accounts "$@"
+		;;
 	*)
-		result=$(ykman oath code "$*")
+		result=$(ykman oath accounts code "$*")
 		echo "$result"
 		if [ "$(wc -l <<<"$result")" -eq 1 ]; then
 			code=$(grep -Eo '[0-9]+$' <<<"$result")

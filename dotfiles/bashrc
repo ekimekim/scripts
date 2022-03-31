@@ -15,9 +15,15 @@ print ":".join(dedup_path)
 ' "$PATH")
 
 # PS1 config
-PS1='[\t] \u@\h:\w\$ '
-source "$HOME/bin/alerts.ps1.bash"
-source "$HOME/bin/gitcolours.ps1.bash"
+fullps1() {
+	PS1='[\t] \u@\h:\w\$ '
+	source "$HOME/bin/alerts.ps1.bash"
+	source "$HOME/bin/gitcolours.ps1.bash"
+}
+shortps1() {
+	PS1='\$ '
+}
+fullps1
 
 # Put readline into vi mode
 set -o vi
@@ -99,15 +105,8 @@ ytplay() {
 	)
 }
 
-twitch_play() {
-	if [ "$#" -lt 1 ]; then
-		echo "USAGE: $0 CHANNEL [QUALITY {MPLAYER_ARGS}]" >&2
-		return 255
-	fi
-	local channel="$1"
-	local quality="${2:-source}"
-	shift 2
-	livestreamer twitch.tv/"$channel" "$quality" --player "mplayer -cache 1024 $* -"
+ytdl-play() {
+	mpv <(yt-dlp "$1" -o- --no-progress)
 }
 
 pyedit() {
@@ -265,6 +264,10 @@ check_file_alerts() {
 	[ ! -e /tmp/alerts ] || [ -z "$(ls /tmp/alerts)" ]
 }
 
+pulumi-sandbox-dev-tag() {
+	echo "    glide:tag: \"$(git -C ~/src/glide/glide rev-parse origin/dev | head -c12)\"" >> ~/src/glide/glide/pulumi/Pulumi.sandbox.yaml
+}
+
 # Colour aliases
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
@@ -301,7 +304,7 @@ alias ''='clear'
 alias ''='cd && clear'
 alias browser='spawn $BROWSER'
 alias mplayer-music='mplayer -vo null -msglevel cplayer=4'
-alias monstercat='twitch_play monstercat audio_only'
+alias monstercat='awp ~/main.awp --file-regex "^$HOME/music/Artists/Monstercat/"'
 alias xclip='xclip -selection clipboard'
 alias kc='kubectl'
 alias kubectx='kubectl config use-context'
@@ -321,8 +324,7 @@ ALERTS=(
 	check_kernel_version
 	check_git_stash
 	check_git_with_nesting
-	#check_proton_mount disabled until proton arrives
-	check_journal
+	check_proton_mount
 	check_file_alerts
 )
 

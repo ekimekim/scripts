@@ -12,7 +12,8 @@
 	log-diff-upstream = !git log-diff ..@{u} --reverse --date=relative
 	initial = commit --allow-empty -m 'Initial Commit'
 	all = !git lg --all
-	allrefs = "!git reflog | cut -f1 -d\" \" | xargs git lg"
+	allrefs = !git lg --reflog --date-order
+	allcommits = !git fsck|grep '^dangling commit '|cut -d' ' -f3|git lg --reflog --date-order --stdin
 	get = fetch --all
 	fpush = push --force-with-lease
 	co = checkout
@@ -24,6 +25,7 @@
 	pr = !hub pull-request
 	por = !git pushorigin && git pr
 	issue = !hub issue create
+	r = !git dev && git pull && git del-gone && git br
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
 	herp = "!f(){ git commit -am \"fixup: $*\" ;}; f"
@@ -98,6 +100,7 @@
 	statusHints = false
 	pushNonFFCurrent = false
 	detachedHead = false
+	skippedCherryPicks = false
 
 [color]
 	ui = auto
@@ -122,3 +125,6 @@
 
 [github]
 	user = ekimekim
+
+[init]
+	defaultBranch = master

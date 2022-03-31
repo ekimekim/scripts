@@ -3,8 +3,8 @@
 set -e
 
 USAGE="$0 NAME ROMFILE
-Copies romfile to kaon, waits until an SD card is inserted, then copies the rom to it
-under the name NAME-EPOCH, then opens a browser window on kaon to tell you it's done."
+Waits until an SD card is inserted, then copies the rom to it
+under the name NAME-EPOCH"
 
 if [ "$#" -ne 2 ]; then
 	echo "$USAGE" >&2
@@ -14,15 +14,10 @@ fi
 NAME=$1
 ROMFILE=$2
 
-filename="/tmp/$NAME-$(date +%s).gb"
-scp "$ROMFILE" kaon:"'$filename'"
-
-ssh kaon "
-set -e
+echo "Waiting for sdcard..."
 while ! sudo mount /mnt/sdcard; do sleep 1; done
-sudo rm -f /mnt/sdcard/$NAME-*.gb
-sudo cp '$filename' /mnt/sdcard/
+echo "Copying"
+rm -f /mnt/sdcard/"$NAME"-*.gb
+cp "$ROMFILE" "/mnt/sdcard/$NAME-$(date +%s).gb"
 sudo umount /mnt/sdcard
-echo done
-DISPLAY=:0 xmessage done -timeout 15
-" || ssh kaon "DISPLAY=:0 xmessage failed -timeout 15"
+echo Done

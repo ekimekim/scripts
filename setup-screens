@@ -1,9 +1,9 @@
 #!/bin/bash
 
 main='DVI-D-0'
-right='DP-4'
+right='DP-0'
 top='HDMI-0'
-left='DP-0'
+left='DP-2'
 
 # right offset upwards from main
 RY=600
