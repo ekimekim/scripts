@@ -5,7 +5,8 @@ set tabstop=4
 set shiftwidth=4
 set hlsearch
 set nomodeline
-colorscheme peachpuff
+so /home/mike/bin/dotfiles/peachpuff-legacy.vim
+
 hi MatchParen ctermfg=red ctermbg=NONE
 hi Search term=reverse ctermfg=0 ctermbg=3 guibg=Gold2
 
