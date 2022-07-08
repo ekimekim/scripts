@@ -40,11 +40,16 @@ names = [action.name for action in action_info]
 
 @cli
 @argh.arg('actions', metavar='ACTION', choices=names + ['should'], nargs='+')
-def i(actions, yesterday=False):
+def i(actions, yesterday=False, ago=0):
+	"""
+	--ago specifies days ago you did it
+	--yesterday is a shortcut for --ago 1
+	"""
 
 	today = (int(time.time() / 3600) - 12) / 28
 	if yesterday:
-		today -= 1
+		ago = 1
+	today -= ago
 
 	if 'should' in actions:
 		if actions != ['should']:
@@ -65,7 +70,7 @@ def i(actions, yesterday=False):
 @cli
 def report():
 	today = (int(time.time() / 3600) - 12) / 28
-	for action in actions:
+	for action in action_info:
 		overdue = today - (action.last + action.interval)
 		if overdue > 0:
 			next_text = 'overdue by {} days'.format(overdue)
