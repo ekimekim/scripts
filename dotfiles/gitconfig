@@ -16,6 +16,7 @@
 	allcommits = !git fsck|grep '^dangling commit '|cut -d' ' -f3|git lg --reflog --date-order --stdin
 	get = fetch --all
 	fpush = push --force-with-lease
+	spush = !PUSH_MASTER=true git push
 	co = checkout
 	master = checkout master
 	dev = checkout dev
