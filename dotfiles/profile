@@ -1,9 +1,15 @@
 
-if [ `tty` == "/dev/tty1" ]; then
+if [ "$(tty)" == "/dev/tty1" ]; then
 	# xmonad fails to start after some updates; deleting this binary before running seems to fix it.
 	rm "$HOME/.xmonad/xmonad-x86_64-linux"
 	source "$HOME/bin/setup-keychain.bash"
 	exec startx
 fi
 
-source ~/.bashrc
+# we run .profile without a tty when starting a VNC session,
+# but some weird issue with bash prevents the bashrc loading correctly
+if [ "$(tty)" != "not a tty" ]; then
+	source ~/.bashrc
+else
+	echo "Not a tty, skipping bashrc"
+fi
