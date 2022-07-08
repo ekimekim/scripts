@@ -2,9 +2,4 @@
 
 # Run git rebase, but run prettier on all modified .ts files after each commit,
 # creating a (possibly empty) prettier fixup commit.
-exec git rebase -x '
-	git show --name-only --format= |
-		grep \\.ts\$ |
-		xargs -d"\n" npx prettier -w
-	&& git commit --allow-empty -am "prettier fixup"
-' "$@"
+exec git rebase -x 'git show --name-status --format= | grep "^[^D].*\\.ts\$" | cut -f2- | xargs --no-run-if-empty -d"\n" npx prettier -w && git commit --allow-empty -am "prettier fixup"' "$@"
