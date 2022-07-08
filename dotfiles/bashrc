@@ -285,6 +285,8 @@ alias sucp='sudo cp'
 # Glide aliases
 alias gcloud-prod='gcloud --project=glide-prod'
 alias gcloud-sandbox='gcloud --project=glide-sandbox-301022'
+alias fuego-prod='fuego -p glide-prod'
+alias fuego-staging='fuego -p glide-staging'
 
 # Other aliases
 alias 'pip-upgrade'='sudo PYTHONWARNINGS=ignore pip2 install -U --no-deps'
