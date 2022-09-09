@@ -1,0 +1,93 @@
+#!/bin/env python2
+
+import array
+import fcntl
+
+import argh
+
+LIRC_MODE_PULSE = 2
+
+def ioc(dir, type, nr, size):
+	return (dir << 30) | (type << 8) | nr | (size << 16)
+
+IOC_WRITE = 1
+IOC_READ = 2
+LIRC_SET_SEND_MODE = ioc(IOC_WRITE, ord('i'), 0x11, 4)
+LIRC_SET_SEND_CARRIER = ioc(IOC_WRITE, ord('i'), 0x13, 4)
+
+def ioctl(file, op, arg):
+	if isinstance(arg, int):
+		arg = array.array('i', [arg])
+	ret = fcntl.ioctl(file.fileno(), op, arg)
+	if ret < 0:
+		raise OSError(-ret)
+
+def make_payload(temp, mode, fan, vane, time=0):
+	temp = temp - 16
+	assert 0 <= temp <= 15
+	weird_mode = {
+		'heat': 0,
+		'dry': 1,
+		'cool': 3, # sic
+		'auto': 3,
+	}[mode]
+	mode = {
+		'heat': 1,
+		'dry': 2,
+		'cool': 3,
+		'auto': 4,
+	}[mode]
+	fan = {
+		'auto': 0,
+		'low': 1,
+		'med': 2,
+		'high': 3,
+	}[fan]
+	vane = 7 if vane == 'auto' else int(vane)
+	payload = [
+		0x23,
+		0xcb,
+		0x26,
+		0x01,
+		0x00,
+		0x20,
+		mode << 2,
+		temp,
+		0x30 | (weird_mode << 1),
+		0x40 | (vane << 3) | fan,
+		time,
+	] + 6 * [0]
+	payload.append(sum(payload) % 256)
+	return payload
+
+def encode_payload(payload):
+	assert len(payload) == 18, len(payload)
+	for byte in payload:
+		for i in range(8):
+			bit = 1 & (byte >> i)
+			yield 20
+			yield 60 if bit else 20
+	yield 20
+
+def make_pulses(temp, mode, fan, vane):
+	payload = make_payload(temp, mode, fan, vane)
+	payload = list(encode_payload(payload))
+	assert len(payload) == 144 + 145, len(payload)
+	packet = [160, 77] + payload
+	full = packet + [800] + packet
+	full = [x * 21 for x in full]
+	return full
+
+@argh.arg('temp', type=int)
+@argh.arg('--mode', choices=['heat', 'cool', 'dry', 'auto'])
+@argh.arg('--fan', choices=['high', 'med', 'low', 'auto'])
+@argh.arg('--vane', choices=['auto', '1', '2', '3', '4', '5']) # 0 and 6 are possible, but identical to 5
+def main(temp, mode='heat', fan='high', vane='auto', devpath='/dev/lirc0'):
+	data = make_pulses(temp, mode, fan, vane)
+	dev = open(devpath, 'w')
+	ioctl(dev, LIRC_SET_SEND_MODE, LIRC_MODE_PULSE)
+	ioctl(dev, LIRC_SET_SEND_CARRIER, 38000)
+	dev.write(array.array('i', data).tostring())
+	dev.close()
+
+argh.dispatch_command(main)
