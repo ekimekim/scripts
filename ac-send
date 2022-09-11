@@ -52,7 +52,7 @@ def make_payload(temp, mode, fan, vane, off, time=0):
 		0x01,
 		0x00,
 		(0x00 if off else 0x20),
-		mode << 2,
+		mode << 3,
 		temp,
 		0x30 | (weird_mode << 1),
 		0x40 | (vane << 3) | fan,
@@ -89,7 +89,7 @@ def main(temp, mode='heat', fan='high', vane='auto', off=False, devpath='/dev/li
 	data = make_pulses(temp, mode, fan, vane, off)
 	dev = open(devpath, 'w')
 	ioctl(dev, LIRC_SET_SEND_MODE, LIRC_MODE_PULSE)
-	ioctl(dev, LIRC_SET_SEND_CARRIER, 38000)
+#	ioctl(dev, LIRC_SET_SEND_CARRIER, 38000) # not needed? and doesn't work on the pi
 	dev.write(array.array('i', data).tostring())
 	dev.close()
 
