@@ -2,6 +2,7 @@
 
 import array
 import fcntl
+import logging
 
 import argh
 
@@ -22,7 +23,7 @@ def ioctl(file, op, arg):
 	if ret < 0:
 		raise OSError(-ret)
 
-def make_payload(temp, mode, fan, vane, time=0):
+def make_payload(temp, mode, fan, vane, off, time=0):
 	temp = temp - 16
 	assert 0 <= temp <= 15
 	weird_mode = {
@@ -50,7 +51,7 @@ def make_payload(temp, mode, fan, vane, time=0):
 		0x26,
 		0x01,
 		0x00,
-		0x20,
+		(0x00 if off else 0x20),
 		mode << 2,
 		temp,
 		0x30 | (weird_mode << 1),
@@ -58,6 +59,7 @@ def make_payload(temp, mode, fan, vane, time=0):
 		time,
 	] + 6 * [0]
 	payload.append(sum(payload) % 256)
+	logging.debug(" ".join("{:08b}".format(b)[::-1] for b in payload))
 	return payload
 
 def encode_payload(payload):
@@ -69,8 +71,8 @@ def encode_payload(payload):
 			yield 60 if bit else 20
 	yield 20
 
-def make_pulses(temp, mode, fan, vane):
-	payload = make_payload(temp, mode, fan, vane)
+def make_pulses(temp, mode, fan, vane, off):
+	payload = make_payload(temp, mode, fan, vane, off)
 	payload = list(encode_payload(payload))
 	assert len(payload) == 144 + 145, len(payload)
 	packet = [160, 77] + payload
@@ -82,8 +84,9 @@ def make_pulses(temp, mode, fan, vane):
 @argh.arg('--mode', choices=['heat', 'cool', 'dry', 'auto'])
 @argh.arg('--fan', choices=['high', 'med', 'low', 'auto'])
 @argh.arg('--vane', choices=['auto', '1', '2', '3', '4', '5']) # 0 and 6 are possible, but identical to 5
-def main(temp, mode='heat', fan='high', vane='auto', devpath='/dev/lirc0'):
-	data = make_pulses(temp, mode, fan, vane)
+def main(temp, mode='heat', fan='high', vane='auto', off=False, devpath='/dev/lirc0', log='WARNING'):
+	logging.basicConfig(level=log)
+	data = make_pulses(temp, mode, fan, vane, off)
 	dev = open(devpath, 'w')
 	ioctl(dev, LIRC_SET_SEND_MODE, LIRC_MODE_PULSE)
 	ioctl(dev, LIRC_SET_SEND_CARRIER, 38000)
