@@ -1,0 +1,28 @@
+#!/bin/bash
+
+USAGE="$0 REGEX
+Pick a song from my music collection with given regex and play it.
+"""
+
+if [ "$#" -lt 1 ]; then
+	echo "$USAGE" >&2
+	exit 1
+fi
+
+candidates=$(grep -Eie "$*" main.awp | sort -rn | awk -F'\t' '{print $3}')
+
+if [ -z "$candidates" ]; then
+	echo "No matches" >&2
+	exit 1
+elif [ "$(wc -l <<<"$candidates")" -eq 1 ]; then
+	picked="$candidates"
+else
+	IFS='
+'
+	select picked in $candidates; do
+		break
+	done
+fi
+
+echo "Playing: $picked"
+mplayer -vo null -msglevel cplayer=4 "$picked"
