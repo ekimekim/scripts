@@ -20,6 +20,7 @@
 	co = checkout
 	master = checkout master
 	dev = checkout dev
+	ddev = checkout --detach dev
 	rim = rebase -i master
 	rid = rebase -i dev
 	b = rev-parse --symbolic-full-name HEAD
