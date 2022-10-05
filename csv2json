@@ -1,0 +1,21 @@
+#!/bin/env python2
+
+import csv
+import json
+
+import argh
+
+@argh.arg('file', nargs='?', default='-')
+def main(file, no_fields=False):
+	file = sys.stdin if file == '-' else open(file)
+	with file:
+		if no_fields:
+			reader = csv.reader(file)
+		else:
+			reader = csv.DictReader(file)
+		for row in reader:
+			print json.dumps(row)
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
