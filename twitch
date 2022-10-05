@@ -22,7 +22,8 @@ if ! [ -n "$CHAT_ONLY" ]; then
 	sleep infinity &
 	WAITER="$!"
 
-	twitch-watch "$CHANNEL" | (
+	# setsid prevents ^C in chat from killing video
+	setsid twitch-watch "$CHANNEL" | (
 		# Copy lines to stdout until we see player starting, then redirect to /dev/null
 		while read -r line; do
 			echo "$line"
@@ -35,4 +36,4 @@ if ! [ -n "$CHAT_ONLY" ]; then
 	wait "$WAITER"
 fi
 
-twitch-irc --channel=#"$CHANNEL" "$@"
+twitch-irc --channel="#$CHANNEL" "$@"
