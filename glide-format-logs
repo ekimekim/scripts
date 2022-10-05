@@ -1,0 +1,16 @@
+#!/bin/jq -Rrf
+
+. as $line |
+try (
+	fromjson |
+	{
+		DEBUG: "30", # grey
+        INFO: "32", # green
+        NOTICE: "36", # cyan
+        WARNING: "35", # purple
+        ERROR: "31", # red
+        CRITICAL: "31;1", # bold red
+        ALERT: "37;1;41", # bold white on red background
+	}[.severity] as $color |
+	"\u001b[\($color)m[\(.time)] \(.severity): \(.message|rtrimstr("\n"))\u001b[m"
+) catch $line
