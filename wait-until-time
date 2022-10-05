@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 TIME" >&2
+	echo "Exits at TIME." >&2
+	exit 255
+fi
+
+target=$(date -d "$1" +%s)
+duration=$((target - $(date +%s)))
+if [ "$duration" -lt 0 ]; then
+	echo "Time $(date -d "@$target") is in the past" >&2
+	exit 1
+fi
+echo "Waiting until $(date -d "@$target") ($duration seconds)"
+sleep "$duration"
