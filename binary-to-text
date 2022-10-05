@@ -1,0 +1,8 @@
+#!/bin/env python
+
+import sys
+s = ''.join(c for c in sys.stdin.read() if c in '01')
+print ''.join(
+	chr(int(s[i:i+8], 2))
+	for i in range(0, len(s), 8)
+)
