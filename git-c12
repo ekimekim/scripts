@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e
+
+# This is just a dumb little helper for getting the first 12 chars of a commit id,
+# useful for Glide where we use that as the image tag.
+git rev-parse "${1:-HEAD}" | head -c12
+echo
