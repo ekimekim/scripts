@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 1 ]; then
+	echo "$0 [ROOM] {ARGS}"
+	echo "Send ARGS to all AC units, or a specific one if ROOM is given."
+	echo "Rooms: office living"
+	echo "Args are as per ac-send"
+	exit 1
+fi
+
+ROOMS=(office living)
+for room in "${ROOMS[@]}"; do
+	if [ "$1" == "$room" ]; then
+		ROOMS=("$1")
+		shift
+		break
+	fi
+done
+
+do_remote() {
+	local host
+	host="$1"
+	shift
+	ssh "$host" "~/bin/ac-send $*"
+}
+
+pids=()
+for room in "${ROOMS[@]}"; do
+	if [ "$room" == "office" ]; then
+		host=charm
+	elif [ "$room" == "living" ]; then
+		host=pi2
+	else
+		echo "Bad room"
+		exit 1
+	fi
+	do_remote "$host" "$@" &
+	pids+=("$!")
+done
+
+for pid in "${pids[@]}"; do
+	wait "$pid"
+done
