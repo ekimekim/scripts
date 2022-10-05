@@ -1,0 +1,12 @@
+#!/bin/bash
+
+USAGE="$0 SSID
+Connects to an unauthenticated wifi network even if other tools don't list them for some reason"
+
+if [ "$#" -lt 1 ]; then
+	echo "$USAGE" >&2
+	exit 1
+fi
+
+sudo iw dev wlp0s20f3 connect "$1"
+sudo systemctl start dhcpcd@wlp0s20f3
