@@ -1,0 +1,11 @@
+#!/bin/bash
+
+VARS=$(mktemp)
+trap 'rm "$VARS"' exit
+cp /usr/share/edk2-ovmf/x64/OVMF_VARS.fd "$VARS"
+qemu-system-x86_64 \
+	-snapshot \
+	-drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2-ovmf/x64/OVMF_CODE.fd \
+	-drive if=pflash,format=raw,file="$VARS" \
+	-m 8G -monitor stdio \
+	"$1"
