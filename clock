@@ -24,6 +24,11 @@ if [ -n "$ADD_28HR" ]; then
 	}
 fi
 
+# show cursor on exit
+trap 'echo -en "\e[?25h"' exit
+# hide cursor
+echo -en "\e[?25l"
+
 while sleep 1; do
 	[ -n "$ADD_CUSTOM" ] && CUSTOM=$(bash -c "$ADD_CUSTOM")
 	clear
