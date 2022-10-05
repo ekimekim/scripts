@@ -220,6 +220,10 @@ diff_pacnew() {
 	done
 }
 
+certbot() {
+	command certbot --config-dir ~/.certbot/config --work-dir ~/.certbot/work --logs-dir ~/.certbot/logs "$@"
+}
+
 # exit success if bashrc has not changed since executing (matches saved hash of bashrc)
 # 
 # note: vulnerable to a race if edited while executing, causing a false success,
