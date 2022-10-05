@@ -1,0 +1,69 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 [--zone-id ZONE | --zone ZONE] METHOD PATH [--body BODY] {KEY=VALUE}" >&2
+	echo "KEY=VALUEs go into the query string" >&2
+	echo "If zone-id given, /zones/ZONE/ is prepended to path" >&2
+	echo "If zone given, zone name is looked up and /zones/ID of that zone is prepended." >&2
+	exit 1
+fi
+
+if [ -n "${CF_TOKEN:-}" ]; then
+	AUTH=("-H" "Authorization: Bearer $CF_KEY")
+elif [ -n "${CF_EMAIL:-}" ]; then
+	CF_KEY=$(pass show work/cloudflare/api-key)
+	AUTH=("-H" "X-Auth-Key: $CF_KEY" "-H" "X-Auth-Email: $CF_EMAIL")
+else
+	echo "CF_TOKEN or CF_EMAIL required" >&2
+	exit 1
+fi
+
+BASE="https://api.cloudflare.com/client/v4"
+
+if [ "$1" == "--zone-id" ]; then
+	URL="$BASE/zones/$2/$4"
+	METHOD="$3"
+	shift 3
+elif [ "$1" == "--zone" ]; then
+	ID=$(
+		"$0" GET zones name="$2" | jq -r '.result[]|.id'
+	)
+	if [ -z "$ID" ]; then
+		echo "Zone with name $2 not found" >&2
+		echo 1
+	fi
+	URL="$BASE/zones/$ID/$4"
+	METHOD="$3"
+	shift 4
+else
+	URL="$BASE/$2"
+	METHOD="$1"
+	shift 2
+fi
+
+if [ "${1:-}" == "--body" ]; then
+	BODY=(--data "$2")
+	shift 2
+else
+	BODY=()
+fi
+
+if [ "$#" -gt 0 ]; then
+	QUERY="$1"
+	shift
+	for param in "$@"; do
+		QUERY="${QUERY}&$param"
+	done
+	URL="$URL?$QUERY"
+fi
+
+log() {
+	if [ -n "${VERBOSE:-}" ]; then
+		echo "Running: $*" >&2
+	fi
+	"$@"
+}
+
+log curl -Ss -X "$METHOD" "$URL" "${AUTH[@]}" -H "Content-Type: application/json" "${BODY[@]}" | jq .
