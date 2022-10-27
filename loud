@@ -2,8 +2,8 @@
 
 OLD_VOL=$(
 	amixer -M get Master |
-	egrep '^  (Front Left|Mono):' |
-	egrep -o '[0-9.]*%'
+	grep -E '^  (Front Left|Mono):' |
+	grep -Eo '[0-9.]*%'
 )
 
 if ! [ -n "$OLD_VOL" ]; then

@@ -21,7 +21,7 @@ fi
 INTERVAL=${INTERVAL:-0.5}
 BANNER=${BANNER:-banner}
 
-if egrep -q "^ *[0-9]+ *$" <<<"$1"; then
+if grep -Eq "^ *[0-9]+ *$" <<<"$1"; then
 	# Is numeric
 	PID="$1"
 else

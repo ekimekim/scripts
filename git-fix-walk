@@ -178,7 +178,7 @@ run_next() {
 	bisect_output=$(mktemp)
 	git bisect run "${COMMAND[@]}" | tee "$bisect_output"
 	# git bisect only leaves you at 'last tested', not 'first bad', so we have to parse the output
-	first_bad=$(egrep '^[0-9a-f]+ is the first bad commit$' "$bisect_output" | cut -d' ' -f1)
+	first_bad=$(grep -E '^[0-9a-f]+ is the first bad commit$' "$bisect_output" | cut -d' ' -f1)
 
 	echo "Checking out $first_bad"
 	git checkout "$first_bad"

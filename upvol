@@ -8,8 +8,8 @@
 
 BASE=$(
 	amixer -M get Master |
-	egrep '^  (Front Left|Mono):' |
-	egrep -o '[0-9.]*%' | head -c-2
+	grep -E '^  (Front Left|Mono):' |
+	grep -Eo '[0-9.]*%' | head -c-2
 )
 
 echo $BASE
