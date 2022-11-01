@@ -1,45 +1,202 @@
-#!/bin/bash
+#!/bin/env python3
 
-set -eu
+"""
+Stores state in ~/.ac
+State indicates current + *desired* setting for each room.
+In some cases, a desired setting may not be possible due to conflicts
+(mode must be the same between all rooms).
+In those cases, the most recently written takes priority and others are turned off.
+If writing two conflicting changes at once, result is indeterminate.
+When there is no longer a conflict, others will automatically be reinstated.
 
-if [ "$#" -lt 1 ]; then
-	echo "$0 [ROOM] {ARGS}"
-	echo "Send ARGS to all AC units, or a specific one if ROOM is given."
-	echo "Rooms: office living"
-	echo "Args are as per ac-send"
-	exit 1
-fi
+State schema:
+	current: ROOMS
+	desired: ROOMS
+	dirty: boolean, when True we suspect that the current state may not be correct
+	ROOMS := {ROOM: SETTINGS}
+	SETTINGS := {mode, temp, fan, vane} | null for off
+"""
 
-ROOMS=(office living)
-for room in "${ROOMS[@]}"; do
-	if [ "$1" == "$room" ]; then
-		ROOMS=("$1")
-		shift
-		break
-	fi
-done
+import json
+import logging
+import os
+import subprocess
+from collections import Counter
 
-do_remote() {
-	local host
-	host="$1"
-	shift
-	ssh "$host" "~/bin/ac-send $*"
+import argh
+
+
+ROOMS = {
+	"office": None,
+	"living": "pi2",
+	"bedroom": "pi3",
 }
 
-pids=()
-for room in "${ROOMS[@]}"; do
-	if [ "$room" == "office" ]; then
-		host=charm
-	elif [ "$room" == "living" ]; then
-		host=pi2
-	else
-		echo "Bad room"
-		exit 1
-	fi
-	do_remote "$host" "$@" &
-	pids+=("$!")
-done
+STATE_PATH = os.path.expanduser("~/.ac")
 
-for pid in "${pids[@]}"; do
-	wait "$pid"
-done
+
+def load_state():
+	if not os.path.exists(STATE_PATH):
+		return {
+			"current": {room: None for room in ROOMS},
+			"desired": {room: None for room in ROOMS},
+			"dirty": True,
+		}
+	with open(STATE_PATH) as f:
+		return json.load(f)
+
+
+def save_state(state):
+	state = json.dumps(state, indent=4)
+	with open(STATE_PATH, 'w') as f:
+		f.write(state + '\n')
+
+
+def resolve(state, new):
+	"""Given current state and new {room: settings}, return (new state, {room: settings} to apply).
+	If state is dirty, re-apply everything even if we don't think it is needed.
+	"""
+	new_desired = state['desired'].copy()
+	new_desired.update(new)
+
+	# pick the new mode that should be in use
+	new_modes = set(settings['mode'] for settings in new.values() if settings)
+	if new_modes:
+		mode = list(new_modes)[0]
+		if len(new_modes) > 1:
+			logging.warning("New modes are in conflict - picking {}".format(mode))
+	else:
+		# This can happen if the only new thing was to turn something off.
+		# In the absence of a new mode to take priority, pick the most popular desired mode.
+		# On a tie, pick arbitrarily.
+		old_modes = Counter(settings['mode'] for settings in new_desired.values() if settings)
+		if old_modes:
+			((mode, _),) = old_modes.most_common(1)
+		else:
+			mode = None
+	logging.debug("Selected mode {}".format(mode))
+
+	# turn off anything in conflict with the new mode
+	new_current = new_desired.copy()
+	for room, settings in new_current.items():
+		if settings and settings['mode'] != mode:
+			logging.info("Turning off {} as mode {} conflicts with {}".format(room, settings['mode'], mode))
+			new_current[room] = None
+
+	if state['dirty']:
+		to_apply = new_current
+	else:
+		to_apply = {
+			room: settings
+			for room, settings in new_current.items()
+			if settings != state['current'][room]
+		}
+
+	return {
+		'current': new_current,
+		'desired': new_desired,
+		'dirty': False,
+	}, to_apply
+
+
+def render_settings(settings):
+	if settings is None:
+		return ["28", "--off"]
+	return [
+		str(settings['temp']),
+		"--mode", settings['mode'],
+		"--fan", settings['fan'],
+		"--vane", settings['vane'],
+	]
+
+
+def apply(to_apply):
+	# TODO replace with something in-process?
+	procs = {}
+	for room, settings in to_apply.items():
+		args = render_settings(settings)
+		host = ROOMS[room]
+		if host is None:
+			# local
+			args = ["ac-send"] + args
+		else:
+			# none of the args we use should need escaping
+			args = ["ssh", host, "~/bin/ac-send {}".format(" ".join(args))]
+		logging.debug("Running: {}".format(args))
+		procs[room] = subprocess.Popen(args)
+	for proc in procs.values():
+		proc.wait()
+	failed = {room: proc.returncode for room, proc in procs.items() if proc.returncode != 0}
+	if failed:
+		raise ValueError("\n".join(
+			"Setting room {} failed with status {}".format(room, code)
+			for room, code in failed.items()
+		))
+
+
+def parse_temp(temp):
+	if temp in ('off', 'show'):
+		return temp
+	temp = int(temp)
+	if not (16 <= temp <= 30):
+		raise ValueError("Temperature must be between 16 and 30")
+	return temp
+
+def parse_rooms(rooms):
+	if rooms == "all":
+		return list(ROOMS.keys())
+	else:
+		return rooms.split(",")
+
+
+@argh.arg('temp', type=parse_temp, metavar='TEMP | off | show')
+@argh.arg('--rooms', '-r', type=parse_rooms, metavar='(ROOM{,ROOM}) | all', help="Choices: {}".format(" ,".join(ROOMS.keys())))
+@argh.arg('--mode', '-m', choices=['heat', 'cool', 'dry', 'auto'])
+@argh.arg('--fan', '-f', choices=['high', 'med', 'low', 'auto'])
+@argh.arg('--vane', '-v', choices=['auto', '1', '2', '3', '4', '5']) # 0 and 6 are possible, but identical to 5
+@argh.arg('--dry-run', '-n', help="Don't actually apply or update state")
+@argh.arg('--force', help="Update all rooms even if they already should be correct")
+def main(temp, rooms=('office', 'living'), mode='heat', fan='high', vane='auto', dry_run=False, log='INFO', force=False):
+	logging.basicConfig(level=log)
+
+	state = load_state()
+	if force:
+		state['dirty'] = True
+
+	if temp == 'show':
+		for room, settings in state['current'].items():
+			print("{} is set to {}".format(room, " ".join(render_settings(settings))))
+			desired = state['desired'][room]
+			if settings != desired:
+				print("    but wants to be set to {}".format(" ".join(render_settings(desired))))
+		if state['dirty']:
+			print("State is considered dirty.")
+		return
+
+	if "all" in rooms:
+		rooms = list(ROOMS.keys())
+	if temp == 'off':
+		settings = None
+	else:
+		settings = {
+			'temp': temp,
+			'mode': mode,
+			'fan': fan,
+			'vane': vane,
+		}
+	new_state, to_apply = resolve(state, {room: settings for room in rooms})
+
+	for room, settings in to_apply.items():
+		print("Set {} to {}".format(room, " ".join(render_settings(settings))))
+
+	if dry_run:
+		return
+
+	state['dirty'] = True
+	save_state(state)
+	apply(to_apply)
+	save_state(new_state)
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
