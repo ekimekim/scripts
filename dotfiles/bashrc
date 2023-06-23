@@ -35,6 +35,16 @@ set +o histexpand
 # Keep all history from multiple windows
 shopt -s histappend
 
+# Write out commands to the history file after every command,
+# to avoid losing history on unclean shutdown
+PROMPT_COMMAND+=('history -a')
+
+# Command to pull history from other sessions into the current session.
+# Not automatic because I don't want that normally.
+rehistory() {
+	history -n
+}
+
 # This sets env vars and sets up keychain if needed, without locking the agent
 source "$HOME/bin/setup-keychain.bash" -Q
 
@@ -53,6 +63,9 @@ PATH="$HOME/.cargo/bin:$PATH"
 PATH="$HOME/bin:$PATH"
 # Add py3 binaries to PATH, but only as a last resort to prevent it overriding py2 bins
 PATH="$PATH:$HOME/.local/bin"
+
+# This seems to be required for things in arch to work correctly.
+export JAVA_HOME=/usr/lib/jvm/default
 
 # nvm manages node.js versions by manipulating $PATH
 source "/usr/share/nvm/init-nvm.sh"
@@ -372,7 +385,8 @@ alias shutdown="check-ssh confirm boot sudo $(which shutdown)"
 alias reboot="check-ssh confirm boot sudo $(which reboot)"
 alias poweroff="check-ssh confirm boot sudo $(which poweroff)"
 alias systemctl='sudo systemctl'
-alias ip='sudo ip'
+alias ip='sudo ip --color'
 alias 'wifi-menu'='sudo wifi-menu'
+alias crictl='sudo crictl'
 alias mplayer="check-ssh $(which mplayer)"
 alias off-screens="check-ssh $(which off-screens)"

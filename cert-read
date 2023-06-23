@@ -1,0 +1,3 @@
+#!/bin/bash
+
+exec openssl x509 -text -noout

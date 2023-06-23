@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -eu
+
+# Print all filenames which have been modified in given commit range.
+# Excludes deleted files.
+git show --name-status --format= "$1" |
+	awk -F'\t' '
+		# added, copied, modified: take first name
+		$1 ~ "[ACM]" { print $2 }
+		# renamed: take second name
+		$1 ~ "R" { print $3 }
+	'

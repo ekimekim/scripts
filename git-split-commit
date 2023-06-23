@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -eu
+
+# Replace the HEAD commit with a series of commits, one per modified file in HEAD.
+# This is suitable to use during an interactive rebase, like so:
+#   p 1234567 Some commit to split up
+#   x git split-commit
+
+ORIGINAL_HEAD=$(git show HEAD --no-patch --format=%h)
+
+WORKTREE=$(git rev-parse --show-toplevel)
+cd "$WORKTREE"
+
+# sanity checks
+if [ -n "$(git status --porcelain)" ]; then
+	echo "Refusing to operate - untracked changes" >&2
+	exit 1
+fi
+if [ "$(git show "$ORIGINAL_HEAD" --no-patch --format=%P | wc -l)" -gt 1 ]; then
+	echo "Refusing to operate on a merge commit" >&2
+	exit 1
+fi
+
+git reset HEAD~
+git show "$ORIGINAL_HEAD" --name-status --format= | while read -r mode path; do
+	case "$mode" in
+		A)
+			action="added"
+			git add "$path"
+			;;
+		D)
+			action="deleted"
+			git rm "$path"
+			;;
+		M)
+			action="modified"
+			git add "$path"
+			;;
+		*)
+			echo "Cannot handle status $mode for file $path, aborting" >&2
+			git reset --hard "$ORIGINAL_HEAD"
+			exit 1
+			;;
+	esac
+	git commit -m "Split of $ORIGINAL_HEAD: $action $path"
+done

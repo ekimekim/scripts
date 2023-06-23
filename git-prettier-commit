@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -eu 
+
+WORKTREE=$(git rev-parse --show-toplevel)
+cd "$WORKTREE"
+
+# Run prettier on all modified .ts files from the previous commit (or other commit specified),
+# creating a (possibly empty) prettier fixup commit.
+git changed "${1:-HEAD}" |
+	xargs --no-run-if-empty -d"\n" npx prettier -w
+git commit --allow-empty -am "prettier fixup"

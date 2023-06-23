@@ -1,0 +1,48 @@
+#!/bin/bash
+
+usage() {
+	echo "$0 set NAME ARGS"
+	echo "    Associate NAME with ac ARGS"
+	echo "$0 use NAME"
+	echo "    Set ac to ARGS previously associated with NAME"
+	echo "$0 clear NAME"
+	echo "    Unassociate NAME with any args"
+}
+
+if [ "$#" -lt 2 ]; then
+	usage >&2
+	exit 1
+fi
+
+STATE_FILE=~/.autoac.json
+
+if ! [ -f "$STATE_FILE" ]; then
+	echo "{}" > "$STATE_FILE"
+fi
+
+COMMAND="$1"
+NAME="$2"
+shift 2
+
+case "$COMMAND" in
+	set)
+		jq --arg name "$NAME" --arg args "$*" '.[$name] = $args' "$STATE_FILE" > "${STATE_FILE}.tmp"
+		mv "${STATE_FILE}.tmp" "$STATE_FILE"
+		;;
+	use)
+		ARGS=$(jq -r --arg name "$NAME" '.[$name]' "$STATE_FILE")
+		if [ "$ARGS" != "null" ]; then
+			ac $ARGS
+		else
+			echo "No such setting." >&2
+		fi
+		;;
+	clear)
+		jq --arg name "$NAME" 'del(.[$name])' "$STATE_FILE" > "${STATE_FILE}.tmp"
+		mv "${STATE_FILE}.tmp" "$STATE_FILE"
+		;;
+	*)
+		usage >&2
+		exit 1
+		;;
+esac

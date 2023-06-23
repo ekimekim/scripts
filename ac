@@ -192,8 +192,7 @@ def main(temp, rooms=('office', 'living'), mode='heat', fan='high', vane='auto',
 	if dry_run:
 		return
 
-	state['dirty'] = True
-	save_state(state)
+	save_state(dict(new_state, dirty=True))
 	apply(to_apply)
 	save_state(new_state)
 

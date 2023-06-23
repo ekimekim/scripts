@@ -11,7 +11,7 @@ if [ "$#" -lt 1 ]; then
 fi
 
 if [ -n "${CF_TOKEN:-}" ]; then
-	AUTH=("-H" "Authorization: Bearer $CF_KEY")
+	AUTH=("-H" "Authorization: Bearer $CF_TOKEN")
 elif [ -n "${CF_EMAIL:-}" ]; then
 	CF_KEY=$(pass show work/cloudflare/api-key)
 	AUTH=("-H" "X-Auth-Key: $CF_KEY" "-H" "X-Auth-Email: $CF_EMAIL")

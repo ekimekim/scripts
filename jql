@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# jq | less, but with color
+
+jq -C "$@" | less -R

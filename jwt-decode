@@ -1,0 +1,24 @@
+#!/bin/env python2
+
+import base64
+import json
+import sys
+
+def unpadded_b64_decode(s):
+    # right-pad with '=' to multiple of 4
+    s = s + '=' * (- len(s) % 4)
+    return base64.b64decode(s.encode(), b"-_")
+
+def main():
+	jwt = sys.stdin.read().strip()
+	parts = jwt.split(".")
+	for part in parts:
+		part = unpadded_b64_decode(part)
+		try:
+			data = json.loads(part)
+			print json.dumps(data, indent=4)
+		except ValueError:
+			print repr(part)
+
+
+main()

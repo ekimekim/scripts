@@ -7,6 +7,14 @@ else
 fi
 shift
 
+AUTH_ARGS=()
+AUTH_FILE="$HOME/.twitch-ekimekim-website.oauth"
+if [ -f "$AUTH_FILE" ]; then
+	# This makes the token visible in the process list...but meh
+	AUTH_ARGS+=("--twitch-api-header=Authorization=OAuth $(cat "$AUTH_FILE")")
+fi
+
 exec streamlink "$url" best \
 	--twitch-low-latency --twitch-disable-ads --hls-live-edge 1 \
+	"${AUTH_ARGS[@]}" \
 	-p mpv --player-args "--profile=low-latency $*"

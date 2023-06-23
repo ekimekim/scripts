@@ -9,7 +9,7 @@ if [ "$#" -lt 1 ]; then
 	exit 1
 fi
 
-candidates=$(grep -Eie "$*" main.awp | sort -rn | awk -F'\t' '{print $3}')
+candidates=$(grep -Eie "$*" ~/main.awp | sort -rn | awk -F'\t' '{print $3}')
 
 if [ -z "$candidates" ]; then
 	echo "No matches" >&2

@@ -57,7 +57,7 @@ def i(actions, yesterday=False, ago=0):
 		for action in action_info:
 			overdue = today - (action.last + action.interval)
 			if overdue >= 0:
-				print "Today you should {} (overdue by {} days)".format(action.future_tense, overdue)
+				print "Today you should {} (overdue by {}d)".format(action.future_tense, overdue)
 		return
 
 	for i, a in enumerate(action_info):

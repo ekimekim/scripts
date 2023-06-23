@@ -51,7 +51,7 @@ for arg in "$@"; do
 			regex=${arg%=*}
 			color=${arg##*=}
 			color=${!color:-$color}
-			SEDEXPR="$SEDEXPR s/$regex/\x1b[${color}m\0\x1b[m/;"
+			SEDEXPR="$SEDEXPR s/$regex/\x1b[${color}m\0\x1b[m/g;"
 		;;
 	esac
 done

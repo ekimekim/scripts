@@ -4,7 +4,7 @@ REPO_NAME=$(basename "$(git rev-parse --show-toplevel)")
 
 if [ "$PUSH_MASTER" == 'true' ] || [ "$PUSH_MASTER" == "$REPO_NAME" ]; then
 	# Explicitly allowed
-	exit 0
+	branch_allowed=true
 fi
 
 if ! git rev-parse --absolute-git-dir | grep -q "^$HOME/src/glide/"; then
@@ -14,9 +14,17 @@ fi
 
 while read local_ref local_sha remote_ref remote_sha; do
 	for branch in refs/heads/prod refs/heads/staging refs/heads/dev; do
-		if [ "$remote_ref" == "$branch" ]; then
+		if [ -z "$branch_allowed" ] && [ "$remote_ref" == "$branch" ]; then
 			echo "Refusing to push to $branch. If you really want to do this, set PUSH_MASTER=true or PUSH_MASTER=$REPO_NAME" >&2
 			exit 1
 		fi
 	done
+
+	if [ "$PUSH_UNFORMATTED" != "true" ] &&
+		[ "$local_sha" != "0000000000000000000000000000000000000000" ] &&
+		! git changed "dev..$local_sha" | grep '.ts$' | xargs -d '\n' --no-run-if-empty npx prettier -c
+	then
+		echo "Refusing to push due to unformatted files. If you want to push anyway, set PUSH_UNFORMATTED=true" >&2
+		exit 1
+	fi
 done

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-vol="${1:-65}"
+vol="${1:-50}"
 vol="${vol%%%}%" # normalize to xx% whether or not % is present
 
 amixer -M set Master "$vol"
