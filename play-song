@@ -25,4 +25,4 @@ else
 fi
 
 echo "Playing: $picked"
-mplayer -vo null -msglevel cplayer=4 "$picked"
+mpv --audio-display=no --msg-level=all=error,statusline=status --volume=50 "$picked"
