@@ -22,7 +22,7 @@ while read local_ref local_sha remote_ref remote_sha; do
 
 	if [ "$PUSH_UNFORMATTED" != "true" ] &&
 		[ "$local_sha" != "0000000000000000000000000000000000000000" ] &&
-		! git changed "dev..$local_sha" | grep '.ts$' | xargs -d '\n' --no-run-if-empty npx prettier -c
+		! git changed "origin/dev..$local_sha" | grep '.ts$' | xargs -d '\n' --no-run-if-empty npx prettier -c
 	then
 		echo "Refusing to push due to unformatted files. If you want to push anyway, set PUSH_UNFORMATTED=true" >&2
 		exit 1
