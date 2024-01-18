@@ -5,10 +5,7 @@ set tabstop=4
 set shiftwidth=4
 set hlsearch
 set nomodeline
-so /home/mike/bin/dotfiles/peachpuff-legacy.vim
-
-hi MatchParen ctermfg=red ctermbg=NONE
-hi Search term=reverse ctermfg=0 ctermbg=3 guibg=Gold2
+so /home/mike/bin/dotfiles/colors.vim
 
 " Map ctrl-/ in command mode to clear search state (unhighlight search items)
 map  :let @/ = ""<CR>
