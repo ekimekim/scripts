@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -eu
+
+TARGET=/mnt/proton_C/Users/mike/Desktop/audioshield
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 [--clear] FILES" >&2
+	exit 1
+fi
+
+if [ "$1" == "--clear" ]; then
+	rm "$TARGET"/*.mp3
+	shift
+fi
+
+n=0
+now=$(date +%s)
+for src in "$@"; do
+	name=$(basename "$src" | sed 's/[^a-zA-Z0-9 .-]/_/g')
+	dest="$TARGET/$now-$((n++)) $name.mp3"
+	ffmpeg -i "$src" "$dest" -y
+	echo "$dest"
+done
