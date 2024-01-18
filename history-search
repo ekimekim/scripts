@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -eu
+
+PLACES='/home/mike/.mozilla/firefox/jytau6ib.default/places.sqlite'
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 {TERMS}"
+	echo "Search firefox history for pages with url or title containing terms"
+fi
+
+WHERE=""
+for term in "$@"; do
+	term="${term/\'/\'\'}" # escape '
+	WHERE=" or url LIKE '%$term%' or title LIKE '%$term%'"
+done
+WHERE=${WHERE:4} # strip first " or "
+
+QUERY="SELECT url, title FROM moz_places WHERE $WHERE ORDER BY last_visit_date DESC"
+
+temp=$(mktemp)
+trap 'rm "$temp"' exit
+cp "$PLACES" "$temp"
+sqlite3 -separator '	' "$temp" "$QUERY"
