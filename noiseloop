@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Runs some soft noise to prevent headphones from turning off.
+# Yes it's dumb. I don't have a better solution.
+# I hate wireless things.
+
+exec mpv '/home/mike/music/sounds/Rainymood/RainyMood.m4a' -volume 15 -loop
