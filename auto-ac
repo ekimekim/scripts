@@ -9,15 +9,20 @@ usage() {
 	echo "    Unassociate NAME with any args"
 }
 
-if [ "$#" -lt 2 ]; then
-	usage >&2
-	exit 1
-fi
-
 STATE_FILE=~/.autoac.json
 
 if ! [ -f "$STATE_FILE" ]; then
 	echo "{}" > "$STATE_FILE"
+fi
+
+if [ "$1" == "show" ]; then
+	jq . "$STATE_FILE"
+	exit
+fi
+
+if [ "$#" -lt 2 ]; then
+	usage >&2
+	exit 1
 fi
 
 COMMAND="$1"
