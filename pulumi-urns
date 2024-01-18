@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eu
+
+pulumi stack -u -s "${1?stack}" | grep -o 'urn:.*'
