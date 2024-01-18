@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Squash HEAD into HEAD~1, keeping HEAD~1's commit message
+
+set -eu
+
+git reset HEAD~1
+git commit --amend --all
