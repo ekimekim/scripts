@@ -1,0 +1,5 @@
+#!/bin/bash
+
+BUTTON="${1?Which button}"
+DELAY="${2:-100}"
+xdotool selectwindow click --repeat 999999 --delay "$DELAY" "$BUTTON"
