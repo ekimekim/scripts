@@ -336,6 +336,7 @@ alias kubectx='kubectl config use-context'
 alias kubeset='kubectl config set-context'
 alias pclip='pass show -c'
 alias qr='qrencode -t ANSIUTF8 -o-'
+alias oc='ac -r office -m cool' # "office-cool" shortcut for ac
 # ^X: cd to `pwd` - this "refreshes" the fd if the dir has been destroyed/recreated (eg. in a git rebase)
 alias ''='cd ~+'
 # ^X^X: cd to top of git repo
