@@ -1,0 +1,194 @@
+#!/bin/env python3
+
+import argh
+import errno
+import json
+import logging
+import os
+import sys
+import time
+from calendar import timegm
+
+import gevent
+import gevent.event
+import gevent.pool
+import gevent.select
+
+from monotonic import monotonic
+
+import lineedit
+
+SENDER_WIDTH = 11 # for display
+EMOTE_HIGHLIGHT = '36' # what SGR escape to use for emote text. 36 = forecolor cyan
+
+
+def format_video_time(t):
+	t = int(t)
+	hours, mins, secs = t // 3600, (t // 60) % 60, t % 60
+	return '{:02d}:{:02d}:{:02d}'.format(hours, mins, secs)
+
+
+def display(base_time, message):
+	# TODO emotes
+	# TODO non-privmsg
+	# TODO CTCP actions
+	if message["command"] != "PRIVMSG":
+		return
+	print('[{time}] {nick:>{SENDER_WIDTH}}: {text}'.format(
+		SENDER_WIDTH=SENDER_WIDTH,
+		time=format_video_time(message["time"] - base_time),
+		text=message["params"][1],
+		nick=(
+			u'{}({})'.format(message["tags"]["display-name"], message["sender"])
+			if message["tags"]['display-name'].lower() != message['sender'].lower()
+			else message['tags']['display-name']
+		),
+	))
+
+
+class Timer(object):
+	"""A timer where you can set and get the time, which counts along with wall clock time"""
+	def __init__(self, start_time):
+		self.logger = logging.Logger(type(self).__name__).getChild(str(id(self)))
+		self.paused_at = None
+		self._changed_state = gevent.event.Event()
+		self.set(start_time)
+
+	@property
+	def paused(self):
+		return self.paused_at is not None
+
+	def set(self, current_time):
+		if self.paused:
+			self.logger.debug("Set time while paused to {}".format(current_time))
+			self.paused_at = current_time
+			return
+		self.offset = monotonic() - current_time # seconds different to real time
+		self.logger.debug("Set offset to {} for current time of {}".format(self.offset, current_time))
+
+	def get(self, now=None):
+		if self.paused:
+			current_time = self.paused_at
+		else:
+			current_time = monotonic() - self.offset
+		self.logger.debug("Got current time: {}".format(current_time))
+		return current_time
+
+	def pause(self):
+		self.paused_at = self.get()
+		self.logger.debug("Paused timer at time {}".format(self.paused_at))
+		self._wake_waiters()
+
+	def unpause(self):
+		if not self.paused:
+			return
+		paused_time = self.paused_at
+		self.logger.debug("Unpausing timer at time {}".format(paused_time))
+		self.paused_at = None
+		self.set(paused_time)
+		self._wake_waiters()
+
+	def wait(self, target_time):
+		while True:
+			time_until = target_time - self.get()
+			self.logger.debug("wait until {}: {} to go".format(target_time, time_until))
+			if time_until <= 0:
+				return
+			if self.paused:
+				self.logger.debug("wait until {}: waiting for unpause".format(target_time))
+				time_until = None # wait forever (until woken by unpause)
+			else:
+				self.logger.debug("wait until {}: waiting {} or until pause".format(target_time, time_until))
+			# wait for either time_until or until state change (pause/unpause) and check again
+			self._changed_state.wait(time_until)
+
+	def _wake_waiters(self):
+		# wake current waiters and reset event so new waiters can start waiting
+		self.logger.debug("Waking waiters")
+		self._changed_state.set()
+		self._changed_state = gevent.event.Event()
+
+
+@argh.arg('base_time', help="UTC timestamp of start of video")
+@argh.arg('start_at', help='', default='0', nargs='?')
+@argh.arg('--instant', help='Fetch the entire chat playback as fast as possible, instead of in time to a video')
+def main(channel, base_time, start_at, log='WARNING', instant=False, base_dir="/srv/wubloader"):
+	logging.basicConfig(level=log)
+
+	base_time = timegm(time.strptime(base_time, "%Y-%m-%dT%H:%M:%S"))
+	hours_path = os.path.join(base_dir, channel, "chat")
+
+	# parse start_at into int seconds
+	parts = start_at.split(':')
+	if len(parts) > 3:
+		raise ValueError("Bad start time")
+	parts = list(map(int, parts))[::-1] # parts is now eg. (seconds, minutes, hours)
+	start_at = sum(value * 60**n for n, value in enumerate(parts))
+
+	if instant:
+		output_loop(None, hours_path, base_time, start_at)
+		return
+
+	timer = Timer(start_at)
+
+	group = gevent.pool.Group()
+	group.spawn(output_loop, timer, hours_path, base_time, start_at)
+	group.spawn(input_loop, timer)
+	try:
+		gevent.wait(group, count=1) # wait for any one to finish
+	finally:
+		group.kill() # then kill the rest
+
+
+def get_messages(hours_path, base_time):
+	start_hour = time.strftime("%Y-%m-%dT%H", time.gmtime(base_time))
+	for hour in sorted(os.listdir(hours_path)):
+		if hour < start_hour:
+			continue
+		hour_path = os.path.join(hours_path, hour)
+		for batch in sorted(os.listdir(hour_path)):
+			batch_path = os.path.join(hour_path, batch)
+			with open(batch_path) as f:
+				for line in f.readlines():
+					yield json.loads(line)
+
+
+def output_loop(timer, hours_path, base_time, start_at):
+	for message in get_messages(hours_path, base_time):
+		offset = message["time"] - base_time
+		if offset < start_at:
+			# before start, skip
+			continue
+		if timer:
+			timer.wait(offset)
+		display(base_time, message)
+	print('No more messages')
+
+
+def input_loop(timer):
+	# we're not actually using lineedit, but we want the same termattrs
+	with lineedit.get_termattrs(), lineedit.HiddenCursor():
+		while True:
+			try:
+				r, w, x = gevent.select.select([sys.stdin], [], [])
+			except EnvironmentError as e:
+				if e.errno == errno.EINTR:
+					continue
+				raise
+			if sys.stdin not in r:
+				continue
+			c = sys.stdin.read(1)
+			if c == ' ':
+				if timer.paused:
+					print('Unpaused')
+					timer.unpause()
+				else:
+					timer.pause()
+					print('Paused at {}'.format(format_video_time(timer.get())))
+			elif c == 'q':
+				print('Quit')
+				return
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
