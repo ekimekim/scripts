@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Strip any rich formatting from the contents of the clipboard
+# by passing it to a file and back.
+
+TEMPFILE=$(mktemp)
+trap 'rm "$TEMPFILE"' exit
+
+xclip -selection clipboard -o > "$TEMPFILE"
+xclip -selection clipboard "$TEMPFILE"
