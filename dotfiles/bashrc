@@ -35,6 +35,14 @@ set +o histexpand
 # Keep all history from multiple windows
 shopt -s histappend
 
+# Keep all history. Yes, actually all. I can't believe how many places I need to say this.
+HISTFILESIZE=-1
+HISTSIZE=-1
+
+# Use an alternate history file name, so that if some bash process manages to start up without
+# getting the correct history settings above, it doesn't overwrite my actual history.
+HISTFILE=~/.bash_history_real
+
 # Write out commands to the history file after every command,
 # to avoid losing history on unclean shutdown
 PROMPT_COMMAND+=('history -a')
@@ -349,8 +357,6 @@ ALERTS=(
 )
 
 # Env vars
-HISTFILESIZE=$(( 1024 * 1024 ))
-HISTSIZE=$(( 1024 * 1024 ))
 export EDITOR='vim'
 export VISUAL='vim'
 export BROWSER='firefox-developer-edition'
