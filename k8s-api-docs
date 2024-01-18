@@ -32,7 +32,11 @@ def list_types():
 @cli
 @argh.arg("type", completer=lambda **k: TYPES.keys())
 @argh.arg("--format", choices=["json", "plain", "auto", "color"])
-def show(type, format='auto', indent="    ", pager=os.environ.get('PAGER', '')):
+@argh.arg("--verbose", help=(
+	"For non-json formats, print the full definition of each type every time. "
+	"Without this flag, a type will only be defined the first time it is printed."
+))
+def show(type, format='auto', indent="    ", pager=os.environ.get('PAGER', ''), verbose=False):
 	if format == "json":
 		print json.dumps(TYPES[type])
 		return
@@ -53,14 +57,16 @@ def show(type, format='auto', indent="    ", pager=os.environ.get('PAGER', '')):
 	elif format == 'color':
 		color = True
 
-	output = "\n".join(rich_format(type, width, indent=indent, color=color))
+	output = "\n".join(rich_format(type, width, indent=indent, color=color, hide_repeats=not verbose))
 	if pager:
 		cmd(pager, stdin=output, stdout=sys.stdout, stderr=sys.stderr)
 	else:
 		print output
 
 
-def rich_format(type, width, indent, color, description=True):
+def rich_format(type, width, indent, color, description=True, hide_repeats=False, _seen=None):
+	if _seen is None:
+		_seen = set()
 	obj = TYPES[type]
 	# first the main description
 	lines = []
@@ -79,8 +85,10 @@ def rich_format(type, width, indent, color, description=True):
 			field_obj.get('description', "<no description>"),
 		width - len(indent)))
 		# recurse at the new indentation level, if the field is a complex type
-		if field_type in TYPES:
-			lines += indented(indent, rich_format(field_type, width - len(indent), indent=indent, color=color, description=False))
+		# and (if hide_repeats) we haven't already seen it.
+		if field_type in TYPES and not (hide_repeats and field_type in _seen):
+			_seen.add(field_type)
+			lines += indented(indent, rich_format(field_type, width - len(indent), indent=indent, color=color, description=False, hide_repeats=hide_repeats, _seen=_seen))
 	return lines
 
 
