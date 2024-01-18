@@ -75,9 +75,6 @@ PATH="$PATH:$HOME/.local/bin"
 # This seems to be required for things in arch to work correctly.
 export JAVA_HOME=/usr/lib/jvm/default
 
-# nvm manages node.js versions by manipulating $PATH
-source "/usr/share/nvm/init-nvm.sh"
-
 # source auto-complete scripts
 source "/usr/share/git/completion/git-completion.bash"
 source "/usr/share/bash-completion/completions/pass"
