@@ -6,18 +6,47 @@ gevent.monkey.patch_all()
 import logging
 import os
 import re
+import shutil
+import subprocess
 import traceback
 from multiprocessing import cpu_count
-
-from gevent.pool import Pool
+from uuid import uuid4
 
 import argh
-from easycmd import cmd
-from misc import AtomicReplace
+from gevent.pool import Pool
 
 
 AUDIO_EXTS = ['flac', 'aac', 'm4a', 'wav', 'ogg', 'mp3', 'wma', 'opus', 'webm', 'mp4']
 DRY = False
+
+
+class AtomicReplace(object):
+    """Context manager. Usage:
+        with AtomicReplace(path) as tmppath:
+            <do something with tmppath>
+    After the body has succeeded, atomically replaces path with tmppath (via rename).
+    On failure, deletes tmppath.
+    tmppath will always be in the same directory as path, to ensure (in most cases) same filesystem.
+    Not re-entrant.
+    """
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        dirname, name = os.path.split(self.path)
+        name_no_ext, ext = os.path.splitext(name)
+        self.tmppath = os.path.join(dirname, '.{}.{}.tmp{}'.format(name_no_ext, uuid4(), ext))
+        return self.tmppath
+
+    def __exit__(self, *exc_info):
+        success = (exc_info == (None, None, None))
+        if success:
+            os.rename(self.tmppath, self.path)
+        else:
+            try:
+                os.remove(self.tmppath)
+            except FileNotFoundError:
+                pass # ignore error if it didn't exist
 
 
 def do(i, n, fn, src, dest, *args):
@@ -37,13 +66,13 @@ def do(i, n, fn, src, dest, *args):
 def copy(src, dest):
 	if not DRY:
 		with AtomicReplace(dest) as tmp:
-			cmd(['cp', src, tmp])
+			shutil.copy(src, tmp)
 
 
 def convert(src, dest, ffargs):
 	if not DRY:
 		with AtomicReplace(dest) as tmp:
-			cmd(['ffmpeg', '-i', src] + ffargs + [tmp])
+			subprocess.check_call(['ffmpeg', '-i', src] + ffargs + [tmp])
 
 
 def make_safe(s):
