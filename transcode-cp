@@ -72,7 +72,9 @@ def copy(src, dest):
 def convert(src, dest, ffargs):
 	if not DRY:
 		with AtomicReplace(dest) as tmp:
-			subprocess.check_call(['ffmpeg', '-i', src] + ffargs + [tmp])
+			subprocess.check_call(
+				['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', src] + ffargs + [tmp]
+			)
 
 
 def make_safe(s):
