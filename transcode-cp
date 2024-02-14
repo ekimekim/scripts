@@ -52,6 +52,8 @@ def make_safe(s):
 
 def get_dest(src_root, dest_root, src, safe=False, ext='mp3'):
 	rel_src_dir = os.path.relpath(os.path.dirname(src), src_root)
+	if rel_src_dir.startswith("../"):
+		raise ValueError("File {!r} is not under {}".format(src, src_root))
 	src_name = os.path.basename(src)
 	src_name, src_ext = os.path.splitext(src_name)
 	dest_name = "{}.{}".format(src_name, ext or src_ext[1:])
