@@ -1,4 +1,4 @@
-#!/bin/env python2
+#!/bin/env python3
 
 import gevent.monkey
 gevent.monkey.patch_all()
@@ -15,21 +15,22 @@ import argh
 from easycmd import cmd
 from misc import AtomicReplace
 
+
 AUDIO_EXTS = ['flac', 'aac', 'm4a', 'wav', 'ogg', 'mp3', 'wma', 'opus', 'webm', 'mp4']
 DRY = False
 
 
 def do(i, n, fn, src, dest, *args):
-	print "Doing {}/{}: {} {}".format(i, n, fn.__name__, dest)
+	print("Doing {}/{}: {} {}".format(i, n, fn.__name__, dest))
 	try:
 		dest_dir = os.path.dirname(dest)
 		if not os.path.exists(dest_dir):
 			os.makedirs(dest_dir)
 		fn(src, dest, *args)
-		print "Done {}/{}".format(i, n)
+		print("Done {}/{}".format(i, n))
 		return True
 	except Exception:
-		print "Failed {}/{}".format(i, n)
+		print("Failed {}/{}".format(i, n))
 		traceback.print_exc()
 		return False
 
@@ -62,7 +63,7 @@ def get_dest(src_root, dest_root, src, safe=False, ext='mp3'):
 
 def do_file(pool, i, n, src, dest, ffargs, force=False, always_transcode=False):
 	if os.path.exists(dest) and not force:
-		print "Skipping {}/{}: already exists {}".format(i, n, dest)
+		print("Skipping {}/{}: already exists {}".format(i, n, dest))
 		return
 	_, ext = os.path.splitext(dest)
 	ext = ext[1:]
@@ -132,7 +133,7 @@ def main(src_root, dest_root, *ffargs, **kwargs):
 	if delete:
 		exists = set(get_exists_in_dest(dest_root))
 		to_delete = exists - set(dest for src, dest in items)
-		print "Deleting {} existing items".format(len(to_delete))
+		print("Deleting {} existing items".format(len(to_delete)))
 		for path in to_delete:
 			os.remove(path)
 	n = len(items)
