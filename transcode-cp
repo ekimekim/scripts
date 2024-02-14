@@ -103,15 +103,30 @@ def get_exists_in_dest(dest_root):
 				yield filepath
 
 
-@argh.arg('--stdin', default=False)
-@argh.arg('--force', default=False)
-@argh.arg('--safe', default=False)
-@argh.arg('--ext', default='mp3')
-@argh.arg('--concurrency', default=cpu_count())
-@argh.arg('--delete', default=False)
-@argh.arg('--non-audio', default=False)
-@argh.arg('--always-transcode', default=False)
+@argh.arg('--stdin', default=False, help="Instead of copying all files under SRC, only copy the files listed on stdin.")
+@argh.arg('--force', default=False, help="Overwrite existing files in DEST")
+@argh.arg('--safe', default=False, help=
+	"Make the filenames 'safe' for weird filesystems (like NTFS) "
+	"or applications that can't handle unicode "
+	"by replacing all non-alphanumeric characters (except space, dot and dash) with underscores."
+)
+@argh.arg('--ext', default='mp3', help="File extension to convert to. Files that already have this extension are not transcoded.")
+@argh.arg('--concurrency', default=cpu_count(), help="How many conversions to perform at once")
+@argh.arg('--delete', default=False, help="Also delete any existing files in DEST that do not have a corresponding file in SRC")
+@argh.arg('--non-audio', default=False, help="Also copy non-audio files")
+@argh.arg('--always-transcode', default=False, help=
+	"Always convert files, even if the extension already matches. "
+	"This is useful if you want to apply particular encoding settings using FFARGS."
+)
+@argh.arg('src_root', metavar='SRC')
+@argh.arg('dest_root', metavar='DEST')
+@argh.arg('ffargs', help="Additional options to pass to ffmpeg when transcoding")
 def main(src_root, dest_root, *ffargs, **kwargs):
+	"""
+	Copy all audio files from SRC to DEST, converting any that are not already in the format
+	specified by EXT (default mp3).
+	By default, does not overwrite existing destination files.
+	"""
 	force, stdin, safe, ext, concurrency, delete, non_audio, always_transcode = (kwargs[k] for k in ('force', 'stdin', 'safe', 'ext', 'concurrency', 'delete', 'non_audio', 'always_transcode'))
 	items = list(get_items(src_root, dest_root, stdin=stdin, safe=safe, ext=ext, non_audio=non_audio))
 	if delete:
