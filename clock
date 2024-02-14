@@ -6,8 +6,8 @@ USAGE="$0 [FORMAT]"
 FORMAT="${1:-%T}"
 BANNER="${BANNER:-banner}"
 ADD_UTC=true
-ADD_OTHER=America/Los_Angeles
-ADD_28HR="America/Los_Angeles 6" # base time zone, start hour offset
+ADD_OTHER=Europe/Stockholm
+ADD_28HR="Europe/Stockholm 8" # base time zone, start hour offset
 ADD_CUSTOM=
 
 # Bustime
