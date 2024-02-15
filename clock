@@ -5,8 +5,11 @@ USAGE="$0 [FORMAT]"
 
 FORMAT="${1:-%T}"
 BANNER="${BANNER:-banner}"
-ADD_UTC=true
-ADD_OTHER=Europe/Stockholm
+TIMEZONES=( # SGR format, timezone
+	"35 UTC"
+	"33 Europe/Stockholm"
+	"36 America/Los_Angeles"
+)
 ADD_28HR="Europe/Stockholm 8" # base time zone, start hour offset
 ADD_CUSTOM=
 
@@ -37,8 +40,11 @@ while sleep 1; do
 	[ -n "$ADD_CUSTOM" ] && CUSTOM=$(bash -c "$ADD_CUSTOM")
 	clear
 	$BANNER "$(date "+$FORMAT")"
-	[ -n "$ADD_UTC" ] && echo -en "\e[s\e[H\e[35m$(date -u +%H)\e[m\e[u"
-	[ -n "$ADD_OTHER" ] && echo -en "\e[s\e[2;1H\e[36m$(TZ="$ADD_OTHER" date +%H)\e[m\e[u"
+	line=1
+	for item in "${TIMEZONES[@]}"; do
+		read format tz <<<"$item"
+		echo -en "\e[s\e[$((line++));1H\e[${format}m$(TZ="$tz" date +%H)\e[m\e[u"
+	done
 	[ -n "$ADD_CUSTOM" ] && echo -en "\e[s\e[6;1H\e[36;1m$CUSTOM\e[m\e[u"
 	[ -n "$ADD_28HR" ] && echo -en "\e[s\e[6;999H\e[D\e[33m$(hour28)\e[m\e[u"
 done
