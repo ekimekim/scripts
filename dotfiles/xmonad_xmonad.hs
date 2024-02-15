@@ -10,6 +10,12 @@ fineTall = Tall 1 (1/1920) (1/2)
 -- three extra workspaces on keys 0, -, =
 extraWorkspaces = [(xK_0, "10"),(xK_minus, "11"),(xK_equal, "12")]
 
+-- Ignore firefox notification windows, so they go into the top-right of the screen.
+myManageHook = composeAll
+	[
+		appName =? "Alert" --> doIgnore
+	]
+
 main = do
 	xmonad $ ewmh defaultConfig
 		{
@@ -17,6 +23,7 @@ main = do
 			modMask = myModMask,
 			handleEventHook = fullscreenEventHook,
 			layoutHook = fineTall ||| Mirror fineTall ||| Full,
+			manageHook = myManageHook <+> manageHook defaultConfig,
 			-- three extra workspaces
 			workspaces = map show [1 .. 12]
 		} `additionalKeys` (myKeys)
