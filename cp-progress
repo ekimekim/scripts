@@ -14,12 +14,21 @@ BANNER: Alternate program for percentage display (default 'banner')
 "
 
 if [ "$#" -lt 1 ]; then
-	echo "USAGE: $0 PID"
+	echo "USAGE: $0 [--dir] PID"
 	exit 1
 fi
 
 INTERVAL=${INTERVAL:-0.5}
 BANNER=${BANNER:-banner}
+
+if [ "$1" == "--dir" ]; then
+	FROM_FD=4
+	TO_FD=5
+	shift 1
+else
+	FROM_FD=3
+	TO_FD=4
+fi
 
 if grep -Eq "^ *[0-9]+ *$" <<<"$1"; then
 	# Is numeric
@@ -39,14 +48,14 @@ while sleep "$INTERVAL"; do
 		exit 0
 	fi
 
-	fromfile="$(readlink "/proc/$1/fd/3")"
+	fromfile="$(readlink "/proc/$1/fd/$FROM_FD")"
 	if [ ! "$fromfile" ]; then continue; fi
 	if [ "$fromfile" != "$oldfile" ]; then
 		totalsize="$(stat -c %s "$fromfile")"
 	fi
 	oldfile="$fromfile"
-	position="$(grep pos "/proc/$1/fdinfo/4"| cut -f2)"
-	complete=$(python -c "print '%.2f' % ($position * 100. / $totalsize)")
+	position="$(grep pos "/proc/$1/fdinfo/$TO_FD"| cut -f2)"
+	complete=$(python3 -c "print('%.2f' % ($position * 100. / $totalsize))")
 	clear
 	echo
 	echo "Copying $fromfile"
