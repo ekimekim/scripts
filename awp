@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python -um awp "$@"
+python2 -um awp "$@"
