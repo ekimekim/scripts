@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 1 ]; then
+	echo "$0 PROG {DIFF_ARGS}" >&2
+	echo "Compares /tmp/a to /tmp/b after piping both through the given JQ program" >&2
+	exit 1
+fi
+
+PROG="$1"
+shift
+
+if [ "$#" -lt 1 ]; then
+	ARGS=("--color" "-u")
+else
+	ARGS=("$@")
+fi
+
+exec diff "${ARGS[@]}" <(jq "$PROG" /tmp/a) <(jq "$PROG" /tmp/b)
