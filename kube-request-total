@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+	echo "$0 FILTER {KUBECTL_ARGS}" >&2
+	echo "Show total cpu and memory requests of all running pods that match given jq FILTER." >&2
+	echo "Example: $0 '.metadata.namespace == \"my-namespace\"'" >&2
+	exit 1
+fi
+
+FILTER="$1"
+shift
+kubectl get pods -o json --all-namespaces "$@" | jq "
+        .items | map(
+                select($FILTER)
+                | select(.status.phase == \"Running\")
+                | .spec.containers[].resources.requests // empty
+                | .cpu = (.cpu
+					| if endswith(\"m\") then (.[:-1]|tonumber|./1000) else tonumber end
+				)
+                | .memory = ((.memory // \"0Ki\")
+					| (if endswith(\"i\") then 2 else 1 end) as \$unit_index
+					| .[-\$unit_index:] as \$unit
+					| (.[:-\$unit_index] | tonumber) as \$n
+					| {
+						Gi: (1024*1024*1024),
+						Mi: (1024*1024),
+						Ki: 1024,
+						G: (1000*1000*1000),
+						M: (1000*1000),
+						K: 1000,
+					}[\$unit] as \$scale
+					| \$n * \$scale
+					| . / pow(1024; 3)
+				)
+        ) | if length == 0 then error(\"No matches\") else {
+				count: length,
+				total: {
+					cpu: (map(.cpu)|add),
+					memory: (map(.memory)|add),
+				},
+				range: {
+					cpu: ([map(.cpu) | sort | (.[0], .[-1])]),
+					memory: ([map(.memory) | sort | (.[0], .[-1])]),
+				},
+				avg: {
+					cpu: (map(.cpu)|(add / length)),
+					memory: (map(.memory)|(add / length)),
+				},
+        } end
+"

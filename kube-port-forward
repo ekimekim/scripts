@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -eu
+
+usage() {
+	echo "USAGE: $0 [--base PORT] {KUBECTL_ARGS}"
+	echo "For given pod (as identified by kubectl get pods with given args),"
+	echo "forward all named ports for that pod to consecutive ports starting at PORT (default 5000)"
+}
+
+if [ "$#" -lt 1 ]; then
+	usage >&2
+	exit 1
+fi
+
+BASE_PORT=5000
+if [ "$1" == "--base" ]; then
+	BASE_PORT="$2"
+	shift 2
+fi
+
+POD=$(kubectl get pods "$@" -o json)
+PORTS=$(
+	jq --argjson base "$BASE_PORT" '
+		[
+			.spec.containers[]
+			| .name as $name
+			| (.ports // empty)[]
+			| {
+				container: $name,
+				name: .name,
+				remote: .containerPort,
+			}
+		]
+		| to_entries[]
+		| {local: ($base + .key)} + .value
+	' <<<"$POD"
+)
+
+jq -r '"Forwarding to \(.metadata.namespace)/\(.metadata.name):"' <<<"$POD"
+jq -r '"  \(.local) -> \(.container).\(.name):\(.remote)"' <<<"$PORTS"
+
+PORT_ARGS=$(jq -r '"\(.local):\(.remote)"' <<<"$PORTS")
+
+# Intentional splitting of PORT_ARGS
+exec kubectl port-forward "$@" $PORT_ARGS
