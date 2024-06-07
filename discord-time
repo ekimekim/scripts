@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 [-MODIFIER] DATE" >&2
+	echo "Generate a discord timestamp for given time and put it on clipboard" >&2
+	echo "Known modifiers: R for relative, t for HH:MM, T for HH:MM:SS"
+fi
+
+MODIFIER=
+if grep -q "^-" <<<"$1"; then
+	MODIFIER=":${1:1}"
+	shift
+fi
+
+TIME=$(date -d "$*" +%s)
+echo "Time interpreted as: $(date -d"@$TIME" '+%F %T')" >&2
+TIMESTR="<t:${TIME}${MODIFIER}>"
+echo -n "$TIMESTR" | xclip -selection clipboard
+echo "$TIMESTR"
