@@ -3,6 +3,7 @@
 REPO_NAME=$(basename "$(git rev-parse --show-toplevel)")
 
 FOR_REPOS=(
+	"depict"
 )
 
 if [ "$PUSH_MASTER" == 'true' ] || [ "$PUSH_MASTER" == "$REPO_NAME" ]; then
@@ -22,7 +23,7 @@ if [ -z "$found" ]; then
 fi
 
 while read local_ref local_sha remote_ref remote_sha; do
-	for branch in refs/heads/prod refs/heads/staging refs/heads/dev; do
+	for branch in refs/heads/main; do
 		if [ -z "$branch_allowed" ] && [ "$remote_ref" == "$branch" ]; then
 			echo "Refusing to push to $branch. If you really want to do this, set PUSH_MASTER=true or PUSH_MASTER=$REPO_NAME" >&2
 			exit 1
