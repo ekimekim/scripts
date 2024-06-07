@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -eu
+
+SOCKET_PATH="/tmp/cloud-sql-proxy"
+DB_ID="depict-v2:europe-west1:trinity-db"
+
+mkdir -p "$SOCKET_PATH"
+cloud-sql-proxy depict-v2:europe-west1:trinity-db --exit-zero-on-sigterm --unix-socket "$SOCKET_PATH" &
+PROXY_PID="$!"
+trap 'kill "$PROXY_PID"' exit
+
+export PGPASSWORD=$(gcloud secrets versions access latest --secret trinity-db-password)
+
+while ! [ -S "$SOCKET_PATH/$DB_ID"/.s.PGSQL.* ]; do
+	echo "Waiting for socket..."
+	sleep 0.5
+done
+
+psql -h "$SOCKET_PATH/$DB_ID" -U trinity-db-user trinity-db
