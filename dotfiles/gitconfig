@@ -17,6 +17,7 @@
 	get = fetch --all
 	fpush = push --force-with-lease
 	spush = !PUSH_MASTER=true git push
+	rpush = !git pull --rebase && git push
 	co = checkout
 	master = checkout master
 	dev = checkout dev
@@ -27,7 +28,7 @@
 	pr = !hub pull-request
 	por = !git pushorigin && git pr
 	issue = !hub issue create
-	r = !git dev && git pull && git del-gone && git br
+	r = !git master && git pull && git del-gone && git br
 
 	# === The form: "!f(){ ... ;}; f" allows positional params without also appending all params to the end ===
 	herp = "!f(){ git commit -am \"fixup: $*\" ;}; f"
@@ -75,6 +76,9 @@
 
 [merge]
 	ff = only
+	# Note: I considered zdiff3 but prefer diff3 as it preserves the full changes on each side
+	# instead of eliding common changes to both sides, which I find confusing when comparing
+	# to the original.
 	conflictstyle = diff3
 	defaultToUpstream = True
 

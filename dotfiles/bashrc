@@ -248,6 +248,11 @@ certbot() {
 	command certbot --config-dir ~/.certbot/config --work-dir ~/.certbot/work --logs-dir ~/.certbot/logs "$@"
 }
 
+# jq ARGS /tmp/j
+jj() {
+	jq "$@" /tmp/j
+}
+
 # exit success if bashrc has not changed since executing (matches saved hash of bashrc)
 # 
 # note: vulnerable to a race if edited while executing, causing a false success,
@@ -318,6 +323,7 @@ alias pyflakes-watch='watch -pn.2 pyflakes'
 alias ':q'='sl'
 alias vun='sl'
 alias ks='sl'
+alias updog='upvol'
 alias diff='diff --color -u'
 alias diffab='diff /tmp/a /tmp/b'
 alias ''='clear'
@@ -339,6 +345,7 @@ alias ''='cd ~+'
 alias ''='cd "$(git rev-parse --show-toplevel)"'
 alias rerc='source "$HOME/.bashrc"'
 alias copy-screenshot='copy-to-http /tmp/screenshot.png'
+alias gcloud-secret='gcloud secrets versions access latest --secret'
 
 # PS1 alerts (see alerts.ps1.bash)
 ALERTS=(
@@ -362,6 +369,8 @@ export PYTHONSTARTUP="$HOME/.pythonrc"
 export QUOTING_STYLE='literal'
 export GOPATH="$HOME/.go"
 export PYTHONWARNINGS=ignore # heavy-handed but i can't work out how to make pip shut up otherwise
+# Avoid hard-to-read, extremely verbose "pretty" tracebacks in certain python CLIs
+export _TYPER_STANDARD_TRACEBACK=1
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets" # set sensitive env vars, eg. api secrets
 
 # Misc completions
