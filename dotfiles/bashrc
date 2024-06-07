@@ -134,6 +134,13 @@ pyedit() {
 	[ -n "$path" ] && "$EDITOR" "$path" "$@"
 }
 
+pyedit3() {
+	local target="$1"
+	shift 1
+	local path="$(pypath3 "$target")"
+	[ -n "$path" ] && "$EDITOR" "$path" "$@"
+}
+
 # shadow the real docker command to make "docker foo" run "docker-foo" if it exists, like git
 docker() {
 	local arg="$1"
