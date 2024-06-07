@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python3 -m pyhedrals.pyhedrals "$@" 2> >(grep -v "^WARNING: " >&2)
