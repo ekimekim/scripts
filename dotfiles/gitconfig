@@ -93,6 +93,7 @@
 
 [diff]
 	color=auto
+	algorithm=histogram
 
 [sendemail]
 	smtpencryption = tls
