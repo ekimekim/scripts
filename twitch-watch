@@ -14,7 +14,7 @@ if [ -f "$AUTH_FILE" ]; then
 	AUTH_ARGS+=("--twitch-api-header=Authorization=OAuth $(cat "$AUTH_FILE")")
 fi
 
-exec streamlink "$url" best \
+exec streamlink "$url" "${TW_QUALITY:-best}" \
 	--twitch-low-latency --twitch-disable-ads --hls-live-edge 1 \
 	"${AUTH_ARGS[@]}" \
 	-p mpv --player-args "--profile=low-latency $*"

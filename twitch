@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$1" == "-c" ] | [ "$1" == "--chat-only" ]; then
+if [ "$1" == "-c" ] || [ "$1" == "--chat-only" ]; then
 	CHAT_ONLY=true
 	shift
 fi
@@ -11,11 +11,6 @@ if [ "$#" -lt 1 ]; then
 fi
 
 CHANNEL="$(tr A-Z a-z <<<"$1")"
-
-if [ "$1" == "-c" ] || [ "$1" == "--chat-only" ]; then
-	shift
-	CHAT_ONLY=true
-fi
 
 if ! [ -n "$CHAT_ONLY" ]; then
 	# Use a sleep process as a waitable signal
