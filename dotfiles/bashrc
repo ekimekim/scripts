@@ -201,7 +201,6 @@ function aws-find () {
 kube-get-ips() {
 	kubectl get pods -o json "$@" | jq -r '(if .kind == "List" then .items[] else . end)|"\(.metadata.name)\t\(.status.podIP)"'
 }
-complete -o default -F __start_kubectl kube-get-ips
 
 # wrap a command in a check to prompt confirmation if this appears to be an ssh session
 # useful for preventing accidential eg. poweroff to the wrong machine
@@ -371,9 +370,16 @@ complete -c spawn
 complete -F _pass pcard
 
 # These aliases need to not exist, see below
-for a in systemctl-user pacman user_pacman pip shutdown reboot poweroff systemctl ip wifi-menu mplayer; do
-	unalias "$a" 2>/dev/null
-done
+unalias systemctl-user pacman user_pacman pip shutdown reboot poweroff systemctl ip wifi-menu mplayer 2>/dev/null
+
+# This alias should be set up with a *different* completion function to what it actually expands
+# to, so we define the alias to expand to the completion we want here, then re-define it after
+# creating completions.
+alias kubens='kubectl get ns'
+# These aren't actually aliases but we set up temporary aliases so alias_completion generates
+# completions for them.
+alias kube-get-ips='kubectl get pods'
+alias kube-port-forward='kubectl get pods'
 
 # Apply completions to aliases wherever possible, see ~/bin/auto-alias-completions.bash
 alias_completion
@@ -392,3 +398,8 @@ alias 'wifi-menu'='sudo wifi-menu'
 alias crictl='sudo crictl'
 alias mplayer="check-ssh $(which mplayer)"
 alias off-screens="check-ssh $(which off-screens)"
+
+# This alias is redefined after generating its completion, see above.
+alias kubens='kubectl config set-context --current --namespace'
+# These were only defined for completion purposes and shoud now be undefined.
+unalias kube-get-ips kube-port-forward
