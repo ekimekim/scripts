@@ -1,4 +1,4 @@
-#!/bin/env python2
+#!/bin/env python3
 
 import json
 import sys
@@ -15,7 +15,7 @@ def main(filepath, pretty=True):
 		f = open(filepath)
 
 	data = list(yaml.safe_load_all(f))
-	print json.dumps(data, indent=4 if pretty else None, default=str)
+	print(json.dumps(data, indent=4 if pretty else None, default=str))
 
 
 if __name__ == '__main__':
