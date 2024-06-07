@@ -46,7 +46,7 @@ def i(actions, yesterday=False, ago=0):
 	--yesterday is a shortcut for --ago 1
 	"""
 
-	today = (int(time.time() / 3600) - 12) / 28
+	today = (int(time.time() / 3600) - 6) / 28
 	if yesterday:
 		ago = 1
 	today -= ago
