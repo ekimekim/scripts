@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 2 ]; then
+	echo "USAGE: $0 EXT_REGEX COMMAND {ARGS}" >&2
+	echo "Run COMMAND on each changed file ending in EXT_REGEX in the current HEAD commit." >&2
+fi
+
+WORKTREE=$(git rev-parse --show-toplevel)
+cd "$WORKTREE"
+
+MATCH=$1
+shift
+
+# Run given command on all modified .ts files from the previous commit (or other commit specified),
+# creating a (possibly empty) prettier fixup commit.
+git changed HEAD |
+	grep -E "($MATCH)\$" |
+	xargs --no-run-if-empty -d"\n" "$@"
+git commit --allow-empty -am "autoformat"
