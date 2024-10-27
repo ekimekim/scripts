@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+filepath="${1:-/tmp/screenshot.png}"
+shift || true
+rm -f "$filepath"
+echo "Select a screen region..."
+scrot "$@" -zs "$filepath"
+echo "Saved to $filepath"

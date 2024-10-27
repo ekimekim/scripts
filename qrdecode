@@ -1,7 +1,10 @@
 #!/bin/bash
 
 result=$(zbarimg -q -Sdisable -Sqrcode.enable "$@")
-if ! grep -q "^QR-Code:" <<<"$result"; then
+if [ -z "$result" ]; then
+	echo "No QR code found" >&2
+	exit 1
+elif ! grep -q "^QR-Code:" <<<"$result"; then
 	echo "Unexpected output, did not start with 'QR-Code:': $result" >&2
 	exit 1
 fi

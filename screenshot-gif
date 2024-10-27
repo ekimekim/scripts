@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -eu
+
+# Adapted from https://unix.stackexchange.com/questions/113695/gif-screencasting-the-unix-way
+ffcast -s % ffmpeg \
+	-f x11grab -show_region 1 \
+    -video_size %s -i %D+%c \
+	-framerate 15 -codec:v huffyuv \
+	-vf 'crop=iw-mod(iw\,2):ih-mod(ih\,2)' \
+	-y /tmp/screenshot.avi
+
+echo "Converting to gif"
+ffmpeg -i /tmp/screenshot.avi \
+    -vf 'split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse' \
+	-y -loop 0 /tmp/screenshot.gif

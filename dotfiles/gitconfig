@@ -105,9 +105,10 @@
 
 [advice]
 	statusHints = false
-	pushNonFFCurrent = false
 	detachedHead = false
 	skippedCherryPicks = false
+	forceDeleteBranch = false
+	pushUpdateRejected = false
 
 [color]
 	ui = auto

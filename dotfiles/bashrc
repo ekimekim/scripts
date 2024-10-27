@@ -83,6 +83,11 @@ source <(kubectl completion bash)
 source "$HOME/bin/auto-alias-completions.bash"
 source <(k8s-api-docs completion)
 
+_pake_complete() {
+	pake -qq --complete "$2"
+}
+complete -C _pake_complete pake
+
 # Wrapper around xargs and sudo to expand aliases
 _maybe_expand_alias() {
 	local cmd="$(which "$1")"
@@ -152,38 +157,6 @@ docker() {
 		cmd=("$(which docker)" "$arg")
 	fi
 	"${cmd[@]}" "$@"
-}
-
-screenshot() {
-	local filepath="${1:-/tmp/screenshot.png}"
-	shift
-	# If path already exists, scrot won't overwrite but will append a number to filename
-	rm "$filepath"
-	echo "Select a screen region..."
-	scrot "$@" -zs "$filepath" &&
-		echo "Saved to $filepath"
-}
-
-screenshot-window() {
-	local delay="${1:-3}"
-	local filepath="${2:-/tmp/screenshot.png}"
-	shift
-	shift
-	# If path already exists, scrot won't overwrite but will append a number to filename
-	rm "$filepath"
-	echo "Will screenshot focussed window in $delay seconds"
-	scrot "$@" -zucd "$delay" "$filepath" &&
-		echo "Saved to $filepath"
-}
-
-ndurl() {
-	echo "rtmp://rtmp.condorleague.tv/$1/live"
-}
-
-ndvlc() {
-	for name in "$@"; do
-		spawn vlc "$(ndurl "$name")"
-	done
 }
 
 function aws-find () {
@@ -295,6 +268,20 @@ check_journal() {
 # Check for /tmp/alerts/* files
 check_file_alerts() {
 	[ ! -e /tmp/alerts ] || [ -z "$(ls /tmp/alerts)" ]
+}
+
+# Python one-liner helper.
+# Usage: py {STATEMENTS} EXPRESSION
+# Runs STATEMENTS then prints EXPRESSION. Examples:
+#  py '1+1' -> 2
+#  py 'n=5' 'n*(n-1)/2' -> 10
+py() {
+	stmt="pass"
+	while [ "$#" -gt 1 ]; do
+		stmt="$stmt; $1"
+		shift
+	done
+	python -c "$stmt; print($1)"
 }
 
 # Colour aliases
