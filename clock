@@ -14,7 +14,7 @@ ADD_28HR="Europe/Stockholm 8" # base time zone, start hour offset
 ADD_CUSTOM=
 
 # Bustime
-#ADD_CUSTOM='echo $(( ($(date +%s)-1699740000) / 3600 ))' # DB2023
+#ADD_CUSTOM='echo $(( ($(date +%s)-1731106800) / 3600 ))' # DB2023
 
 # CPU temp
 ADD_CUSTOM="echo -en '\e[31m'; sensors | awk '\$1 == \"Tctl:\" {printf \"%d°\", \$2}'"
