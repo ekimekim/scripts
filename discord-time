@@ -5,7 +5,8 @@ set -eu
 if [ "$#" -lt 1 ]; then
 	echo "USAGE: $0 [-MODIFIER] DATE" >&2
 	echo "Generate a discord timestamp for given time and put it on clipboard" >&2
-	echo "Known modifiers: R for relative, t for HH:MM, T for HH:MM:SS"
+	echo "Known modifiers: R for relative, t for HH:MM, T for HH:MM:SS, F for long date including weekday"
+	exit 1
 fi
 
 MODIFIER=
