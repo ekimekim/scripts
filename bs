@@ -1,0 +1,3 @@
+#!/bin/bash
+
+firefox-developer-edition /tmp/screenshot.png
