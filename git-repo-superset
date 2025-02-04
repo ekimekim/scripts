@@ -1,0 +1,42 @@
+#!/bin/bash
+
+usage() {
+	echo "$0 REPO_PATH"
+	echo 'Indicates if the current git repo is a "superset" of the other repo.'
+	echo 'This is defined as all reachable commits (ie. from git log --all) in the remote'
+	echo 'also being reachable locally.'
+	echo 'It does NOT compare ref state.'
+	echo 'Other repo must be a local filepath, not any remote.'
+	echo 'Exits 0 if it is a subset, 1 if not, other codes on error.'
+}
+
+if [ "$#" -lt 1 ]; then
+	usage >&2
+	exit 255
+fi
+
+REMOTE="$1"
+
+git-remote() {
+	git -C "$REMOTE" "$@"
+}
+
+result=0
+
+if [ -n "$(git-remote status --porcelain)" ]; then
+	echo "Remote worktree is dirty"
+	result=1
+fi
+
+commits=$( \
+	diff -u \
+		<(git log --format=%H --all) \
+		<(git-remote log --format=%H --all) \
+	| grep '^+[^+]'
+)
+if [ -n "$commits" ]; then
+	echo "Remote has $(wc -l <<<"$commits") commits unreferenced locally"
+	result=1
+fi
+
+exit "$result"
