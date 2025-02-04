@@ -1,0 +1,10 @@
+#!/bin/jq -rRf
+
+. as $line |
+try (
+	fromjson |
+	(if .exc_info != null then "\(.message)\n\(.exc_info)" else .message end) as $msg |
+	"[\(.asctime)] \(.levelname) (\(.name)) \($msg)"
+) catch (
+	$line
+)
