@@ -51,6 +51,13 @@ PATTERNS = {
 	r"WEAP:\d+(?: HITLOC: \d+ \((.*)\))? (Armor|Structure) damage: ([1-9]\d*)":
 		"{red}{weapon} hits location `g1 or location` for {3} {2} damage`' (carryover %d)' % (base - int(g3)) if base - int(g3) > 1 else ''``save.base(base - int(g3))`",
 
+	# On start of using ability, clear base value.
+	r"\[LOG\] (.*) activates ability (.*) on position":
+		"{white}{1} used ability {2}`save.base('')`",
+	# Only show raw damage when base is empty, ie. it's not a weapon attack.
+	r"==== (Armor|Structure) Damage: (\d+) / ([0-9.]+) \|\| Now: ([0-9.]+)":
+		"`'' if '{base}' else '{red}{1} damaged for {2}, remaining {4}'`",
+
 	r"Actor .* - (.*) \(.*\) FLAGGED FOR DEATH! Reason: (.*)":
 		"{bold}{white}{1} destroyed due to: {2}",
 	r"Actor .* - (.*) \(.*\) FLAGGED FOR KNOCKDOWN!":
@@ -59,7 +66,7 @@ PATTERNS = {
 	r"\[LOG\] (.*) gains effect SENSOR LOCK from (.*)":
 		"{blue}{2} sensor locks {1}",
 
-	r"V\^V\^V\^V\^V (.*) takes Stability Damage \(Absolute\) from Attack: ([1-9]\d*|\d+\.\d+) / Current Instability: (\d+) / Max Instability: (\d+)":
+	r"V\^V\^V\^V\^V (.*) takes Stability Damage \(Absolute\) from (?:Attack|Effect): ([1-9]\d*|\d+\.\d+) / Current Instability: (\d+) / Max Instability: (\d+)":
 		"{green}{1} took {2} stability damage, now at {3}/{4}",
 
 	r"WEAP:\d+ Loc:(.*) Critical: (.*) new damage state: (.*)":
@@ -143,7 +150,7 @@ def process(line, debug=False):
 @argh.arg('log_path', nargs='?')
 def main(log_path, interval=0.1, seek=False, debug=False):
 	if not log_path:
-		dump_dir = '/home/mike/steamapps/ssd_raid0/steamapps/common/BATTLETECH/DumpBox'
+		dump_dir = '/home/mike/steamapps/ssd_raid0/SteamLibrary/steamapps/common/BATTLETECH/DumpBox'
 		last = sorted(os.listdir(dump_dir))[-1]
 		log_dir = os.path.join(dump_dir, last)
 		log_paths = [os.path.join(log_dir, name) for name in os.listdir(log_dir) if name.endswith('CombatLog.txt')]
