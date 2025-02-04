@@ -16,9 +16,9 @@ unclutter &
 
 # Disable monitor powersaving and screensaver
 #setterm -blank 0 -powersave off -powerdown 0
-# TODO this doesn't work
 xset s noblank
 xset s off
+xset -dpms
 
 # xrandr your way into the correct setup
 setup-screens
