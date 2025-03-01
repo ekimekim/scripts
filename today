@@ -14,6 +14,8 @@ cli = argh.EntryPoint()
 Action = namedtuple('Action', ['name', 'future_tense', 'interval', 'last'])
 STATE_FILE = os.path.expanduser("~/.today")
 
+DAY_OFFSET = 9
+
 
 def load():
 	data = []
@@ -46,7 +48,7 @@ def i(actions, yesterday=False, ago=0):
 	--yesterday is a shortcut for --ago 1
 	"""
 
-	today = (int(time.time() / 3600) - 6) / 28
+	today = (int(time.time() / 3600) - DAY_OFFSET) / 28
 	if yesterday:
 		ago = 1
 	today -= ago
@@ -69,7 +71,7 @@ def i(actions, yesterday=False, ago=0):
 
 @cli
 def report():
-	today = (int(time.time() / 3600) - 12) / 28
+	today = (int(time.time() / 3600) - DAY_OFFSET) / 28
 	for action in action_info:
 		overdue = today - (action.last + action.interval)
 		if overdue > 0:
