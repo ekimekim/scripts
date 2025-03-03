@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Code based on observed pattern.
+# Still requires Everyday Extra account for code to work.
+# Once/month, max $500 order
+
+code=$(date '+X%b%Y' | tr a-z A-Z)
+echo "$code"
+xclip -selection clipboard <<<"$code"
