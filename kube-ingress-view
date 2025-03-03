@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -eu
+
+usage() {
+	echo "$0 [--class CLASS] [--host HOST]"
+	echo "Print a summary of ingress configs in the current kube context, optionally filtered by host and class."
+}
+
+usage_error() {
+	echo "$*" >&2
+	usage >&2
+	exit 1
+}
+
+CLASS=
+HOST=
+
+while [ "$#" -gt 0 ]; do
+	arg="$1"
+	shift
+	case "$arg" in
+		"--class")
+			[ "$#" -eq 0 ] && usage_error "Expected argument value"
+			CLASS="$1"
+			shift
+			;;
+		"--host")
+			[ "$#" -eq 0 ] && usage_error "Expected argument value"
+			HOST="$1"
+			shift
+			;;
+		"-h" | "--help")
+			usage
+			exit 1
+			;;
+		*)
+			usage_error "Unknown arg: $arg"
+			;;
+	esac
+done
+
+kubectl get ingress --all-namespaces -o json | jq -r --arg class "$CLASS" --arg host "$HOST" '
+	[
+		.items[] | {
+			name: "\(.metadata.namespace)/\(.metadata.name)",
+			class: .spec.ingressClassName,
+			rule: .spec.rules[]
+		}
+		| . + {
+			host: .rule.host,
+			path: ((.rule.http.paths // [])[]),
+		}
+		| select($class == "" or .class == $class)
+		| select($host == "" or .host == $host)
+	]
+	| sort_by([.class, .host, .path.path])
+	| .[]
+	| "\(.class): \(.host) \({Prefix: " ", Exact: "="}[.path.pathType] // "?") \(.path.path) -> \(.path.backend.service.name):\(.path.backend.service.port|.name // .number) [\(.name)]"
+'
