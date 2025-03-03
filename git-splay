@@ -38,4 +38,5 @@ for commit in "${COMMITS[@]}"; do
 done
 
 # This seems as sane a choice as any to leave the state in
+echo "Done. Returning to $BASE"
 git checkout "$BASE"
