@@ -159,28 +159,6 @@ docker() {
 	"${cmd[@]}" "$@"
 }
 
-screenshot() {
-	local filepath="${1:-/tmp/screenshot.png}"
-	shift
-	# If path already exists, scrot won't overwrite but will append a number to filename
-	rm "$filepath"
-	echo "Select a screen region..."
-	scrot "$@" -zs "$filepath" &&
-		echo "Saved to $filepath"
-}
-
-screenshot-window() {
-	local delay="${1:-3}"
-	local filepath="${2:-/tmp/screenshot.png}"
-	shift
-	shift
-	# If path already exists, scrot won't overwrite but will append a number to filename
-	rm "$filepath"
-	echo "Will screenshot focussed window in $delay seconds"
-	scrot "$@" -zucd "$delay" "$filepath" &&
-		echo "Saved to $filepath"
-}
-
 ndurl() {
 	echo "rtmp://rtmp.condorleague.tv/$1/live"
 }

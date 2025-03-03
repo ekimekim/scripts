@@ -1,0 +1,9 @@
+#!/bin/bash
+
+delay="${1:-3}"
+filepath="${2:-/tmp/screenshot.png}"
+shift
+shift
+rm -f "$filepath"
+echo "Will screenshot focussed window in $delay seconds"
+scrot "$@" -zucd "$delay" "$filepath" && echo "Saved to $filepath"
