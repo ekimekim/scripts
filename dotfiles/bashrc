@@ -270,6 +270,20 @@ check_file_alerts() {
 	[ ! -e /tmp/alerts ] || [ -z "$(ls /tmp/alerts)" ]
 }
 
+# Python one-liner helper.
+# Usage: py {STATEMENTS} EXPRESSION
+# Runs STATEMENTS then prints EXPRESSION. Examples:
+#  py '1+1' -> 2
+#  py 'n=5' 'n*(n-1)/2' -> 10
+py() {
+	stmt="pass"
+	while [ "$#" -gt 1 ]; do
+		stmt="$stmt; $1"
+		shift
+	done
+	python -c "$stmt; print($1)"
+}
+
 # Colour aliases
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
