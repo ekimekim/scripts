@@ -159,16 +159,6 @@ docker() {
 	"${cmd[@]}" "$@"
 }
 
-ndurl() {
-	echo "rtmp://rtmp.condorleague.tv/$1/live"
-}
-
-ndvlc() {
-	for name in "$@"; do
-		spawn vlc "$(ndurl "$name")"
-	done
-}
-
 function aws-find () {
 	local pattern="$1"
 	shift 1
