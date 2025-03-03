@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for p in "$@"; do
+	find "$p" -xdev -type f -exec du -a {} +
+done |
+	awk -F'\t' '{s = $2; gsub("/", ";", s); print s, $1}' |
+	flamegraph.pl
