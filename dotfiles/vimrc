@@ -15,6 +15,10 @@ command Git /^[<>|=]\{7\}
 map  :syntax sync fromstart<CR>
 command Sync :autocmd CursorMoved * :syntax sync fromstart | :autocmd CursorMovedI * :syntax sync fromstart
 
+" Command to diff current buffer with the on-disk file.
+" This is particularly useful when recovering from a swp file.
+command Diff :w !diff -u % -
+
 " Expand tabs only for these projects / under these directories:
 :autocmd BufRead,BufNewFile ~/src/argh/* set expandtab
 :autocmd BufRead,BufNewFile ~/src/DesertBot/* set expandtab
