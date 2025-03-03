@@ -7,7 +7,8 @@ import subprocess
 with open(os.path.expanduser("~/.twitch-videostriketeam-irc.oauth")) as f:
 	password = f.read().strip()
 
-channel = '#desertbus'
+channel = 'desertbus' if len(sys.argv) < 3 else sys.argv[2]
+channel = '#' + channel.lstrip('#')
 nick = 'DBVideoStrikeTeam'
 nousers = True
 host = 'irc.twitch.tv'
