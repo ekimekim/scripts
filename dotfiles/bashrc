@@ -83,6 +83,11 @@ source <(kubectl completion bash)
 source "$HOME/bin/auto-alias-completions.bash"
 source <(k8s-api-docs completion)
 
+_pake_complete() {
+	pake -qq --complete "$2"
+}
+complete -C _pake_complete pake
+
 # Wrapper around xargs and sudo to expand aliases
 _maybe_expand_alias() {
 	local cmd="$(which "$1")"
