@@ -7,14 +7,16 @@ import yaml
 from argh import dispatch_command, arg
 
 
-@arg('filepath', help='File to read, or - (default) for stdin', nargs='?', default='-')
-def main(filepath, pretty=True):
-	if filepath == '-':
-		f = sys.stdin
-	else:
-		f = open(filepath)
+@arg('filepaths', help='File to read, or - (default) for stdin', nargs='*', default='-')
+def main(filepaths, pretty=True):
+	data = []
+	for filepath in filepaths:
+		if filepath == '-':
+			f = sys.stdin
+		else:
+			f = open(filepath)
 
-	data = list(yaml.safe_load_all(f))
+		data += list(yaml.safe_load_all(f))
 	print(json.dumps(data, indent=4 if pretty else None, default=str))
 
 
