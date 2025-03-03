@@ -18,3 +18,8 @@
   --tabs-border-color: rgba(0,0,0,.3);
   --tabs-navbar-shadow-size: 0px;
 }
+
+/* Hide tab manager button: https://superuser.com/questions/1750467/how-can-i-remove-firefoxs-list-all-tabs-button */
+#alltabs-button {
+	display: none !important;
+}
