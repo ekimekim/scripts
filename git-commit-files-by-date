@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 {FILES}"
+	echo "Commits each new file in a seperate commit with an author timestamp based on file's mtime."
+	echo "For transfering files from non-git that may be old."
+	exit 1
+fi
+
+stat -c '%Y %n' "$@" | sort -n | while read -r mtime file; do
+	git add "$file"
+	GIT_AUTHOR_DATE="$mtime +0000" git commit -m "Add $file" 
+done
