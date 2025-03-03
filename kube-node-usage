@@ -1,18 +1,20 @@
 #!/bin/bash
 
 if [ "$#" -lt 1 ]; then
-	echo "USAGE: $0 BY_PROG" >&2
+	echo "USAGE: $0 BY_PROG [FILTER_PROG]" >&2
 	echo "Print per-node resource usage grouped by the given BY_PROG." 2>&1
 	echo "BY_PROG should be a jq program that takes a pod and produces a string." 2>&1
+	echo "Optional FILTER_PROG should be a jq program that returns true for pods to include in the result." 2>&1
+	exit 1
 fi
 
 kubectl get pods -o json --all-namespaces | jq -r '
 	.items
 	| map(
-		select(.status.phase == "Running")
+		select(.status.phase == "Running" and ('"${2:-true}"'))
 		| {
 			node: .spec.nodeName,
-			by: '"$1"',
+			by: ('"$1"'),
 			cpu: (
 				.spec.containers[].resources.requests.cpu // "0"
 				| if endswith("m") then (.[:-1]|tonumber|./1000) else tonumber end
