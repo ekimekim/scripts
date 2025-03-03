@@ -1,0 +1,39 @@
+#!/bin/python3
+
+import argh
+
+
+def main():
+	"""Simulates a balatro hand according to instructions on stdin. Instructions are whitespace-seperated
+	and come in three forms:
+		Nc - add N chips
+		Nm - add N mult
+		Nx - multiply mult by N
+	The current total is printed after each newline.
+	"""
+	chips = 0
+	mult = 0
+	while True:
+		try:
+			line = input("> ")
+		except EOFError:
+			print()
+			break
+		for part in line.strip().split():
+			if not part:
+				continue
+			amount, suffix = part[:-1], part[-1]
+			amount = float(amount)
+			if suffix == 'c':
+				chips += amount
+			elif suffix == 'm':
+				mult += amount
+			elif suffix == 'x':
+				mult *= amount
+			else:
+				raise ValueError("Unknown suffix")
+		print(f"{chips} x {mult} = {chips*mult}")
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
