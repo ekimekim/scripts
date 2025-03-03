@@ -10,7 +10,7 @@ TIMEZONES=( # SGR format, timezone
 	"33 Europe/Stockholm"
 	"36 America/Los_Angeles"
 )
-ADD_28HR="Europe/Stockholm 8" # base time zone, start hour offset
+ADD_28HR="Australia/Sydney -8" # base time zone, start hour offset
 ADD_CUSTOM=
 
 # Bustime
