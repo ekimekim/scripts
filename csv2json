@@ -1,7 +1,8 @@
-#!/bin/env python2
+#!/bin/env python3
 
 import csv
 import json
+import sys
 
 import argh
 
@@ -14,7 +15,7 @@ def main(file, no_fields=False):
 		else:
 			reader = csv.DictReader(file)
 		for row in reader:
-			print json.dumps(row)
+			print(json.dumps(row))
 
 
 if __name__ == '__main__':
