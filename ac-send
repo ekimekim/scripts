@@ -1,8 +1,9 @@
-#!/bin/env python2
+#!/bin/env python3
 
 import array
 import fcntl
 import logging
+import os
 
 import argh
 
@@ -21,7 +22,8 @@ def ioctl(file, op, arg):
 		arg = array.array('i', [arg])
 	ret = fcntl.ioctl(file.fileno(), op, arg)
 	if ret < 0:
-		raise OSError(-ret)
+		# This automatically raises the correct subclass
+		raise OSError(-ret, os.strerror(-ret))
 
 def make_payload(temp, mode, fan, vane, off, time=0):
 	temp = temp - 16
@@ -87,10 +89,10 @@ def make_pulses(temp, mode, fan, vane, off):
 def main(temp, mode='heat', fan='high', vane='auto', off=False, devpath='/dev/lirc0', log='WARNING'):
 	logging.basicConfig(level=log)
 	data = make_pulses(temp, mode, fan, vane, off)
-	dev = open(devpath, 'w')
+	dev = open(devpath, 'wb')
 	ioctl(dev, LIRC_SET_SEND_MODE, LIRC_MODE_PULSE)
 #	ioctl(dev, LIRC_SET_SEND_CARRIER, 38000) # not needed? and doesn't work on the pi
-	dev.write(array.array('i', data).tostring())
+	dev.write(array.array('i', data).tobytes())
 	dev.close()
 
 argh.dispatch_command(main)
