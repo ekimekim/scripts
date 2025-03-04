@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eu
+
+for file in "$@"; do
+	$EDITOR "$file"
+done
