@@ -1,0 +1,31 @@
+#!/bin/bash
+
+LOG_PATH="/home/mike/.cronlogs"
+ALERTS_PATH="/tmp/alerts"
+
+if [ "$#" -lt 2 ]; then
+	echo "USAGE: $0 NAME COMMAND {ARGS}" >&2
+	echo "Runs the given command, logging to a file under NAME and creating an alert on failure." >&2
+	echo "Intended for cronjobs." >&2
+fi
+
+NAME="$1"
+shift
+
+(
+	now=$(date -Is)
+
+	# most cronjobs need the corrected path
+	PATH="/home/mike/bin:/usr/local/bin:$PATH"
+
+	echo "=== Running at $now: $* ==="
+	"$@"
+	status=$?
+	echo "=== Exited with status $status ==="
+
+	if [ "$status" -ne 0 ]; then
+		mkdir -p "$ALERTS_PATH"
+		echo "$NAME job at $now exited with status $status" > "$ALERTS_PATH/$NAME.alert"
+	fi
+) >> "$LOG_PATH/$NAME.log" 2>&1
+

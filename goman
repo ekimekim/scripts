@@ -1,0 +1,3 @@
+#!/bin/bash
+
+spawn $BROWSER "https://pkg.go.dev/$1"

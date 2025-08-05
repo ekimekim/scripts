@@ -29,7 +29,7 @@ hi Visual       ctermfg=NONE ctermbg=NONE cterm=reverse
 hi VisualNOS    ctermfg=NONE ctermbg=NONE cterm=bold,underline
 hi WarningMsg   ctermfg=1    ctermbg=NONE cterm=NONE
 hi WildMenu     ctermfg=0    ctermbg=3    cterm=NONE
-hi Folded       ctermfg=4    ctermbg=7    cterm=NONE
+hi Folded       ctermfg=2    ctermbg=NONE cterm=NONE
 hi FoldColumn   ctermfg=4    ctermbg=7    cterm=NONE
 hi DiffAdd      ctermfg=6    ctermbg=NONE cterm=NONE
 hi DiffChange   ctermfg=5    ctermbg=NONE cterm=NONE

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+out=$(pacman -Qqtd)
+mapfile -t orphans <<<"$out"
+
+echo "${orphans[*]}"
+
+for pkg in "${orphans[@]}"; do
+	echo
+	pacman -Qi "$pkg"
+	while true; do
+		read -rn1 -p "$pkg: (Remove, List contents, mark Explicit, Skip) > " resp
+		echo
+		case "$resp" in
+			r | R)
+				sudo pacman -Rs "$pkg"
+				break
+				;;
+			l | L)
+				pacman -Ql "$pkg"
+				;;
+			e | E)
+				sudo pacman -D --asexplicit "$pkg"
+				break
+				;;
+			s | S)
+				break
+				;;
+		esac
+	done
+done

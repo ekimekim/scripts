@@ -34,7 +34,8 @@ myKeys =
 	((myModMask, xK_e), spawn "dmenu-unicode"),
 	((myModMask, xK_s), spawn "setup-screens"),
 	((myModMask, xK_c), spawn "screenshot"),
-	((myModMask, xK_x), spawn "screenshot-window 0")
+	((myModMask, xK_x), spawn "screenshot-window 0"),
+	((myModMask, xK_v), spawn "typepaste --release-keys")
 	] ++ [
 		-- switch to extra workspaces
 		((myModMask, key), (windows $ W.greedyView ws))

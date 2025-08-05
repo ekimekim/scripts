@@ -1,6 +1,19 @@
 #!/bin/bash
 
+set -eu
+
 WAIT=${1:-1}
 TYPEDELAY=${2:-20} # ms
 
-sleep "$WAIT" && xdotool type --delay "$TYPEDELAY" "$(xclip -selection clipboard -o)"
+if [ "$WAIT" = '--release-keys' ]; then
+	input=$(xinput --list | grep 'USB Keyboard *	id='|sed 's/.*id=\([0-9]\+\).*/\1/')
+	if ! [ -n "$input " ]; then
+		echo "Failed to find keyboard" >&2
+		exit 1
+	fi
+	while xinput query-state "$input" | grep -q down; do sleep 0.1; done
+elif [ "$WAIT" -gt 0 ]; then
+	sleep "$WAIT"
+fi
+
+xdotool type --delay "$TYPEDELAY" "$(xclip -selection clipboard -o)"

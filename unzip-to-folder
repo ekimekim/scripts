@@ -3,7 +3,7 @@
 [ -n "$1" ] || exit 1
 
 zipfile=$(realpath "$1")
-name=$(basename "${zipfile%%.zip}")
+name=$(basename "${zipfile%.*}")
 
 mkdir "$name"
 cd "$name" && unzip "$zipfile"

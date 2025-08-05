@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eu
+
+if [ "$#" -lt 1 ]; then
+	echo "USAGE: $0 HOST [PORT]" >&2
+	echo "Print debug info (including TLS certs) when connecting to given HOST:PORT with TLS" >&2
+	echo "Port defaults to 443." >&2
+	exit 1
+fi
+
+HOST="$1"
+PORT="${2:-443}"
+
+openssl s_client -host "$HOST" -port "$PORT" -showcerts </dev/null

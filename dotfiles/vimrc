@@ -33,3 +33,18 @@ command Diff :w !diff -u % -
 :autocmd BufRead,BufNewFile *.*sonnet set expandtab ts=2 sw=2
 :autocmd BufRead,BufNewFile *.tf set expandtab ts=2 sw=2
 :autocmd BufRead,BufNewFile Makefile set noexpandtab
+
+" Folding options
+" Fold indented blocks, but start all unfolded
+set foldmethod=indent
+set foldlevel=99
+" Show '--- N lines ---' but at the correct indentation level and without any trailing fill
+set fillchars=vert:\|,fold:\ ,eob:~,lastline:@
+set foldtext=FoldText()
+function! FoldText()
+	let lines = v:foldend - v:foldstart + 1
+	let prefix = repeat(' ',indent(nextnonblank(v:foldstart)))
+	return prefix . printf('--- %s lines ---', lines)
+endfunction
+" Toggle fold with spacebar
+nnoremap <space> za

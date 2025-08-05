@@ -135,7 +135,7 @@ def apply(to_apply):
 
 
 def parse_temp(temp):
-	if temp in ('off', 'show'):
+	if temp in ('off', 'show', 'force'):
 		return temp
 	temp = int(temp)
 	if not (16 <= temp <= 30):
@@ -149,7 +149,7 @@ def parse_rooms(rooms):
 		return rooms.split(",")
 
 
-@argh.arg('temp', type=parse_temp, metavar='TEMP | off | show')
+@argh.arg('temp', type=parse_temp, metavar='TEMP | off | show | force')
 @argh.arg('--rooms', '-r', type=parse_rooms, metavar='(ROOM{,ROOM}) | all', help="Choices: {}".format(" ,".join(ROOMS.keys())))
 @argh.arg('--mode', '-m', choices=['heat', 'cool', 'dry', 'auto'])
 @argh.arg('--fan', '-f', choices=['high', 'med', 'low', 'auto'])
@@ -171,6 +171,12 @@ def main(temp, rooms=('office', 'living'), mode='heat', fan='high', vane='auto',
 				print("    but wants to be set to {}".format(" ".join(render_settings(desired))))
 		if state['dirty']:
 			print("State is considered dirty.")
+		return
+
+	if temp == 'force':
+		apply(state['desired'])
+		state['dirty'] = False
+		save_state(state)
 		return
 
 	if "all" in rooms:
