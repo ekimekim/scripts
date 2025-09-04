@@ -1,0 +1,51 @@
+#!/bin/bash
+
+cmd="$1"
+shift
+
+claude-stream() {
+	prompt="$1"
+	shift
+	claude --print "$prompt" --verbose --output-format stream-json "$@" | 
+		jq --unbuffered -r '
+			(
+				select(.message.type == "message") |
+				.message.content[] | (
+					(select(.type == "text") | .text),
+					(select(.type == "tool_use") | "> Used tool: \(.name)")
+				)
+			),
+			(
+				select(.type == "user") |
+				.message.content[] |
+				select(.type == "tool_result") |
+				if .is_error then
+					"> Tool failed: \(.content)"
+				else
+					"> Tool succeeded"
+				end
+			)
+		'
+}
+
+case "$cmd" in
+	edit)
+		claude-stream "$*" --permission-mode acceptEdits --disallowedTools 'Edit(.git/**)'
+		;;
+	ask)
+		claude --permission-mode plan --print "$*"
+		;;
+	search)
+		claude-stream "$*" --permission-mode plan --allowedTools 'WebFetch,WebSearch'
+		;;
+	interact)
+		claude --permission-mode acceptEdits --disallowedTools 'Write(./.git)' "$*"
+		;;
+	continue)
+		claude --continue
+		;;
+	*)
+		echo "Unknown command: $cmd" >&2
+		exit 1
+		;;
+esac
