@@ -7,7 +7,7 @@ log_and_run() {
 
 cd "$(dirname "$0")"
 
-for file in *; do
+for file in "$@"; do
 	[ "$file" = 'linkall' ] && continue # exclude self
 
 	# if contains _

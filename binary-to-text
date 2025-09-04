@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import sys
 s = ''.join(c for c in sys.stdin.read() if c in '01')

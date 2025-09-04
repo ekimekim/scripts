@@ -1,24 +1,9 @@
 
-# Fix path, which on some systems ends up with /usr/bin overriding /usr/local/bin
-PATH=$(/usr/bin/python2 -c '
-import sys
-path = sys.argv[1].split(":")
-dedup_path = []
-for p in path:
-	if p not in dedup_path:
-		dedup_path.append(p)
-for goes_last in ["/usr/bin", "/home/mike/.local/bin"]:
-	if goes_last in dedup_path:
-		dedup_path.remove(goes_last)
-		dedup_path.append(goes_last)
-print ":".join(dedup_path)
-' "$PATH")
-
 # PS1 config
 fullps1() {
 	PS1='[\t] \u@\h:\w\$ '
-	source "$HOME/bin/alerts.ps1.bash"
-	source "$HOME/bin/gitcolours.ps1.bash"
+	source "$HOME/src/scripts/alerts.ps1.bash"
+	source "$HOME/src/scripts/gitcolours.ps1.bash"
 }
 shortps1() {
 	PS1='\$ '
@@ -53,35 +38,20 @@ rehistory() {
 	history -n
 }
 
-# This sets env vars and sets up keychain if needed, without locking the agent
-source "$HOME/bin/setup-keychain.bash" -Q
-
-# This is needed for gpg to work
-export GPG_TTY=$(tty)
-
-# Add ruby gem executables to path
-for rubypath in /home/mike/.gem/ruby/*/bin; do
-	PATH="$rubypath:$PATH"
-done
 # Add go binaries to PATH (see GOPATH below)
 PATH="$HOME/.go/bin:$PATH"
 # Add rust binaries to PATH
 PATH="$HOME/.cargo/bin:$PATH"
 # Add ~/bin to PATH, allowing user-specific scripts to be called anywhere
-PATH="$HOME/bin:$PATH"
+PATH="$HOME/src/scripts:$PATH"
 # Add py3 binaries to PATH, but only as a last resort to prevent it overriding py2 bins
 PATH="$PATH:$HOME/.local/bin"
 
-# This seems to be required for things in arch to work correctly.
-export JAVA_HOME=/usr/lib/jvm/default
-
 # source auto-complete scripts
-source "/usr/share/git/completion/git-completion.bash"
-source "/usr/share/bash-completion/completions/pass"
-source "$HOME/bin/git-alias-completion.bash"
+source /opt/homebrew/etc/bash_completion
+source "$HOME/src/scripts/git-alias-completion.bash"
 source <(kubectl completion bash)
-source "$HOME/bin/auto-alias-completions.bash"
-source <(k8s-api-docs completion)
+source "$HOME/src/scripts/auto-alias-completions.bash"
 
 _pake_complete() {
 	pake -qq --complete "$2"
@@ -200,23 +170,6 @@ confirm() {
 	"$@"
 }
 
-# list pacnew files present in /etc
-list_pacnew() {
-	find '/etc' \
-		-type d \! -perm '-g+r,u+r,o+r' -prune \
-		-or -type f -name '*.pacnew' -print
-	# first line omits unreadable directories, second line searches for pacnew files
-}
-check_pacnew() {
-	[ -z "$(list_pacnew)" ]
-}
-diff_pacnew() {
-	for path in $(list_pacnew); do
-		original="${path%.pacnew}"
-		sudo patch-interactive "$original" "$path" || break
-	done
-}
-
 certbot() {
 	command certbot --config-dir ~/.certbot/config --work-dir ~/.certbot/work --logs-dir ~/.certbot/logs "$@"
 }
@@ -237,12 +190,6 @@ check_bashrc() {
 }
 BASHRC_DIGEST=`sha512sum "$HOME/.bashrc" | cut -f1 -d' '`
 
-# Warn if our running kernel is no longer our installed kernel
-# (we need to reboot). This happens when the linux package is upgraded.
-check_kernel_version() {
-	[ -d "/usr/lib/modules/$(uname -r)" ]
-}
-
 # Warn if we are in a git repo and have an active stash ref
 check_git_stash() {
 	! git show-ref --verify refs/stash >/dev/null 2>&1
@@ -251,23 +198,6 @@ check_git_stash() {
 # Warn if we are in a subshell started by "git with", since I always forget
 check_git_with_nesting() {
 	return "${GIT_WITH_NESTING_LEVEL:-0}"
-}
-
-# Warn if proton is not mounted
-check_proton_mount() {
-	[ -n "$(awk '$2 == "/mnt/proton_C"' /proc/mounts)" ]
-}
-
-# Warn after 2 days without journal
-check_journal() {
-	JOURNAL_DIR="$HOME/documents/journal"
-	[ -f "$JOURNAL_DIR/$(date +%F).txt" ] || # either today's file should exist
-	[ -f "$JOURNAL_DIR/$(date -d yesterday +%F).txt" ] # or yesterday's
-}
-
-# Check for /tmp/alerts/* files
-check_file_alerts() {
-	[ ! -e /tmp/alerts ] || [ -z "$(ls /tmp/alerts)" ]
 }
 
 # Python one-liner helper.
@@ -299,7 +229,6 @@ alias sumv='sudo mv'
 alias sucp='sudo cp'
 
 # Other aliases
-alias 'pip-upgrade'='sudo PYTHONWARNINGS=ignore pip2 install -U --no-deps'
 alias commit='git commit -av'
 alias status='git status -sb'
 alias clock-small='watch -n1 date'
@@ -337,12 +266,8 @@ alias gcloud-secret='gcloud secrets versions access latest --secret'
 # PS1 alerts (see alerts.ps1.bash)
 ALERTS=(
 	check_bashrc
-	check_pacnew
-	check_kernel_version
 	check_git_stash
 	check_git_with_nesting
-	check_proton_mount
-	check_file_alerts
 )
 
 # Env vars
@@ -359,6 +284,7 @@ export PYTHONWARNINGS=ignore # heavy-handed but i can't work out how to make pip
 # Avoid hard-to-read, extremely verbose "pretty" tracebacks in certain python CLIs
 export _TYPER_STANDARD_TRACEBACK=1
 [ -f "$HOME/.secrets" ] && source "$HOME/.secrets" # set sensitive env vars, eg. api secrets
+export GITHUB_TOKEN=$(gh auth token)
 
 # Misc completions
 complete -c which

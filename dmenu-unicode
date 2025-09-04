@@ -1,4 +1,4 @@
-#!/bin/env python2
+#!/usr/bin/env python2
 
 """A script that uses dmenu to let user choose any unicode char by name,
 and copies it to clipboard."""
