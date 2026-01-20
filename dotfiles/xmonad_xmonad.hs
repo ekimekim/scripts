@@ -8,7 +8,8 @@ import qualified XMonad.StackSet as W
 fineTall = Tall 1 (1/1920) (1/2)
 
 -- three extra workspaces on keys 0, -, =
-extraWorkspaces = [(xK_0, "10"),(xK_minus, "11"),(xK_equal, "12")]
+-- one more extra workspace on pause/break
+extraWorkspaces = [(xK_0, "10"),(xK_minus, "11"),(xK_equal, "12"),(xK_Pause, "13")]
 
 -- Ignore firefox notification windows, so they go into the top-right of the screen.
 myManageHook = composeAll
@@ -24,8 +25,8 @@ main = do
 			handleEventHook = fullscreenEventHook,
 			layoutHook = fineTall ||| Mirror fineTall ||| Full,
 			manageHook = myManageHook <+> manageHook defaultConfig,
-			-- three extra workspaces
-			workspaces = map show [1 .. 12]
+			-- four extra workspaces
+			workspaces = map show [1 .. 13]
 		} `additionalKeys` (myKeys)
 
 myKeys =
