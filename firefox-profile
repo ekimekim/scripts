@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+	echo "$0 PROFILE {ARGS}"
+	exit 1
+fi
+
+PROFILE="$HOME/.firefox-$1"
+shift
+
+mkdir -p "$PROFILE"
+exec firefox-developer-edition -profile "$PROFILE" -no-remote "$@"
