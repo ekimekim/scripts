@@ -19,10 +19,10 @@
 	spush = !PUSH_MASTER=true git push
 	rpush = !git pull --rebase && git push
 	co = checkout
-	master = checkout master
+	master = "!git checkout \"$(git default-branch)\""
 	dev = checkout dev
 	ddev = checkout --detach dev
-	rim = rebase -i master
+	rim = "!git rebase -i \"$(git default-branch)\""
 	rid = rebase -i dev
 	b = rev-parse --symbolic-full-name HEAD
 	pr = !hub pull-request
@@ -38,6 +38,10 @@
 	archive-branch = "!f(){ for b in \"$@\"; do git branch -m \"$b\" \"archive/$b\"; done ;}; f"
 	archive-wip = "!f(){ name=${1:?need branch name}; shift; git checkout -b \"archive/$name\" && git wip \"$@\" ;}; f"
 	br = "!f(){ git branch \"$@\" -v --color --list | grep -v '^  archive/' | sniplines ;}; f"
+	default-branch = "!f(){ remote=${1:-origin}; git symbolic-ref \"refs/remotes/$remote/HEAD\" --short | cut -d/ -f2- ;}; f"
+
+	# create branch, commit, push, create pr
+	bcpr = "!f() { b=${1?branch required}; git checkout -b \"$b\" && git commit -a && git por ;}; f"
 
 	# display a diff consisting of all commits on $2 (default HEAD) but not $1 (default master)
 	diff-branch = "!f(){ base=\"${1:-master}\"; target=\"${2:-HEAD}\"; git diff $(git merge-base \"$base\" \"$target\") \"$target\"; }; f"
