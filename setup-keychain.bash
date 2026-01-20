@@ -6,4 +6,4 @@ KEYS=(
 	id_rsa
 )
 
-eval $(keychain --eval --agents ssh --quiet "$@" "${KEYS[@]}")
+eval $(keychain --eval --quiet "$@" "${KEYS[@]}")
