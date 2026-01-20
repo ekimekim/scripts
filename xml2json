@@ -1,0 +1,26 @@
+#!/bin/env python3
+
+import argh
+
+import json
+import sys
+
+import xml.etree.ElementTree as ET
+
+def convert(element):
+	return {
+		"tag": element.tag,
+		"attrs": element.attrib,
+		"text": "" if element.text is None else element.text.strip(),
+		"children": [convert(c) for c in element],
+	}
+
+
+def main():
+	doc = ET.fromstring(sys.stdin.read())
+	obj = convert(doc)
+	print(json.dumps(obj, indent=2))
+
+
+if __name__ == '__main__':
+	argh.dispatch_command(main)
