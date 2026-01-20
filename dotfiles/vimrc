@@ -19,6 +19,9 @@ command Sync :autocmd CursorMoved * :syntax sync fromstart | :autocmd CursorMove
 " This is particularly useful when recovering from a swp file.
 command Diff :w !diff -u % -
 
+" Command to render current file with graph-easy to /tmp/graph.png
+command Graph :!graph-easy % --as png /tmp/graph.png
+
 " Expand tabs only for these projects / under these directories:
 :autocmd BufRead,BufNewFile ~/src/argh/* set expandtab
 :autocmd BufRead,BufNewFile ~/src/DesertBot/* set expandtab
