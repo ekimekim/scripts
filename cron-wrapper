@@ -4,9 +4,15 @@ LOG_PATH="/home/mike/.cronlogs"
 ALERTS_PATH="/tmp/alerts"
 
 if [ "$#" -lt 2 ]; then
-	echo "USAGE: $0 NAME COMMAND {ARGS}" >&2
+	echo "USAGE: $0 [--retry COUNT] NAME COMMAND {ARGS}" >&2
 	echo "Runs the given command, logging to a file under NAME and creating an alert on failure." >&2
 	echo "Intended for cronjobs." >&2
+fi
+
+RETRY=1
+if [ "$1" == "--retry" ]; then
+	RETRY=$2
+	shift 2
 fi
 
 NAME="$1"
@@ -18,10 +24,18 @@ shift
 	# most cronjobs need the corrected path
 	PATH="/home/mike/bin:/usr/local/bin:$PATH"
 
-	echo "=== Running at $now: $* ==="
-	"$@"
-	status=$?
-	echo "=== Exited with status $status ==="
+	for ((attempt = 1; attempt <= RETRY; attempt++)); do
+		echo "=== Running at $now: $* ==="
+		"$@"
+		status=$?
+		echo "=== Exited with status $status ==="
+		if [ "$status" -eq 0 ]; then
+			break
+		fi
+		if [ "$attempt" -lt "$RETRY" ]; then
+			sleep 5
+		fi
+	done
 
 	if [ "$status" -ne 0 ]; then
 		mkdir -p "$ALERTS_PATH"
