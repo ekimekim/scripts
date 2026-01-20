@@ -17,4 +17,4 @@ fi
 exec streamlink "$url" "${TW_QUALITY:-1080p,best}" \
 	--twitch-low-latency --twitch-disable-ads --hls-live-edge 1 \
 	"${AUTH_ARGS[@]}" \
-	-p mpv --player-args "--profile=low-latency $*"
+	-p mpv --player-args "--profile=low-latency $*" --player-verbose
