@@ -10,6 +10,13 @@ USAGE = ("USAGE: {} {{PLAYLIST}}\n"
          "All entries are included, even if only present in one playlist"
         ).format(sys.argv[0])
 
+def extreme_by_path(path, *values):
+	midpoint = 8 if any(path.startswith(prefix) for prefix in [
+		"/home/mike/music/Artists/SilvaGunner/",
+		"/home/mike/music/Artists/8 Bit Universe/",
+	]) else 16
+	return MergeStrategies.extreme(midpoint)(path, *values)
+
 def main(*args):
 	if not args:
 		sys.stderr.write(USAGE + '\n')
@@ -18,7 +25,7 @@ def main(*args):
 	playlists = [Playlist(path) for path in args]
 	p1 = playlists.pop(0)
 	for p in playlists:
-		p1.merge(p, (MergeStrategies.extreme(16), MergeStrategies.extreme(0.5)))
+		p1.merge(p, (extreme_by_path, MergeStrategies.extreme(0.5)))
 	p1.write(sys.stdout)
 
 if __name__ == '__main__':
