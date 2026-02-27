@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -e
-
-cd ~/src/depict
-exec depict ./dev gcp-logs "$@"

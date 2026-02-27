@@ -3,7 +3,6 @@
 REPO_NAME=$(basename "$(git rev-parse --show-toplevel)")
 
 FOR_REPOS=(
-	"depict"
 )
 
 if [ "$PUSH_MASTER" == 'true' ] || [ "$PUSH_MASTER" == "$REPO_NAME" ]; then
