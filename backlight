@@ -15,12 +15,16 @@ def write(name, value):
 	with open(os.path.join(PATH, name), 'w') as f:
 		f.write('{}\n'.format(value))
 
-@argh.arg('percent', nargs='?', default=None)
+@argh.arg('percent', nargs='?', default=None, metavar='PERCENT|#VALUE|min|max')
 def main(percent):
 	"""Set or get backlight brightness.
 	Give a percentage to set, or #N to set to an explicit integer N.
 	Give no args to query.
 	"""
+	if percent == 'min':
+		percent = '#1'
+	if percent == 'max':
+		percent = '100'
 	if percent and percent.startswith('#'):
 		write('brightness', int(percent[1:]))
 		return
