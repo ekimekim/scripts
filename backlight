@@ -2,6 +2,7 @@
 
 import math
 import os
+import subprocess
 
 import argh
 
@@ -12,8 +13,16 @@ def read(name):
 		return int(f.read())
 
 def write(name, value):
-	with open(os.path.join(PATH, name), 'w') as f:
-		f.write('{}\n'.format(value))
+	path = os.path.join(PATH, name)
+	data = f"{value}\n".encode()
+	try:
+		with open(path, 'wb') as f:
+			f.write(data)
+	except PermissionError:
+		print(f"Got EACCES on write to {path}, using sudo")
+		# We are invoking sh in the form: sh -c COMMAND $0 $1
+		# This prevents any issues (however unlikely) with special chars in path.
+		subprocess.run(["sudo", "sh", "-c", 'cat > "$1"', "-", path], input=data)
 
 @argh.arg('percent', nargs='?', default=None, metavar='PERCENT|#VALUE|min|max')
 def main(percent):
