@@ -1,3 +1,0 @@
-#!/bin/bash
-
-chromium "http://www.wolframalpha.com/input/?i=$*" &

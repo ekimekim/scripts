@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# It's xclip + xargs
-
-xclip -o -selection clipboard | xargs "$@"

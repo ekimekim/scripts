@@ -388,7 +388,6 @@ alias ip='sudo ip --color'
 alias 'wifi-menu'='sudo wifi-menu'
 alias crictl='sudo crictl'
 alias mplayer="check-ssh $(which mplayer)"
-alias off-screens="check-ssh $(which off-screens)"
 
 # This alias is redefined after generating its completion, see above.
 alias kubens='kubectl config set-context --current --namespace'

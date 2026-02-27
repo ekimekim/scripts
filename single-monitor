@@ -1,7 +1,0 @@
-#!/bin/bash
-
-X_ONE_SCREEN=true setup-screens
-[ "$1" == "simple" ] && exit 0
-echo "Press enter to re-enable monitor"
-read
-setup-screens

@@ -1,6 +1,0 @@
-#!/bin/bash
-
-fahctl unpause
-read -srn1 -p "Press any key to stop folding
-"
-fahctl pause
