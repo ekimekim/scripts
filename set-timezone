@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eu
+
+sudo ln -sf "/usr/share/zoneinfo/$1" /etc/localtime
